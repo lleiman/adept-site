@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ADEPT — кейс</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800;900&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-2: #f5f3ec;
+      --ink: #0b0b08;
+      --ink-2: #2a2a22;
+      --muted: #6e6a59;
+      --line: rgba(11, 11, 8, 0.12);
+      --lime: #cfe430;
+      --lime-2: #b6c821;
+      --card-radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Onest", ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body { overflow-x: hidden; position: relative; }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    /* layout shell */
+    .shell {
+      position: relative;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 36px 80px;
+      z-index: 2;
+    }
+    @media (max-width: 720px) {
+      .shell { padding: 18px 16px 60px; }
+    }
+
+    /* eyebrow / dot-sep / corner-bracket */
+    .eyebrow {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--lime);
+    }
+    .dot-sep {
+      display: inline-block;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.55;
+      vertical-align: middle;
+      margin: 0 14px;
+    }
+
+    /* button */
+    .btn {
+      appearance: none;
+      border: 0;
+      background: var(--lime);
+      color: var(--ink);
+      font: 600 16px/1 "Onest", sans-serif;
+      letter-spacing: -0.005em;
+      padding: 22px 28px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      transition: transform .18s ease, background .18s ease;
+      box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 8px 24px -10px rgba(207,228,48,.6);
+    }
+    .btn:hover { background: #d8ed3d; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn .arr { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; }
+
+    /* header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .header .logo { width: 240px; height: auto; flex-shrink: 0; }
+    @media (max-width: 720px) { .header .logo { width: 160px; } }
+
+    /* brand ticker */
+    .ticker {
+      position: relative;
+      flex: 1;
+      max-width: 540px;
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    }
+    .ticker .row {
+      display: flex;
+      gap: 28px;
+      width: max-content;
+      animation: ticker var(--ticker-dur, 50s) linear infinite;
+      align-items: center;
+    }
+    .ticker:hover .row { animation-play-state: paused; }
+    .ticker .brand {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .ticker .brand::after {
+      content: ""; width: 4px; height: 4px;
+      border-radius: 50%; background: var(--ink); opacity: 0.45;
+    }
+    @keyframes ticker {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-50%, 0, 0); }
+    }
+    @media (max-width: 720px) {
+      .ticker { max-width: 60vw; }
+      .ticker .brand { font-size: 13px; gap: 18px; }
+    }
+
+    /* breadcrumb / back nav */
+    .case-nav {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 28px 0 36px;
+      font: 500 12px/1 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .case-nav .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      text-decoration: none;
+      background: rgba(255,255,255,.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .case-nav .back:hover {
+      background: var(--lime);
+      border-color: var(--lime);
+      transform: translateX(-2px);
+    }
+    .case-nav .back svg { transition: transform .15s ease; }
+    .case-nav .back:hover svg { transform: translateX(-2px); }
+    .case-nav .crumb-sep { opacity: .4; }
+    .case-nav .crumb-cur { color: var(--ink-2); }
+
+    /* title block */
+    .cd-title { margin: 8px 0 28px; max-width: 980px; }
+    .cd-meta-row {
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap; margin-bottom: 22px;
+    }
+    .cd-tag {
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink-2);
+      background: rgba(255,255,255,.55);
+    }
+    .cd-h1 {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 0.96;
+      font-size: clamp(40px, 6vw, 84px);
+      margin: 0 0 22px;
+      text-wrap: balance;
+    }
+    .cd-lead {
+      font-size: 20px;
+      line-height: 1.4;
+      color: var(--ink-2);
+      max-width: 720px;
+      text-wrap: pretty;
+    }
+
+    /* poster (video placeholder) */
+    .cd-poster {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #0b0b08;
+      aspect-ratio: 16 / 9;
+      margin: 36px 0 56px;
+      isolation: isolate;
+    }
+    .cd-poster .pic {
+      position: absolute; inset: 0; z-index: 0;
+      background-size: cover; background-position: center;
+      transition: transform 1.2s ease;
+    }
+    .cd-poster:hover .pic { transform: scale(1.02); }
+    .cd-poster .scrim {
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.10) 0%, rgba(0,0,0,.55) 100%),
+        radial-gradient(60% 50% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.35) 100%);
+    }
+    .cd-poster-corner {
+      position: absolute; z-index: 2;
+      top: 28px; left: 28px;
+      width: 32px; height: 32px;
+      border-top: 3px solid var(--lime);
+      border-left: 3px solid var(--lime);
+    }
+    .cd-play {
+      position: absolute; z-index: 3;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 24px 18px 22px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      color: var(--ink);
+      font: 600 14px/1 "Onest", sans-serif;
+      letter-spacing: .02em;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 24px 60px -20px rgba(0,0,0,.55);
+      transition: background .15s ease, transform .15s ease;
+    }
+    .cd-play:hover { background: var(--lime); transform: translate(-50%, -50%) scale(1.03); }
+    .cd-play svg { color: var(--ink); }
+    .cd-poster-meta {
+      position: absolute; z-index: 3;
+      left: 28px; bottom: 24px; right: 28px;
+      display: flex; align-items: center;
+      color: rgba(255,255,255,.85);
+      font: 500 11px/1 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .cd-poster-meta .k { white-space: nowrap; }
+    @media (max-width: 720px) {
+      .cd-poster-corner { top: 16px; left: 16px; width: 22px; height: 22px; border-width: 2px; }
+      .cd-poster-meta { left: 16px; right: 16px; bottom: 14px; font-size: 10px; gap: 8px; }
+      .cd-play { padding: 14px 18px; font-size: 12px; }
+    }
+
+    /* section heading */
+    .cd-section-head { margin: 0 0 26px; max-width: 760px; }
+    .cd-section-head .eyebrow { display: block; margin-bottom: 10px; }
+    .cd-section-head h2 {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      line-height: 1.04;
+      font-size: clamp(28px, 3.4vw, 44px);
+      margin: 0;
+    }
+    .cd-section-head.center { text-align: center; margin-left: auto; margin-right: auto; }
+
+    /* about block */
+    .cd-about { margin: 72px 0 56px; }
+    .cd-about-body {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .cd-prose {
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--ink-2);
+      text-wrap: pretty;
+    }
+    .cd-prose p { margin: 0 0 18px; }
+    .cd-prose p:last-child { margin-bottom: 0; }
+    .cd-meta {
+      display: flex; flex-direction: column;
+      gap: 14px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.5);
+    }
+    .cd-meta .row {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 14px;
+      align-items: baseline;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed var(--line);
+    }
+    .cd-meta .row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .cd-meta .k {
+      font: 500 10px/1.3 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .cd-meta .v { font-size: 14px; color: var(--ink); line-height: 1.4; }
+    @media (max-width: 880px) {
+      .cd-about-body { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    /* stats */
+    .cd-stats {
+      margin: 56px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .cd-stat {
+      padding: 32px 24px;
+      border-right: 1px solid var(--line);
+    }
+    .cd-stat:last-child { border-right: 0; }
+    .cd-stat .n {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-weight: 600;
+      font-size: clamp(36px, 4vw, 52px);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .cd-stat .l {
+      margin-top: 10px;
+      font: 500 11px/1.3 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    @media (max-width: 720px) {
+      .cd-stat { border-right: 0; border-bottom: 1px solid var(--line); padding: 22px 4px; }
+      .cd-stat:last-child { border-bottom: 0; }
+    }
+
+    /* gallery */
+    .cd-gallery { margin: 56px 0; display: grid; gap: 14px; }
+    .cd-gallery.g-1 { grid-template-columns: 1fr; }
+    .cd-gallery.g-2 { grid-template-columns: 1fr 1fr; }
+    .cd-gallery.g-3 { grid-template-columns: 1.4fr 1fr 1fr; }
+    .cd-shot {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #1a1a14;
+      aspect-ratio: 3 / 2;
+    }
+    .cd-shot .pic {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      transition: transform .8s ease;
+    }
+    .cd-shot:hover .pic { transform: scale(1.04); }
+    @media (max-width: 720px) {
+      .cd-gallery, .cd-gallery.g-2, .cd-gallery.g-3 { grid-template-columns: 1fr; }
+    }
+
+    /* team */
+    .cd-team { margin: 72px 0 56px; }
+    .cd-team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 56px;
+    }
+    .cd-team-col { border-top: 1px solid var(--ink); padding-top: 18px; }
+    .cd-team-group {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+    .cd-team-col ul {
+      list-style: none;
+      display: flex; flex-direction: column;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.5;
+    }
+
+    /* next cases */
+    .cd-next { margin: 80px 0 24px; }
+    .cd-next-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .cd-next-card {
+      position: relative;
+      display: block;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #1a1a14;
+      aspect-ratio: 4 / 3;
+      color: #fff;
+      text-decoration: none;
+      isolation: isolate;
+      transition: transform .25s ease;
+    }
+    .cd-next-card:hover { transform: translateY(-2px); }
+    .cd-next-card .pic {
+      position: absolute; inset: 0; z-index: 0;
+      background-size: cover; background-position: center;
+      transition: transform .8s ease;
+    }
+    .cd-next-card:hover .pic { transform: scale(1.04); }
+    .cd-next-card .scrim {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.85) 100%);
+    }
+    .cd-next-card .label {
+      position: absolute; z-index: 2;
+      left: 20px; right: 20px; bottom: 18px;
+      color: #fff;
+    }
+    .cd-next-card .label .eyebrow { color: var(--lime); display: block; margin-bottom: 6px; }
+    .cd-next-card .label .title {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+    .cd-next-arrow {
+      position: absolute; z-index: 3;
+      top: 16px; right: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(11,11,8,.72);
+      color: #fff;
+      border-radius: 999px;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity .2s ease, transform .2s ease, background .2s ease, color .2s ease;
+    }
+    .cd-next-card:hover .cd-next-arrow {
+      opacity: 1; transform: none;
+      background: var(--lime); color: var(--ink);
+    }
+    @media (max-width: 880px) {
+      .cd-next-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .cd-next-grid { grid-template-columns: 1fr; }
+    }
+
+    /* 404 */
+    .cd-404 { margin: 64px 0; text-align: center; }
+    .cd-404 .btn { margin-top: 22px; }
+
+    /* CTA block */
+    .cta {
+      margin-top: 80px;
+      border: 1.5px solid rgba(11, 11, 8, 0.14);
+      border-radius: 18px;
+      background: var(--bg-2);
+      padding: 36px 44px;
+      position: relative;
+    }
+    .cta .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .cta h2 {
+      font-family: "Unbounded", "Onest", sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 14px;
+      line-height: 1.0;
+    }
+    .cta .blurb { color: var(--ink-2); font-size: 16px; margin-bottom: 22px; max-width: 480px; }
+    .cta .meta {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 24px;
+    }
+    .cta .meta .row { display: flex; gap: 16px; align-items: baseline; }
+    .cta .meta .k {
+      color: var(--muted);
+      width: 78px; flex-shrink: 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .cta .meta .v { color: var(--ink); }
+    .cta .meta a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(11,11,8,.25); }
+    .cta .meta a:hover { border-bottom-color: var(--lime-2); }
+    .cta-corner {
+      position: absolute;
+      top: 20px; left: 20px;
+      width: 36px; height: 36px;
+      border-top: 2px solid var(--lime);
+      border-left: 2px solid var(--lime);
+    }
+    .form { display: flex; flex-direction: column; gap: 14px; }
+    .form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form .field { display: flex; flex-direction: column; gap: 6px; }
+    .form label {
+      font: 11px/1 "JetBrains Mono", monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .form input, .form textarea {
+      appearance: none;
+      background: #fff;
+      border: 1px solid rgba(11,11,8,0.18);
+      border-radius: 10px;
+      padding: 14px 14px;
+      font: 15px/1.4 "Onest", sans-serif;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .15s ease;
+    }
+    .form input:focus, .form textarea:focus { border-color: var(--lime-2); }
+    .form textarea { resize: vertical; min-height: 104px; }
+    .form .submit {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      margin-top: 6px;
+    }
+    .form .submit .hint { font-size: 12px; color: var(--muted); max-width: 240px; }
+    .form .submit .btn { padding: 18px 24px; font-size: 15px; }
+    @media (max-width: 880px) {
+      .cta { padding: 28px 22px; }
+      .cta .layout { grid-template-columns: 1fr; gap: 28px; }
+      .cta h2 { font-size: 32px; }
+      .form .row { grid-template-columns: 1fr; }
+    }
+
+    /* footer */
+    .foot {
+      margin-top: 28px;
+      padding: 22px 0 4px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      font-size: 12px;
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .foot .center { display: flex; gap: 6px; align-items: center; }
+    @media (max-width: 720px) {
+      .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="shell case-detail">
+    <header class="header">
+      <img class="logo" alt="ADEPT" src="data:image/png;base64,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" />
+      <div class="ticker" aria-hidden="true">
+        <div class="row" id="ticker-row"></div>
+      </div>
+    </header>
+
+    <nav class="case-nav">
+      <a class="back" href="/">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+          <path d="M15 5 L8 12 L15 19" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="square" stroke-linejoin="miter" />
+        </svg>
+        <span>К проектам</span>
+      </a>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-cur">Кейс</span>
+    </nav>
+
+    <div id="case-root"></div>
+
+    <section class="cta">
+      <div class="cta-corner"></div>
+      <div class="layout">
+        <div>
+          <span class="eyebrow">Обсудить проект</span>
+          <h2>Бриф, дедлайн, референсы —<br/>дальше уже наша работа.</h2>
+          <p class="blurb">
+            AI-видео, key visuals, экранный контент, статика, инсталляции.
+            Отвечаем в течение рабочего дня. Берём в работу проекты с чётким брифом и
+            сроком от 2 дней.
+          </p>
+          <div class="meta">
+            <div class="row"><span class="k">Telegram</span><span class="v"><a href="https://t.me/aiadepts">@aiadepts</a></span></div>
+            <div class="row"><span class="k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio">hi@adept.studio</a></span></div>
+            <div class="row"><span class="k">Часы</span><span class="v">МСК · 10:00 — 21:00</span></div>
+            <div class="row"><span class="k">Бюджет</span><span class="v">от 200 000 ₽ · pre-production / pitch — отдельно</span></div>
+          </div>
+        </div>
+
+        <form class="form" id="contact-form">
+          <div class="row">
+            <div class="field">
+              <label for="f-name">Имя / Бренд</label>
+              <input id="f-name" type="text" placeholder="Иван · ADEPT" />
+            </div>
+            <div class="field">
+              <label for="f-contact">Telegram / E-mail</label>
+              <input id="f-contact" type="text" placeholder="@username или mail@" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-brief">Задача</label>
+            <textarea id="f-brief" placeholder="Что нужно сделать, формат, сроки, ссылки на референсы."></textarea>
+          </div>
+          <div class="submit">
+            <span class="hint" id="form-hint">Файлы и доски — кидайте в Telegram после отправки.</span>
+            <button class="btn" type="submit">
+              <span id="form-btn-text">Отправить</span>
+              <span class="arr">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                  <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>© ADEPT · 2026</span>
+      <div class="center">
+        <span>AI PRODUCTION STUDIO</span>
+        <span class="dot-sep"></span>
+        <span>Visual</span>
+        <span class="dot-sep"></span>
+        <span>Video</span>
+        <span class="dot-sep"></span>
+        <span>Systems</span>
+      </div>
+      <span>МСК · BLR · NYC</span>
+    </footer>
+  </main>
+
+<script>
+// ============================================================
+//  ADEPT — case page (vanilla JS, hash-routed)
+// ============================================================
+
+const BRANDS = [
+  "SBER", "VK", "ГИГАЧАТ", "ВТБ", "РОСАТОМ",
+  "СБЕРЗВУК", "ТУТУ", "МИРАТОРГ", "ДИКСИ", "BANK USA",
+];
+
+// Base case records — id, eyebrow, title, hueShift (matches index.html visual seed)
+const CASES = {
+  dragon:     { eyebrow: "AI-ВИДЕО · 10 НЕД.",         title: "Филиппины — история дракона",  hueShift: 80,  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1800&q=80" },
+  vk:         { eyebrow: "VHS · VK NEW YEAR",          title: "VK — новогодние ролики",         hueShift: 200, img: "https://images.unsplash.com/photo-1626808642875-0aa545482dfb?auto=format&fit=crop&w=1800&q=80" },
+  sberzvuk:   { eyebrow: "KEY VISUAL · СБЕРЗВУК",      title: "СберЗвук — рекламный AI-ролик",  hueShift: 0,   img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1800&q=80" },
+  tutu:       { eyebrow: "PRODUCT HERO · ТУТУ",        title: "ТуТу — рекламный ролик",         hueShift: -20, img: "https://images.unsplash.com/photo-1614851099511-773084f6911d?auto=format&fit=crop&w=1800&q=80" },
+  diksi:      { eyebrow: "STATIC · ДИКСИ",             title: "Дикси — кампания",               hueShift: 110, img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1800&q=80" },
+  rosatom:    { eyebrow: "EVENT VISUAL · РОСАТОМ",     title: "Радуга × РосАтом — экраны",      hueShift: 60,  img: "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=1800&q=80" },
+  bankusa:    { eyebrow: "CG + AI · BANK USA",         title: "Bank USA — 15-сек ролик",        hueShift: 30,  img: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1800&q=80" },
+  gigachat:   { eyebrow: "DIGITAL ASSETS · ГИГАЧАТ",   title: "ГигаЧат — серия креативов",      hueShift: 90,  img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1800&q=80" },
+  sberkosmos: { eyebrow: "TENDER · СБЕР КОСМОС",       title: "Сбер Космос — тендер",           hueShift: 250, img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1800&q=80" },
+  spa:        { eyebrow: "STATIC + 3D · СПА",          title: "Интерактивный СПА · 20 м",       hueShift: 180, img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1800&q=80" },
+  kurs:       { eyebrow: "EDUCATION · 150 ВЫПУСКНИКОВ",title: "Курс по AI для нейрокреаторов",  hueShift: -30, img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1800&q=80" },
+  music:      { eyebrow: "ПРОДАКШН · MUSIC VIDEO",     title: "Music video — формат студии",    hueShift: 150, img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1800&q=80" },
+  asmr:       { eyebrow: "ПРОДАКШН · ASMR",            title: "ASMR",                           hueShift: 20,  img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=80" },
+  fashion:    { eyebrow: "ПРОДАКШН · FASHION",         title: "Fashion",                        hueShift: -10, img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1800&q=80" },
+  avatars:    { eyebrow: "ПРОДАКШН · AVATARS",         title: "Avatars",                        hueShift: 320, img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1800&q=80" },
+  miratorg:   { eyebrow: "AI-VIDEO · МИРАТОРГ",        title: "Мираторг — тендер-ролик",        hueShift: 90,  img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1800&q=80" },
+  vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          hueShift: 220, img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1800&q=80" },
+};
+
+// Order for "next cases" pool
+const ORDER = ["dragon","vk","sberzvuk","tutu","diksi","rosatom","bankusa","gigachat","sberkosmos","spa","kurs","music","asmr","fashion","avatars","miratorg","vtb"];
+
+// Long-form details for each case
+const DETAILS = {
+  dragon: {
+    client: "Филиппины · Манила", year: "2025",
+    format: ["AI-видео","Cinematic","10 недель"],
+    tags: ["AI VIDEO","CINEMATIC"],
+    lead: "Один из первых в регионе AI-роликов кинематографического уровня для цилиндрического экрана торгового центра в Маниле — городская легенда о драконе, который просыпается над архипелагом.",
+    description: [
+      "С заказчиком из Манилы мы прошли весь путь от мудборда до финального мастера за десять недель: визуальные тесты, режиссёрский сценарий, шот-лист, генерация и композ. Главным вызовом был не визуал, а драматургия — рассказать историю на круглом экране 360°, где у зрителя нет фиксированной «передней» точки.",
+      "Мы собрали гибридный пайплайн: ключевые кадры дракона генерировались в нескольких моделях с фиксированным сидом, потом фрагменты сшивались в Nuke, дорабатывались на композе и проходили через единый цветокор. На один секундный кадр уходило 70–110 видео-генераций — мы целились в эмоцию и фазу монтажа, а не в первую красивую картинку.",
+      "Результат — десятиминутный ролик, который крутится в ТЦ непрерывным циклом и стал поводом для отдельной экскурсии посетителей."
+    ],
+    stats: [
+      { n: "10",   l: "недель полного цикла" },
+      { n: "360°", l: "цилиндрический экран" },
+      { n: "70+",  l: "генераций на 1 кадр" },
+      { n: "1×",   l: "первый AI-ролик для ТЦ" },
+    ],
+    gallery: [
+      { img: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80" },
+    ],
+    team: [
+      { group: "ADEPT", lines: [
+        "Креативный директор — Илья К.",
+        "AI-режиссёр — Анна П.",
+        "AI-генерации — Алексей О., Евгений К., Артур С.",
+        "Композ — Артём С., Яна Р.",
+        "Цвет — Алексей Л.",
+        "Продюсер — Лиза И.",
+      ]},
+      { group: "Клиент / агентство", lines: [
+        "Продюсер агентства — Maria L.",
+        "Креативный директор — Joao M.",
+        "Менеджер площадки — Carlos R.",
+      ]},
+    ],
+  },
+  rosatom: {
+    client: "Радуга × РосАтом", year: "2025",
+    format: ["Event visual","Постоянная инсталляция","8 недель"],
+    tags: ["EVENT VISUAL","INSTALLATION"],
+    lead: "Контент для постоянной экранной инсталляции на площадке РосАтома — серия из шести генеративных сцен длиной по 90 секунд, склеенных в бесшовный часовой цикл.",
+    description: [
+      "Задача — снять с площадки нагрузку «нужно постоянно обновлять контент». Мы спроектировали движок на стороне ADEPT, который комбинирует 12 модульных AI-сцен, миксует их по времени суток и подмешивает реальные данные с производственных площадок.",
+      "Визуально проект работает на двух регистрах: лиричный планетарный фон и плотные индустриальные планы. Мы намеренно отказались от пафоса в пользу спокойной длинной формы — экран не пытается перебить вестибюль, он становится его частью.",
+    ],
+    stats: [
+      { n: "12",  l: "генеративных сцен" },
+      { n: "60 м", l: "ширина LED-стены" },
+      { n: "1 ч",  l: "цикл без повторов" },
+      { n: "24/7", l: "автономная работа" },
+    ],
+    gallery: [
+      { img: "https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1605379399642-870262d3d051?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?auto=format&fit=crop&w=1200&q=80" },
+    ],
+    team: [
+      { group: "ADEPT", lines: [
+        "Арт-директор — Илья К.",
+        "Tech-art — Дмитрий З.",
+        "AI-генерации — Алексей О., Артур С.",
+        "Композ — Яна Р., Екатерина П.",
+        "Программа цикла — Михаил Р.",
+      ]},
+    ],
+  },
+  sberzvuk: {
+    client: "СберЗвук", year: "2025",
+    format: ["Key visual","AI ad spot","6 недель"],
+    tags: ["KEY VISUAL","AD"],
+    lead: "Ключевой визуал и 30-секундный AI-ролик для рекламной кампании СберЗвука: звук как материя, которую можно вылить, оплавить, спрессовать.",
+    description: [
+      "Бренд хотел уйти от стандартной визуализации музыки (волны, эквалайзеры). Мы предложили альтернативу: звук как физическое вещество — стеклянное, текучее, тёплое. На AI-стороне это потребовало серии узких дообучений под фактуру — общий чекпойнт не давал нужного материала.",
+      "Ролик собирался в трёх параллельных треках: AI для главных героев-объектов, 3D для опорных пластиковых форм, рендер на одной ферме для совместного цвета.",
+    ],
+    stats: [
+      { n: "6",    l: "недель до эфира" },
+      { n: "30 c", l: "длина основного ролика" },
+      { n: "4",    l: "адаптации под форматы" },
+    ],
+    gallery: [
+      { img: "https://images.unsplash.com/photo-1518972559570-7cc1309f3229?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80" },
+    ],
+    team: [
+      { group: "ADEPT", lines: [
+        "Креативный директор — Илья К.",
+        "AI-арт — Анастасия Ч., Алексей О.",
+        "3D / композ — Артём С.",
+        "Цвет — Алексей Л.",
+      ]},
+      { group: "Клиент", lines: ["Маркетинг — команда СберЗвук"] },
+    ],
+  },
+  tutu: {
+    client: "ТуТу", year: "2025",
+    format: ["Product hero","Видео-ролик"],
+    tags: ["PRODUCT HERO","AI VIDEO"],
+    lead: "Рекламный ролик для ТуТу: самолёт как точная инженерная вещь — никаких облачных метафор, только материал, заклёпки, давление воздуха.",
+    description: [
+      "ТуТу пришли с задачей переосмыслить визуальный код категории. Мы предложили эстетику технической документации: чертёж, разрез, изометрия — но в материале, который выглядит как фотореалистичный композ.",
+      "Сложность была в стыке: AI плохо держит сложную геометрию авиатехники, поэтому крылья и шасси шли через 3D, а атмосфера, свет и пыль — через генерации. Сшивали в Nuke.",
+    ],
+    stats: [
+      { n: "20 c", l: "ТВ-формат" },
+      { n: "3",    l: "адаптации (TV / web / OOH)" },
+      { n: "5",    l: "недель пайплайна" },
+    ],
+    gallery: [
+      { img: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1200&q=80" },
+    ],
+    team: [
+      { group: "ADEPT", lines: [
+        "Креативный директор — Илья К.",
+        "AI-генерации — Алексей О., Евгений К.",
+        "3D — Артём С.",
+        "Композ — Яна Р.",
+      ]},
+    ],
+  },
+  vk: {
+    client: "VK New Year", year: "2024",
+    format: ["VHS-эстетика","Серия роликов"],
+    tags: ["VHS","NEW YEAR"],
+    lead: "Серия новогодних роликов в эстетике VHS — без склеек, на одном дыхании, как домашняя плёнка с антресоли.",
+    description: [
+      "Главное правило проекта — никакого монтажа. Каждый ролик существует как одна непрерывная генерация с реальными артефактами VHS-плёнки: дрожание, отрицательная развёртка, цветовой увод.",
+    ],
+    stats: [{ n: "4", l: "ролика серии" },{ n: "0", l: "склеек" }],
+    gallery: [
+      { img: "https://images.unsplash.com/photo-1607853202273-797f1c22a38e?auto=format&fit=crop&w=1200&q=80" },
+      { img: "https://images.unsplash.com/photo-1542856391-010fb87dcfed?auto=format&fit=crop&w=1200&q=80" },
+    ],
+    team: [{ group: "ADEPT", lines: ["Креатив — Илья К.","AI — Анастасия Ч.","Цвет — Алексей Л."] }],
+  },
+  diksi: {
+    client: "Дикси", year: "2024",
+    format: ["Static campaign","Ритейл"],
+    tags: ["STATIC","RETAIL"],
+    lead: "Серия статичных постеров для ритейл-кампании Дикси — продукты как герои натюрморта, без избыточной графики.",
+    description: ["Минимум продакшна, максимум фактуры. Каждый кадр — отдельный световой этюд."],
+    stats: [{ n: "18", l: "постеров в кампании" },{ n: "3", l: "недели" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Арт-директор — Илья К.","AI / композ — Артём С."] }],
+  },
+  bankusa: {
+    client: "Bank USA", year: "2025",
+    format: ["15-сек ролик","CG + AI"],
+    tags: ["CG + AI"],
+    lead: "Пятнадцатисекундный ролик про семью, собаку и окно машины — короткая история про возвращение домой.",
+    description: ["Короткая форма требует точного актёрского жеста. Мы делали кастинг прямо на этапе генерации — отбирали лица и собак, которые держат эмоцию все 15 секунд."],
+    stats: [{ n: "15 c", l: "хронометраж" },{ n: "4", l: "недели" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Креатив — Илья К.","AI — Алексей О."] }],
+  },
+  gigachat: {
+    client: "ГигаЧат", year: "2025",
+    format: ["Digital assets","Серия креативов"],
+    tags: ["DIGITAL","SERIES"],
+    lead: "Серия креативов для ГигаЧата и его подбрендов — единая визуальная система, в которой каждый подпродукт читается отдельно, но не выпадает из общей рамки.",
+    description: ["Сделали 40+ ассетов под разные плейсменты — от баннеров до сторис — и оформили это как продакшн-набор, который команда бренда может расширять самостоятельно."],
+    stats: [{ n: "40+", l: "ассетов" },{ n: "5", l: "подбрендов" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Дизайн-система — Илья К.","AI — Анастасия Ч."] }],
+  },
+  sberkosmos: {
+    client: "Сбер Космос", year: "2025",
+    format: ["Tender","Брендинг"],
+    tags: ["TENDER","BRAND"],
+    lead: "Тендерное предложение для космической программы Сбера — визуальный язык, в котором космос не пафосный, а инженерный.",
+    description: ["Мы сознательно ушли от «звёздно-туманного» канона. В нашей версии космос — это аппаратура, телеметрия, остатки света на матовом металле."],
+    stats: [{ n: "3", l: "недели на питч" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Арт-директор — Илья К.","AI / 3D — Артём С."] }],
+  },
+  spa: {
+    client: "СПА · 20 м", year: "2024",
+    format: ["Static + 3D","Инсталляция"],
+    tags: ["INSTALLATION","3D"],
+    lead: "Экранная инсталляция длиной 20 метров у бассейна — медленный гипнотический контент, который работает как часть архитектуры, а не как реклама.",
+    description: ["Главным дизайнерским решением был ритм: контент специально замедлен и не зовёт смотреть на себя, как реклама. Это часть атмосферы."],
+    stats: [{ n: "20 м", l: "длина экрана" },{ n: "12", l: "сцен в цикле" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Арт-директор — Илья К.","3D — Артём С.","AI — Анастасия Ч."] }],
+  },
+  kurs: {
+    client: "Курс для нейрокреаторов", year: "2024–2025",
+    format: ["Education","150 выпускников"],
+    tags: ["EDUCATION"],
+    lead: "Курс по AI для нейрокреаторов: 8 недель, 150 выпускников, итоговая выставка и продажа работ.",
+    description: ["Курс задумывался как практика, а не теория. Студенты выходят с готовым портфолио и реальными работами, проданными через нашу галерею."],
+    stats: [{ n: "150", l: "выпускников" },{ n: "8", l: "недель" },{ n: "1", l: "выставка" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Куратор — Илья К.","Преподаватели — команда ADEPT"] }],
+  },
+  music: {
+    client: "Music video", year: "2024",
+    format: ["Music video","Формат студии"],
+    tags: ["MUSIC VIDEO"],
+    lead: "Формат, в котором студия работает с музыкантами — короткие, недорогие, плотные клипы под живой релиз.",
+    description: ["Мы научились делать AI-клипы за 2 недели от трека до мастера. Это позволяет делать клипы под расписание релиза, а не отдельно от него."],
+    stats: [{ n: "2", l: "недели на клип" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Режиссёр — Илья К.","AI — Анастасия Ч."] }],
+  },
+  asmr: {
+    client: "ASMR-формат", year: "2025",
+    format: ["Продакшн"], tags: ["ASMR"],
+    lead: "Серия коротких ASMR-генераций — материал, фактура, тактильность.",
+    description: ["Формат, в котором AI выигрывает у съёмки: безграничная вариативность фактур, никаких ограничений физического кадра."],
+    stats: [{ n: "30+", l: "роликов" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["AI — Анастасия Ч."] }],
+  },
+  fashion: {
+    client: "Fashion / editorial", year: "2025",
+    format: ["Продакшн"], tags: ["FASHION"],
+    lead: "Fashion-эдиториалы — редакционные съёмки и кампании, собранные полностью в AI.",
+    description: ["Мы научились держать кастинг через AI: одно и то же модельное лицо в десятках кадров без расхождений."],
+    stats: [{ n: "5", l: "эдиториалов" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["AI direction — Илья К.","AI — Анастасия Ч."] }],
+  },
+  avatars: {
+    client: "AI-аватары", year: "2025",
+    format: ["Продакшн","Brand assets"],
+    tags: ["AVATARS"],
+    lead: "Аватары для брендов и медиа — один персонаж, контролируемая модель, бесконечные ассеты.",
+    description: ["Делаем под персонажа отдельную узкую модель — после этого бренд получает «актёра», который никогда не уйдёт и не сорвёт смену."],
+    stats: [{ n: "12+", l: "аватаров" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["AI — Алексей О.","Композ — Яна Р."] }],
+  },
+  miratorg: {
+    client: "Мираторг", year: "2024",
+    format: ["Tender","AI-video"],
+    tags: ["AI VIDEO","TENDER"],
+    lead: "Тендер-ролик для Мираторга — пастораль без сахара, фактура земли и света.",
+    description: ["Мы намеренно ушли от глянцевой агро-рекламы — наша версия выглядит как длинный план Терренса Малика, только собранный за две недели."],
+    stats: [{ n: "2", l: "недели на питч" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Креатив — Илья К.","AI — Алексей О."] }],
+  },
+  vtb: {
+    client: "ВТБ", year: "2025",
+    format: ["Tender","Статика + видео"],
+    tags: ["TENDER"],
+    lead: "Тендерное предложение для ВТБ — корпоративный синий, переосмысленный через AI-фактуру.",
+    description: ["Сделали короткий питч-пакет: одна статика, один 15-сек ролик, набор расширений под форматы."],
+    stats: [{ n: "1", l: "неделя на питч" }],
+    gallery: [{ img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80" }],
+    team: [{ group: "ADEPT", lines: ["Креатив — Илья К.","AI / композ — Артём С."] }],
+  },
+};
+
+// ------- utils ----------------------------------------------------------
+const $ = (sel, root = document) => root.querySelector(sel);
+const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+function getCaseId() {
+  const h = (location.hash || "").replace(/^#/, "");
+  if (h) {
+    if (h.includes("=")) {
+      const p = new URLSearchParams(h);
+      if (p.get("id")) return p.get("id");
+    } else {
+      return h;
+    }
+  }
+  const q = new URLSearchParams(location.search);
+  return q.get("id") || "dragon";
+}
+
+function findCase(id) {
+  const base = CASES[id];
+  if (!base) return null;
+  const detail = DETAILS[id] || {};
+  return { id, ...base, ...detail };
+}
+
+function filterCss(data) {
+  return `filter: saturate(0.55) contrast(1.05) hue-rotate(${data.hueShift || 0}deg);`;
+}
+
+// ------- ticker ---------------------------------------------------------
+function renderTicker() {
+  const row = $("#ticker-row");
+  const html = BRANDS.concat(BRANDS).map(b => `<span class="brand">${escapeHtml(b)}</span>`).join("");
+  row.innerHTML = html;
+}
+
+// ------- render case ----------------------------------------------------
+function renderCase(data) {
+  if (!data) {
+    return `
+      <section class="cd-404">
+        <span class="eyebrow">404</span>
+        <h1 class="cd-h1">Кейс не найден</h1>
+        <p class="cd-lead">Возможно, ссылка устарела. Вернитесь к списку проектов.</p>
+        <a href="/" class="btn">← К проектам</a>
+      </section>`;
+  }
+
+  const tagsHtml = (data.tags || []).map(t => `<span class="cd-tag">${escapeHtml(t)}</span>`).join("");
+  const formatStr = (data.format || []).join(" · ");
+  const formatComma = (data.format || []).join(", ");
+  const tagsComma = (data.tags || []).join(", ");
+
+  const statsHtml = (data.stats || []).map(s => `
+    <div class="cd-stat">
+      <div class="n">${escapeHtml(s.n)}</div>
+      <div class="l">${escapeHtml(s.l)}</div>
+    </div>`).join("");
+
+  const galleryItems = data.gallery || [];
+  const galleryClass = galleryItems.length >= 3 ? "g-3" : galleryItems.length === 2 ? "g-2" : "g-1";
+  const galleryHtml = galleryItems.map(g => `
+    <div class="cd-shot">
+      <div class="pic" style="background-image: url('${g.img}'); ${filterCss(data)}"></div>
+    </div>`).join("");
+
+  const teamHtml = (data.team || []).map(sec => `
+    <div class="cd-team-col">
+      <div class="cd-team-group">${escapeHtml(sec.group)}</div>
+      <ul>${sec.lines.map(l => `<li>${escapeHtml(l)}</li>`).join("")}</ul>
+    </div>`).join("");
+
+  const descHtml = (data.description || []).map(p => `<p>${escapeHtml(p)}</p>`).join("");
+
+  // Next cases — deterministic subset of 6, excluding current
+  const pool = ORDER.filter(id => id !== data.id);
+  const start = (data.id.length * 3) % Math.max(1, pool.length - 6);
+  const picks = pool.slice(start, start + 6);
+  while (picks.length < 6 && picks.length < pool.length) picks.push(pool[picks.length]);
+
+  const nextHtml = picks.map(id => {
+    const c = CASES[id]; if (!c) return "";
+    return `
+      <a class="cd-next-card" href="#${id}">
+        <div class="pic" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
+        <div class="scrim"></div>
+        <div class="label">
+          <span class="eyebrow">${escapeHtml(c.eyebrow)}</span>
+          <div class="title">${escapeHtml(c.title)}</div>
+        </div>
+        <div class="cd-next-arrow">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+            <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
+          </svg>
+          <span>смотреть проект</span>
+        </div>
+      </a>`;
+  }).join("");
+
+  return `
+    <header class="cd-title">
+      <div class="cd-meta-row">
+        <span class="eyebrow">${escapeHtml(data.client || data.eyebrow)}</span>
+        ${tagsHtml}
+      </div>
+      <h1 class="cd-h1">${escapeHtml(data.title)}</h1>
+      ${data.lead ? `<p class="cd-lead">${escapeHtml(data.lead)}</p>` : ""}
+    </header>
+
+    <section class="cd-poster">
+      <div class="pic" style="background-image: url('${data.img}'); ${filterCss(data)}"></div>
+      <div class="scrim"></div>
+      <div class="cd-poster-corner"></div>
+      <button class="cd-play" type="button" aria-label="Play">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M8 5 L19 12 L8 19 Z" fill="currentColor" />
+        </svg>
+        <span>Смотреть ролик</span>
+      </button>
+      <div class="cd-poster-meta">
+        <span class="k">${escapeHtml(data.year || "2025")}</span>
+        <span class="dot-sep"></span>
+        <span class="k">${escapeHtml(formatStr)}</span>
+      </div>
+    </section>
+
+    <section class="cd-about">
+      <div class="cd-section-head">
+        <span class="eyebrow">О проекте</span>
+        <h2>Как мы это сделали</h2>
+      </div>
+      <div class="cd-about-body">
+        <div class="cd-prose">${descHtml}</div>
+        <aside class="cd-meta">
+          <div class="row"><span class="k">Клиент</span><span class="v">${escapeHtml(data.client || "—")}</span></div>
+          <div class="row"><span class="k">Год</span><span class="v">${escapeHtml(data.year || "2025")}</span></div>
+          <div class="row"><span class="k">Формат</span><span class="v">${escapeHtml(formatComma || "—")}</span></div>
+          <div class="row"><span class="k">Теги</span><span class="v">${escapeHtml(tagsComma || "—")}</span></div>
+        </aside>
+      </div>
+    </section>
+
+    ${statsHtml ? `<section class="cd-stats">${statsHtml}</section>` : ""}
+
+    ${galleryHtml ? `<section class="cd-gallery ${galleryClass}">${galleryHtml}</section>` : ""}
+
+    ${teamHtml ? `
+    <section class="cd-team">
+      <div class="cd-section-head">
+        <span class="eyebrow">Команда проекта</span>
+        <h2>Кто это сделал</h2>
+      </div>
+      <div class="cd-team-grid">${teamHtml}</div>
+    </section>` : ""}
+
+    <section class="cd-next">
+      <div class="cd-section-head center">
+        <span class="eyebrow">Посмотреть ещё</span>
+        <h2>Другие проекты</h2>
+      </div>
+      <div class="cd-next-grid">${nextHtml}</div>
+    </section>
+  `;
+}
+
+function update() {
+  const id = getCaseId();
+  const data = findCase(id);
+  document.title = data ? `${data.title} — ADEPT` : `Кейс «${id}» — ADEPT`;
+  $("#case-root").innerHTML = renderCase(data);
+}
+
+// ------- form ------------------------------------------------------------
+function wireForm() {
+  const form = $("#contact-form");
+  const hint = $("#form-hint");
+  const btn = $("#form-btn-text");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("#f-name").value.trim();
+    const contact = $("#f-contact").value.trim();
+    if (!name && !contact) return;
+    btn.textContent = "Отправлено";
+    hint.textContent = "Принято. Свяжемся в течение рабочего дня.";
+    setTimeout(() => {
+      btn.textContent = "Отправить";
+      hint.textContent = "Файлы и доски — кидайте в Telegram после отправки.";
+    }, 4000);
+  });
+}
+
+// ------- bootstrap -------------------------------------------------------
+renderTicker();
+wireForm();
+update();
+window.addEventListener("hashchange", () => {
+  window.scrollTo({ top: 0, behavior: "instant" });
+  update();
+});
+</script>
+
+</body>
+</html>
