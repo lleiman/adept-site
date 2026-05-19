@@ -1,0 +1,251 @@
+/* ============================================================
+   ADEPT — case card (.case) shared styles
+   Used by /, /portfolio and the "next cases" block on /case.
+   ============================================================ */
+
+.case {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #1a1a14;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  -webkit-user-drag: none;
+  isolation: isolate;
+  transition: transform .35s ease, box-shadow .25s ease;
+  /* 1px black outline that hugs the rounded corners */
+  box-shadow: 0 0 0 1px var(--ink, #0b0b08);
+}
+.case:hover { transform: translateY(-3px); }
+
+.case .pic {
+  position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center;
+  transition: transform .8s ease;
+}
+.case:hover .pic { transform: scale(1.04); }
+
+.case .scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.78) 100%);
+}
+
+/* default label block: lime eyebrow above white Unbounded title */
+.case .label {
+  position: absolute; z-index: 3;
+  left: 22px; right: 22px; bottom: 20px;
+  color: #fff;
+}
+.case .label .eyebrow {
+  color: var(--lime, #cfe430);
+  display: block;
+  margin-bottom: 6px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.case .label .title {
+  font-family: "Unbounded", "Onest", sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+@media (max-width: 720px) {
+  .case .label .title { font-size: 18px; }
+  .case .label { left: 16px; right: 16px; bottom: 14px; }
+}
+
+/* ============ BRAND TAG VARIANTS ============
+   .case-brand is rendered on every card but hidden by default.
+   body[data-brand-style="..."] picks which variant shows. */
+.case-brand { display: none; }
+
+/* B · pill — white pill, top-right */
+body[data-brand-style="pill"] .case .label .eyebrow { display: none; }
+body[data-brand-style="pill"] .case-brand {
+  display: inline-block;
+  position: absolute;
+  top: 14px; right: 14px;
+  z-index: 3;
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--ink, #0b0b08);
+  border-radius: 999px;
+  font: 600 11px/1 "Onest", sans-serif;
+  letter-spacing: 0.02em;
+  max-width: 60%;
+}
+
+/* C · stamp-dark — black squared stamp, top-left, JetBrains Mono caps */
+body[data-brand-style="stamp-dark"] .case .label .eyebrow { display: none; }
+body[data-brand-style="stamp-dark"] .case-brand {
+  display: inline-block;
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 3;
+  padding: 7px 12px;
+  background: var(--ink, #0b0b08);
+  color: #fff;
+  border-radius: 4px;
+  font: 500 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* D · outline — bordered transparent tag, bottom-right */
+body[data-brand-style="outline"] .case .label .eyebrow { display: none; }
+body[data-brand-style="outline"] .case-brand {
+  display: inline-block;
+  position: absolute;
+  bottom: 22px; right: 22px;
+  z-index: 3;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.6);
+  color: #fff;
+  border-radius: 4px;
+  font: 500 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
+}
+
+/* E · stamp-lime — lime filled stamp, top-left, Unbounded caps */
+body[data-brand-style="stamp-lime"] .case .label .eyebrow { display: none; }
+body[data-brand-style="stamp-lime"] .case-brand {
+  display: inline-block;
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 3;
+  padding: 8px 14px;
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+  border-radius: 4px;
+  font: 600 10px/1 "Unbounded", "Onest", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .case-brand {
+    font-size: 10px !important;
+    padding: 5px 10px !important;
+  }
+}
+
+/* ============ HOVER CTA VARIANTS ============
+   Default (no body attr) = A: center-dark dark pill */
+.case-cta {
+  position: absolute; z-index: 4;
+  display: inline-flex; align-items: center; gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: opacity .22s ease, transform .22s ease, background .22s ease, color .22s ease;
+  /* A · center-dark (default) */
+  top: 50%; left: 50%;
+  transform: translate(-50%, calc(-50% + 6px));
+  padding: 13px 22px;
+  background: rgba(11, 11, 8, 0.85);
+  color: #fff;
+  border-radius: 999px;
+  font: 600 12px/1 "Onest", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.case:hover .case-cta {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+}
+
+/* B · cover — full-card dim + centered Unbounded caps */
+body[data-cta-style="cover"] .case::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(11,11,8,0.55);
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+body[data-cta-style="cover"] .case:hover::after { opacity: 1; }
+body[data-cta-style="cover"] .case-cta {
+  top: 50%; left: 50%; right: auto; bottom: auto;
+  transform: translate(-50%, calc(-50% + 6px));
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  font: 600 16px/1 "Unbounded", "Onest", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body[data-cta-style="cover"] .case:hover .case-cta {
+  transform: translate(-50%, -50%);
+  background: transparent;
+  color: var(--lime, #cfe430);
+}
+
+/* C · top-right — white pill in the top-right corner */
+body[data-cta-style="top-right"] .case-cta {
+  top: 14px; left: auto; right: 14px; bottom: auto;
+  transform: translateY(-4px);
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.95);
+  color: var(--ink, #0b0b08);
+  border-radius: 999px;
+  font: 500 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.14em;
+}
+body[data-cta-style="top-right"] .case:hover .case-cta {
+  transform: translateY(0);
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+}
+
+/* D · bottom-right — mono lime tag at bottom-right */
+body[data-cta-style="bottom-right"] .case-cta {
+  top: auto; left: auto;
+  bottom: 22px; right: 22px;
+  transform: translateY(4px);
+  padding: 7px 12px;
+  background: rgba(11,11,8,0.78);
+  color: var(--lime, #cfe430);
+  border-radius: 4px;
+  font: 500 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.14em;
+}
+body[data-cta-style="bottom-right"] .case:hover .case-cta {
+  transform: translateY(0);
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+}
+
+/* E · arrow — arrow-icon circle, top-right */
+body[data-cta-style="arrow"] .case-cta {
+  top: 14px; left: auto; right: 14px; bottom: auto;
+  transform: translateY(-4px) scale(0.85);
+  width: 42px; height: 42px;
+  padding: 0;
+  justify-content: center;
+  background: rgba(11,11,8,0.85);
+  color: #fff;
+  border-radius: 50%;
+  gap: 0;
+}
+body[data-cta-style="arrow"] .case-cta span { display: none; }
+body[data-cta-style="arrow"] .case-cta svg { width: 18px; height: 18px; }
+body[data-cta-style="arrow"] .case:hover .case-cta {
+  transform: translateY(0) scale(1);
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+}
