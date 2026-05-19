@@ -194,21 +194,33 @@
     }
     .pf-filter.active .count { color: rgba(255,255,255,0.6); }
 
-    /* portfolio grid — uniform 3-col, uses shared .case styles */
+    /* portfolio grid — 3 cols with a repeating 2+1 / 1+2 / 1+1+1 pattern
+       (`.span-wide` is set on positions 0 & 3 of every 7-card cycle) */
     .pf-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 260px;
+      grid-auto-flow: dense;
       gap: 18px;
     }
-    /* override the index-page heights for portfolio: use aspect-ratio */
     .pf-grid .case {
-      aspect-ratio: 4 / 3;
-      height: auto;
+      height: 100%;
+      width: 100%;
     }
-    /* hidden state — used by the filter */
+    .pf-grid .case.span-wide { grid-column: span 2; }
     .pf-grid .case.is-hidden { display: none; }
-    @media (max-width: 880px) { .pf-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 560px) { .pf-grid { grid-template-columns: 1fr; } }
+    /* when a category filter is active we drop the asymmetric pattern
+       and show a uniform 3-col layout so filtered views don't get holes */
+    .pf-grid.filtered .case { grid-column: span 1; }
+
+    @media (max-width: 880px) {
+      .pf-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 240px; }
+      .pf-grid .case.span-wide { grid-column: span 2; }
+    }
+    @media (max-width: 560px) {
+      .pf-grid { grid-template-columns: 1fr; grid-auto-rows: 220px; }
+      .pf-grid .case, .pf-grid .case.span-wide { grid-column: span 1; }
+    }
 
     /* CTA */
     .cta {
@@ -525,13 +537,21 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   ).join("");
 })();
 
+// Pattern per 7-card cycle:
+//   row 1: wide + single   → positions 0 (wide), 1
+//   row 2: single + wide   → positions 2, 3 (wide)
+//   row 3: single + single + single → positions 4, 5, 6
+//   then repeats. Whatever overflows the last full cycle stays as singles.
+const WIDE_POSITIONS = new Set([0, 3]);
+
 (function renderGrid() {
   const grid = $("#pf-grid");
   $("#case-count").textContent = `${ORDER.length} проектов`;
-  grid.innerHTML = ORDER.map(id => {
+  grid.innerHTML = ORDER.map((id, i) => {
     const c = CASES[id]; if (!c) return "";
+    const wide = WIDE_POSITIONS.has(i % 7) ? " span-wide" : "";
     return `
-      <a class="case" href="/case#${id}" data-id="${id}" data-category="${c.category}">
+      <a class="case${wide}" href="/case#${id}" data-id="${id}" data-category="${c.category}">
         <div class="pic" data-edit-img="cases.${id}" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
         <div class="scrim"></div>
         <div class="case-cta">
@@ -554,13 +574,16 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   if (window.AdeptEdit) window.AdeptEdit.apply();
 })();
 
-// Filter buttons → hide cards that don't match
+// Filter buttons → hide non-matching cards. Drop the wide-span pattern
+// while filtered so the layout doesn't get holes from missing slots.
 (function wireFilters() {
+  const grid = $("#pf-grid");
   $("#pf-filters").addEventListener("click", (e) => {
     const btn = e.target.closest(".pf-filter");
     if (!btn) return;
     const filter = btn.dataset.filter;
     $$(".pf-filter").forEach(b => b.classList.toggle("active", b === btn));
+    grid.classList.toggle("filtered", filter !== "all");
     let visible = 0;
     $$(".pf-grid .case").forEach(card => {
       const match = filter === "all" || card.dataset.category === filter;
