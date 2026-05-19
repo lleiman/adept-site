@@ -410,9 +410,58 @@
     @media (max-width: 720px) {
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
+
+    /* side nav — fixed left, scroll-spy on index */
+    .side-nav {
+      position: fixed;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      background: rgba(255,255,255,0.78);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 12px 32px -18px rgba(11,11,8,.25);
+    }
+    .side-nav ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .side-nav a {
+      display: inline-block;
+      font: 500 13px/1 "JetBrains Mono", ui-monospace, monospace;
+      letter-spacing: 0.02em;
+      color: rgba(11, 11, 8, 0.55);
+      text-decoration: none;
+      transform-origin: left center;
+      transition: transform .28s cubic-bezier(.2,.8,.2,1), color .2s ease;
+      will-change: transform;
+    }
+    .side-nav a:hover { color: var(--ink); }
+    .side-nav a.active {
+      color: var(--ink);
+      transform: scale(1.28);
+    }
+    @media (max-width: 1100px) {
+      .side-nav { display: none; }
+    }
   </style>
 </head>
 <body>
+
+  <nav class="side-nav" aria-label="Главная навигация">
+    <ul>
+      <li><a href="#showreel" data-section="showreel">— showreel</a></li>
+      <li><a href="#cases" data-section="cases">— кейсы</a></li>
+      <li><a href="/portfolio" data-section="portfolio">— портфолио</a></li>
+      <li><a href="#contact" data-section="contact">— связаться</a></li>
+    </ul>
+  </nav>
 
   <main class="shell">
     <header class="header">
@@ -422,7 +471,7 @@
       </div>
     </header>
 
-    <section class="hero">
+    <section class="hero" id="showreel">
       <div class="pic" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&amp;fit=crop&amp;w=2000&amp;q=80'); filter: saturate(0.7) contrast(1.05);"></div>
       <div class="scrim"></div>
       <div class="h-corner"></div>
@@ -437,11 +486,11 @@
       <div class="sub">Синтезируем классический CGI и технологии искусственного интеллекта.</div>
     </section>
 
-    <section class="cases-wrap">
+    <section class="cases-wrap" id="cases">
       <div class="cases-track" id="cases-track"></div>
     </section>
 
-    <section class="cta">
+    <section class="cta" id="contact">
       <div class="cta-corner"></div>
       <div class="layout">
         <div>
@@ -668,6 +717,44 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
       hint.textContent = "Файлы и доски — кидайте в Telegram после отправки.";
     }, 4000);
   });
+})();
+
+// ---- side-nav scroll-spy ----
+(function wireSideNav() {
+  const nav = document.querySelector(".side-nav");
+  if (!nav) return;
+  const links = Array.from(nav.querySelectorAll("a[data-section]"));
+  const ids = ["showreel", "cases", "contact"];
+  const sections = ids
+    .map(id => ({ id, el: document.getElementById(id) }))
+    .filter(s => s.el);
+  if (!sections.length) return;
+
+  const setActive = (id) => {
+    links.forEach(l => l.classList.toggle("active", l.dataset.section === id));
+  };
+  setActive("showreel");
+
+  let raf = 0;
+  const onScroll = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const threshold = window.innerHeight * 0.32;
+      let active = sections[0].id;
+      for (const s of sections) {
+        if (s.el.getBoundingClientRect().top < threshold) active = s.id;
+      }
+      // near-bottom override: always mark "contact" when within 80px of page end
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80) {
+        active = "contact";
+      }
+      setActive(active);
+    });
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  onScroll();
 })();
 </script>
 
