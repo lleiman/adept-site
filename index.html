@@ -234,49 +234,28 @@
       margin: 18px 0 4px;
     }
 
-    .cases-wrap { position: relative; margin: 28px 0 28px; }
-    .cases-track {
-      display: flex;
-      gap: 14px;
-      align-items: stretch;
-      overflow-x: auto;
-      cursor: grab;
-      padding: 4px 36px 16px;
-      margin: 0 -36px;
-      scrollbar-width: none;
-      /* don't inherit html { scroll-behavior: smooth } — it fights with
-         our per-frame scrollLeft updates and makes the carousel jitter */
-      scroll-behavior: auto;
-      /* hint compositor: promote the track to its own layer */
-      will-change: scroll-position;
-      transform: translateZ(0);
-    }
-    .cases-track::-webkit-scrollbar { display: none; }
-    .cases-track.dragging { cursor: grabbing; user-select: none; }
-    .cases-col {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      flex-shrink: 0;
+    /* ===== cases grid — asymmetric 12-col, dual-label pills ===== */
+    .cases-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 28px 24px;
+      margin: 28px 0 36px;
     }
     .case {
       position: relative;
-      border-radius: var(--card-radius);
+      grid-column: span 4;
+      height: 320px;
+      border-radius: 14px;
       overflow: hidden;
       background: #1a1a14;
-      flex-shrink: 0;
-      cursor: pointer;
-      transition: transform .35s ease;
       display: block;
       color: inherit;
       text-decoration: none;
       -webkit-user-drag: none;
       isolation: isolate;
-      /* keep each card's paint/layout self-contained so scrolling
-         past doesn't re-paint the whole track */
-      contain: layout paint;
+      transition: transform .35s ease;
     }
-    .case:hover { transform: translateY(-2px); }
+    .case:hover { transform: translateY(-3px); }
     .case .pic {
       position: absolute; inset: 0; z-index: 0;
       background-size: cover; background-position: center;
@@ -285,32 +264,52 @@
     .case:hover .pic { transform: scale(1.04); }
     .case .scrim {
       position: absolute; inset: 0; z-index: 1;
-      background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.78) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.35) 100%);
     }
-    .case .label {
-      position: absolute; z-index: 2;
-      left: 22px; right: 22px; bottom: 20px;
-      color: #fff;
+
+    /* dual labels at the bottom: title pill (left) + client pill (right) */
+    .case-labels {
+      position: absolute;
+      left: 14px; right: 14px; bottom: 14px;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      pointer-events: none;
     }
-    .case .label .eyebrow { color: var(--lime); display: block; margin-bottom: 6px; }
-    .case .label .title {
-      font-family: "Unbounded", "Onest", sans-serif;
-      font-weight: 600;
-      font-size: 22px;
-      letter-spacing: -0.01em;
-      line-height: 1.1;
+    .case-title, .case-client {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 4px;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      max-width: 70%;
     }
-    .case .case-cta {
+    .case-title {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--ink);
+      font: 600 15px/1.25 "Onest", sans-serif;
+      letter-spacing: -0.005em;
+    }
+    .case-client {
+      background: rgba(245, 243, 236, 0.92);
+      color: var(--ink-2);
+      font: 500 11px/1.2 "JetBrains Mono", monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      max-width: 55%;
+      text-align: right;
+    }
+    .case-cta {
       position: absolute; z-index: 3;
-      top: 16px; left: 16px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px 8px 14px;
+      top: 14px; left: 14px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 12px;
       background: rgba(11,11,8,.72);
       color: #fff;
       border-radius: 999px;
-      font: 500 11px/1 "JetBrains Mono", monospace;
+      font: 500 10px/1 "JetBrains Mono", monospace;
       letter-spacing: .14em;
       text-transform: uppercase;
       backdrop-filter: blur(8px);
@@ -325,22 +324,28 @@
       background: var(--lime); color: var(--ink);
     }
 
-    .sz-3      { width: 520px; height: 962px; }
-    .sz-3-lg   { width: 440px; height: 962px; }
-    .sz-2      { width: 440px; height: 638px; }
-    .sz-2-md   { width: 340px; height: 638px; }
-    .sz-2-sm   { width: 260px; height: 638px; }
-    .sz-1-xl   { width: 520px; height: 312px; }
-    .sz-1-lg   { width: 440px; height: 312px; }
-    .sz-1-md   { width: 340px; height: 312px; }
-    .sz-1-sm   { width: 260px; height: 312px; }
-    @media (max-width: 720px) {
-      .sz-3, .sz-3-lg                    { width: 80vw; height: 130vw; }
-      .sz-2, .sz-2-md, .sz-2-sm          { width: 64vw; height: 88vw; }
-      .sz-1-xl                           { width: 80vw; height: 50vw; }
-      .sz-1-lg                           { width: 70vw; height: 44vw; }
-      .sz-1-md                           { width: 56vw; height: 44vw; }
-      .sz-1-sm                           { width: 44vw; height: 44vw; }
+    /* column spans */
+    .case.sp-3 { grid-column: span 3; }
+    .case.sp-4 { grid-column: span 4; }
+    .case.sp-5 { grid-column: span 5; }
+    .case.sp-6 { grid-column: span 6; }
+    .case.sp-7 { grid-column: span 7; }
+    .case.sp-8 { grid-column: span 8; }
+
+    /* heights — coordinated within a row */
+    .case.h-s { height: 260px; }
+    .case.h-m { height: 320px; }
+    .case.h-l { height: 420px; }
+
+    @media (max-width: 880px) {
+      .cases-grid { grid-template-columns: repeat(6, 1fr); gap: 20px 16px; }
+      .case, .case.sp-3, .case.sp-4, .case.sp-5,
+      .case.sp-6, .case.sp-7, .case.sp-8 { grid-column: span 6; height: 260px; }
+      .case.h-l { height: 320px; }
+    }
+    @media (max-width: 560px) {
+      .case-title { font-size: 13px; padding: 6px 10px; }
+      .case-client { font-size: 10px; padding: 6px 10px; }
     }
 
     .cta {
@@ -488,9 +493,7 @@
       <div class="list" id="brands-list"></div>
     </section>
 
-    <section class="cases-wrap" id="cases">
-      <div class="cases-track" id="cases-track"></div>
-    </section>
+    <section class="cases-grid" id="cases" data-list></section>
 
     <section class="cta" id="contact">
       <div class="cta-corner"></div>
@@ -582,38 +585,56 @@ const BRANDS = [
   "СБЕРЗВУК", "ТУТУ", "МИРАТОРГ", "ДИКСИ", "BANK USA",
 ];
 
-// All cases — keyed by id (mirrors content-defaults.js from the design bundle)
+// All cases — keyed by id. `client` is the brand label shown in the
+// bottom-right pill; `title` is the case name in the bottom-left pill.
 const CASES = {
-  dragon:     { eyebrow: "AI-ВИДЕО · 10 НЕД.",         title: "Филиппины — история дракона",  hueShift: 80,  size: "3",    img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" },
-  vk:         { eyebrow: "VHS · VK NEW YEAR",          title: "VK — новогодние ролики",         hueShift: 200, size: "1-md", img: "https://images.unsplash.com/photo-1626808642875-0aa545482dfb?auto=format&fit=crop&w=1200&q=80" },
-  sberzvuk:   { eyebrow: "KEY VISUAL · СБЕРЗВУК",      title: "СберЗвук — рекламный AI-ролик",  hueShift: 0,   size: "2-md", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80" },
-  tutu:       { eyebrow: "PRODUCT HERO · ТУТУ",        title: "ТуТу — рекламный ролик",         hueShift: -20, size: "2",    img: "https://images.unsplash.com/photo-1614851099511-773084f6911d?auto=format&fit=crop&w=1200&q=80" },
-  diksi:      { eyebrow: "STATIC · ДИКСИ",             title: "Дикси — кампания",               hueShift: 110, size: "1-lg", img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" },
-  rosatom:    { eyebrow: "EVENT VISUAL · РОСАТОМ",     title: "Радуга × РосАтом — экраны",      hueShift: 60,  size: "3-lg", img: "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=1200&q=80" },
-  bankusa:    { eyebrow: "CG + AI · BANK USA",         title: "Bank USA — 15-сек ролик",        hueShift: 30,  size: "1-md", img: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80" },
-  gigachat:   { eyebrow: "DIGITAL ASSETS · ГИГАЧАТ",   title: "ГигаЧат — серия креативов",      hueShift: 90,  size: "1-md", img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80" },
-  sberkosmos: { eyebrow: "TENDER · СБЕР КОСМОС",       title: "Сбер Космос — тендер",           hueShift: 250, size: "1-md", img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1200&q=80" },
-  spa:        { eyebrow: "STATIC + 3D · СПА",          title: "Интерактивный СПА · 20 м",       hueShift: 180, size: "1-lg", img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80" },
-  kurs:       { eyebrow: "EDUCATION · 150 ВЫПУСКНИКОВ",title: "Курс по AI для нейрокреаторов",  hueShift: -30, size: "2",    img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80" },
-  music:      { eyebrow: "ПРОДАКШН · MUSIC VIDEO",     title: "Music video — формат студии",    hueShift: 150, size: "3",    img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80" },
-  asmr:       { eyebrow: "ПРОДАКШН · ASMR",            title: "ASMR",                           hueShift: 20,  size: "1-sm", img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" },
-  fashion:    { eyebrow: "ПРОДАКШН · FASHION",         title: "Fashion",                        hueShift: -10, size: "1-sm", img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80" },
-  avatars:    { eyebrow: "ПРОДАКШН · AVATARS",         title: "Avatars",                        hueShift: 320, size: "1-sm", img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1200&q=80" },
-  miratorg:   { eyebrow: "AI-VIDEO · МИРАТОРГ",        title: "Мираторг — тендер-ролик",        hueShift: 90,  size: "2-md", img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" },
-  vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          hueShift: 220, size: "1-md", img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80" },
+  dragon:     { title: "Филиппины — история дракона", client: "Манила / ТЦ",       hueShift: 80,  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" },
+  vk:         { title: "Новогодние ролики",           client: "VK",                 hueShift: 200, img: "https://images.unsplash.com/photo-1626808642875-0aa545482dfb?auto=format&fit=crop&w=1200&q=80" },
+  sberzvuk:   { title: "Звук как материя",            client: "СберЗвук",           hueShift: 0,   img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80" },
+  tutu:       { title: "Самолёт как геометрия",       client: "ТуТу",               hueShift: -20, img: "https://images.unsplash.com/photo-1614851099511-773084f6911d?auto=format&fit=crop&w=1200&q=80" },
+  diksi:      { title: "Кампания статикой",           client: "Дикси",              hueShift: 110, img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" },
+  rosatom:    { title: "Радуга × РосАтом — экраны",   client: "Радуга × РосАтом",   hueShift: 60,  img: "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=1200&q=80" },
+  bankusa:    { title: "Семья · собака · окно",       client: "Bank USA",           hueShift: 30,  img: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80" },
+  gigachat:   { title: "Серия креативов",             client: "ГигаЧат",            hueShift: 90,  img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80" },
+  sberkosmos: { title: "Тендер · космос",             client: "Сбер Космос",        hueShift: 250, img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1200&q=80" },
+  spa:        { title: "Интерактивный СПА · 20 м",    client: "Частная инсталляция", hueShift: 180, img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80" },
+  kurs:       { title: "Курс для нейрокреаторов",     client: "ЦЕХ",                hueShift: -30, img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80" },
+  music:      { title: "Music video — формат",        client: "Студия",             hueShift: 150, img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80" },
+  asmr:       { title: "ASMR-формат",                 client: "Продакшн",           hueShift: 20,  img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" },
+  fashion:    { title: "Fashion / editorial",         client: "Продакшн",           hueShift: -10, img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80" },
+  avatars:    { title: "AI-аватары",                  client: "Brand assets",       hueShift: 320, img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1200&q=80" },
+  miratorg:   { title: "Тендер · пастораль",          client: "Мираторг",           hueShift: 90,  img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" },
+  vtb:        { title: "Тендер · корпоративный синий",client: "ВТБ",                hueShift: 220, img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80" },
 };
 
-// 3-row asymmetric column packing — each column's sizes sum to 3 rows.
+// Static asymmetric grid: 12-col template, each entry is [id, "sp-N h-X"].
+// Pattern: 2 / 3 / 2 / 3 / 2 / 3 / 2 — 17 cases total. Widths and heights
+// rotate so nothing repeats verbatim, giving the page rhythm without chaos.
 const LAYOUT = [
-  ["dragon"],                            // [3]
-  ["vk", "sberzvuk"],                    // [1,2]
-  ["tutu", "diksi"],                     // [2,1]
-  ["rosatom"],                           // [3]
-  ["bankusa", "gigachat", "sberkosmos"], // [1,1,1]
-  ["spa", "kurs"],                       // [1,2]
-  ["music"],                             // [3]
-  ["asmr", "fashion", "avatars"],        // [1,1,1]
-  ["miratorg", "vtb"],                   // [2,1]
+  // row 1 — pair
+  ["dragon",    "sp-7 h-l"],
+  ["vk",        "sp-5 h-l"],
+  // row 2 — trio
+  ["sberzvuk",  "sp-4 h-m"],
+  ["tutu",      "sp-4 h-m"],
+  ["diksi",     "sp-4 h-m"],
+  // row 3 — pair mirrored
+  ["rosatom",   "sp-5 h-l"],
+  ["bankusa",   "sp-7 h-l"],
+  // row 4 — trio
+  ["gigachat",  "sp-4 h-m"],
+  ["sberkosmos","sp-4 h-m"],
+  ["spa",       "sp-4 h-m"],
+  // row 5 — balanced pair
+  ["kurs",      "sp-6 h-l"],
+  ["music",     "sp-6 h-l"],
+  // row 6 — trio
+  ["asmr",      "sp-4 h-m"],
+  ["fashion",   "sp-4 h-m"],
+  ["avatars",   "sp-4 h-m"],
+  // row 7 — wide finale
+  ["miratorg",  "sp-8 h-l"],
+  ["vtb",       "sp-4 h-l"],
 ];
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -624,102 +645,31 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   $("#brands-list").innerHTML = BRANDS.map(b => `<span>${escapeHtml(b)}</span>`).join("");
 })();
 
-// ---- cases ----
+// ---- cases (asymmetric static grid) ----
 (function renderCases() {
-  const track = $("#cases-track");
-  const cols = LAYOUT.map(colIds => {
-    const cards = colIds.map(id => {
-      const c = CASES[id]; if (!c) return "";
-      return `
-        <a class="case sz-${c.size}" href="case.html#${id}" data-id="${id}" draggable="false">
-          <div class="pic" data-edit-img="cases.${id}" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
-          <div class="scrim"></div>
-          <div class="case-cta">
-            <span>смотреть проект</span>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
-              <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
-            </svg>
-          </div>
-          <div class="label">
-            <span class="eyebrow" data-edit="cases.${id}.eyebrow">${escapeHtml(c.eyebrow)}</span>
-            <div class="title" data-edit="cases.${id}.title">${escapeHtml(c.title)}</div>
-          </div>
-          <div class="edt-img-ctl">
-            <button data-img-action="replace" data-img-target="cases.${id}">Заменить</button>
-            <button data-img-action="reset" data-img-target="cases.${id}" class="ghost">Сбросить</button>
-          </div>
-        </a>`;
-    }).join("");
-    return `<div class="cases-col">${cards}</div>`;
+  const root = $("#cases");
+  root.innerHTML = LAYOUT.map(([id, cls]) => {
+    const c = CASES[id]; if (!c) return "";
+    return `
+      <a class="case ${cls}" href="case.html#${id}" data-id="${id}" draggable="false">
+        <div class="pic" data-edit-img="cases.${id}" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
+        <div class="scrim"></div>
+        <div class="case-cta">
+          <span>смотреть</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" aria-hidden="true">
+            <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
+          </svg>
+        </div>
+        <div class="case-labels">
+          <span class="case-title" data-edit="cases.${id}.title">${escapeHtml(c.title)}</span>
+          <span class="case-client" data-edit="cases.${id}.client">${escapeHtml(c.client)}</span>
+        </div>
+        <div class="edt-img-ctl">
+          <button data-img-action="replace" data-img-target="cases.${id}">Картинка</button>
+          <button data-img-action="reset" data-img-target="cases.${id}" class="ghost">Сбросить</button>
+        </div>
+      </a>`;
   }).join("");
-  track.innerHTML = cols;
-})();
-
-// ---- draggable + auto-scroll carousel ----
-(function wireCarousel() {
-  const el = $("#cases-track");
-  const speed = 0.07; // ≈ 70 px/sec — comfy reading pace
-  const state = { dragging: false, startX: 0, startScroll: 0, moved: false, lastHumanT: -10000 };
-
-  const onDown = (e) => {
-    if (e.button === 2) return;
-    state.dragging = true;
-    state.moved = false;
-    state.startX = e.touches ? e.touches[0].clientX : e.clientX;
-    state.startScroll = el.scrollLeft;
-    state.lastHumanT = performance.now();
-    el.dataset.dragMoved = "0";
-    el.classList.add("dragging");
-  };
-  const onMove = (e) => {
-    if (!state.dragging) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const dx = x - state.startX;
-    if (Math.abs(dx) > 6) {
-      state.moved = true;
-      el.dataset.dragMoved = "1";
-    }
-    el.scrollLeft = state.startScroll - dx;
-    state.lastHumanT = performance.now();
-    if (e.cancelable) e.preventDefault();
-  };
-  const onUp = () => {
-    state.dragging = false;
-    state.lastHumanT = performance.now();
-    el.classList.remove("dragging");
-    // Reset moved flag on next tick — after the synthetic click handler reads it
-    setTimeout(() => { el.dataset.dragMoved = "0"; }, 0);
-  };
-  const onWheel = () => { state.lastHumanT = performance.now(); };
-
-  el.addEventListener("mousedown", onDown);
-  el.addEventListener("touchstart", onDown, { passive: true });
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("touchmove", onMove, { passive: false });
-  window.addEventListener("mouseup", onUp);
-  window.addEventListener("touchend", onUp);
-  el.addEventListener("wheel", onWheel, { passive: true });
-
-  // Suppress navigation when the carousel was being dragged.
-  el.addEventListener("click", (e) => {
-    if (el.dataset.dragMoved === "1") e.preventDefault();
-  }, true);
-
-  let last = performance.now();
-  const tick = (t) => {
-    const dt = t - last;
-    last = t;
-    if (!state.dragging && !document.body.classList.contains("edit-mode") && t - state.lastHumanT > 1500) {
-      const max = el.scrollWidth - el.clientWidth;
-      if (max > 0) {
-        let next = el.scrollLeft + speed * dt;
-        if (next >= max - 1) next = 0;
-        el.scrollLeft = next;
-      }
-    }
-    requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
 })();
 
 // ---- form ----
