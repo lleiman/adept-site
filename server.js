@@ -140,7 +140,16 @@ app.post("/api/check", (req, res) => {
 app.use("/uploads", express.static(UPLOADS_DIR, { maxAge: "1d" }));
 
 // ---- static files (must be after /api and /uploads routes) ----
-app.use(express.static(ROOT, { extensions: ["html"] }));
+app.use(express.static(ROOT, {
+  extensions: ["html"],
+  setHeaders: (res, filePath) => {
+    // Force browsers to revalidate JS/CSS on every load — keeps Safari
+    // from serving a stale stylesheet after we deploy a fix.
+    if (/\.(css|js)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    }
+  },
+}));
 
 // ---- 404 fallback ----
 app.use((req, res) => res.status(404).send("Not Found"));
