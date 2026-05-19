@@ -131,9 +131,13 @@ body.menu-open .header-burger span:nth-child(3) {
   transform: translateY(-13px) rotate(-45deg);
 }
 
-@media (max-width: 720px) {
-  .header-burger { display: inline-flex; }
-  /* Hide the inline nav on mobile — burger toggles it */
+@media (max-width: 900px) {
+  .header-burger {
+    display: inline-flex;
+    position: relative;
+    z-index: 200; /* above the open menu overlay */
+  }
+  /* Hide the inline nav on mobile/tablet — burger toggles it */
   .header-nav {
     position: fixed;
     inset: 0;
