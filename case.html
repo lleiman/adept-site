@@ -106,18 +106,19 @@
       gap: 28px;
     }
     .header-nav a {
-      font: 500 16px/1 "Onest", sans-serif;
+      font: 500 14px/1 "Onest", sans-serif;
       color: var(--ink);
       text-decoration: none;
-      letter-spacing: -0.005em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
       transition: opacity .2s ease, font-weight .2s ease;
     }
     .header-nav a:hover { opacity: 0.6; }
     .header-nav a.active { font-weight: 700; }
     @media (max-width: 720px) {
       .header { flex-wrap: wrap; }
-      .header-nav { gap: 16px; flex-wrap: wrap; }
-      .header-nav a { font-size: 14px; }
+      .header-nav { gap: 14px; flex-wrap: wrap; }
+      .header-nav a { font-size: 12px; }
     }
 
     /* breadcrumb / back nav */
