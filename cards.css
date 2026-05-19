@@ -31,7 +31,8 @@
   background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0, var(--scrim-cases, 0.78)) 100%);
 }
 
-/* Vimeo hover-preview (injected by edit-mode.js) — sits inside .pic */
+/* Vimeo hover-preview (eagerly mounted by edit-mode.js on page load,
+   paused via the SDK until hover) — sits inside .pic */
 .case .pic .hover-video {
   position: absolute;
   inset: 0;
@@ -39,18 +40,21 @@
   height: 100%;
   border: 0;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s ease;
   z-index: 1;
 }
-/* While the hover-video is mounted, hide the underlying background-image,
-   the scrim and the label so only the video + the CTA pill remain visible. */
-.case .pic:has(.hover-video) { background-image: none !important; }
-.case:has(.pic .hover-video) .scrim,
-.case:has(.pic .hover-video) .label {
+/* On hover (.is-playing toggled by JS) the iframe fades in, the
+   poster image + scrim + label fade out — only the case-cta and
+   any brand stamp stay visible over the video. */
+.case.is-playing .pic .hover-video { opacity: 1; }
+.case.is-playing .pic { background-image: none !important; }
+.case.is-playing .scrim,
+.case.is-playing .label {
   opacity: 0;
   transition: opacity .2s ease;
 }
-/* Same idea for the cover-CTA dim overlay — don't double up with the video */
-.case:has(.pic .hover-video)::after { opacity: 0 !important; }
+.case.is-playing::after { opacity: 0 !important; }
 
 /* default label block: lime eyebrow above white Unbounded title */
 .case .label {
