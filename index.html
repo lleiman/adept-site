@@ -201,7 +201,8 @@
     }
     .hero .h-text h1 {
       font-family: "Unbounded", "Onest", sans-serif;
-      font-size: clamp(38px, 6.4vw, 96px);
+      /* lower min + faster scaling so mobile reads proportional to desktop */
+      font-size: clamp(24px, 7vw, 96px);
       font-weight: 700;
       margin: 0;
       letter-spacing: -0.02em;
@@ -416,7 +417,11 @@
         <a href="#cases" data-section="cases">Кейсы</a>
         <a href="/portfolio" data-section="portfolio">Портфолио</a>
         <a href="#contact" data-section="contact">Связаться</a>
-      </nav>
+      
+      <button class="header-burger" aria-label="Меню" type="button">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
     </header>
 
     <section class="hero" id="showreel">

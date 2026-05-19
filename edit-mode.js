@@ -230,6 +230,23 @@
     });
   }
 
+  // ---- mobile burger menu ----
+  function wireBurger() {
+    const burger = document.querySelector(".header-burger");
+    if (!burger || burger.dataset.wired === "1") return;
+    burger.dataset.wired = "1";
+    const close = () => document.body.classList.remove("menu-open");
+    burger.addEventListener("click", () => {
+      document.body.classList.toggle("menu-open");
+    });
+    document.querySelectorAll(".header-nav a").forEach(a => {
+      a.addEventListener("click", close);
+    });
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape") close();
+    });
+  }
+
   // ---- card hover → autoplay vimeo preview ----
   // Pre-creates iframes immediately on page load so the Vimeo player
   // is fully buffered by the time the user hovers. Uses Vimeo Player
@@ -304,6 +321,7 @@
     applyCtaStyle();
     applyLogoStyle();
     applyScrimSettings();
+    wireBurger();
     wireCardHover();
     document.querySelectorAll("[data-edit]").forEach(el => {
       const v = getPath(content, el.dataset.edit);

@@ -95,6 +95,72 @@ body[data-logo="split"] .logo-text .l-ept { color: var(--ink); }
 
 
 /* ============================================================
+   ADEPT — mobile burger menu
+   Hidden on desktop, takes over on ≤720px viewports.
+   ============================================================ */
+.header-burger {
+  display: none;
+  width: 32px; height: 28px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.header-burger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform .28s ease, opacity .18s ease, width .25s ease;
+  transform-origin: center;
+}
+.header-burger span:nth-child(2) { width: 72%; align-self: flex-end; }
+
+body.menu-open .header-burger span:nth-child(1) {
+  transform: translateY(13px) rotate(45deg);
+}
+body.menu-open .header-burger span:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+body.menu-open .header-burger span:nth-child(3) {
+  transform: translateY(-13px) rotate(-45deg);
+}
+
+@media (max-width: 720px) {
+  .header-burger { display: inline-flex; }
+  /* Hide the inline nav on mobile — burger toggles it */
+  .header-nav {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px !important;
+    z-index: 150;
+    /* slide-in from the top, hidden by default */
+    transform: translateY(-100%);
+    transition: transform .35s cubic-bezier(.22,.61,.36,1);
+    pointer-events: none;
+  }
+  body.menu-open .header-nav {
+    transform: none;
+    pointer-events: auto;
+  }
+  .header-nav a {
+    font-size: 28px !important;
+    letter-spacing: 0.02em;
+  }
+  body.menu-open { overflow: hidden; } /* lock background scroll */
+}
+
+
+/* ============================================================
    ADEPT — case card (.case) shared styles
    Used by /, /portfolio and the "next cases" block on /case.
    ============================================================ */
