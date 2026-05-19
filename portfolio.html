@@ -367,50 +367,9 @@
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
-    /* side nav — fixed right, pulled closer to content on wide viewports */
-    .side-nav {
-      position: fixed;
-      right: clamp(36px, calc((100vw - 1240px) / 4), 200px);
-      top: 40%;
-      transform: translateY(-50%);
-      z-index: 50;
-    }
-    .side-nav ul {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 38px;
-    }
-    .side-nav a {
-      display: inline-block;
-      font: 400 24px/1 "Onest", sans-serif;
-      letter-spacing: -0.005em;
-      color: var(--ink);
-      text-decoration: none;
-      white-space: nowrap;
-      transition: font-weight .2s ease, opacity .2s ease;
-    }
-    .side-nav a:hover { opacity: 0.7; }
-    .side-nav a.active { font-weight: 600; }
-    @media (max-width: 1400px) {
-      .side-nav a { font-size: 18px; }
-      .side-nav ul { gap: 28px; }
-    }
-    @media (max-width: 1100px) {
-      .side-nav { display: none; }
-    }
   </style>
 </head>
 <body>
-
-  <nav class="side-nav" aria-label="Главная навигация">
-    <ul>
-      <li><a href="/">— ShowReel</a></li>
-      <li><a href="/#cases">— Кейсы</a></li>
-      <li><a href="/portfolio" class="active">— Портфолио</a></li>
-      <li><a href="/#contact">— Связаться</a></li>
-    </ul>
-  </nav>
 
   <main class="shell">
     <header class="header">

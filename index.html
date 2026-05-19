@@ -411,7 +411,9 @@
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
-    /* side nav — fixed right, pulled closer to content on wide viewports */
+    /* side nav — fixed right, pulled closer to content on wide viewports.
+       Vertical position is driven by JS scroll-tracking so the nav starts
+       centered on hero and ends centered on the contact form. */
     .side-nav {
       position: fixed;
       right: clamp(36px, calc((100vw - 1240px) / 4), 200px);
@@ -423,7 +425,7 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 38px;
+      gap: 64px;
     }
     .side-nav a {
       display: inline-block;
@@ -438,7 +440,7 @@
     .side-nav a.active { font-weight: 600; }
     @media (max-width: 1400px) {
       .side-nav a { font-size: 18px; }
-      .side-nav ul { gap: 28px; }
+      .side-nav ul { gap: 44px; }
     }
     @media (max-width: 1100px) {
       .side-nav { display: none; }
@@ -739,6 +741,30 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
     });
   }
 
+  // Vertical position: smoothly travels from hero-center to contact-center
+  // over the page's scroll range, so at the top the menu sits at hero axis
+  // and at the bottom (contact in view) the menu aligns with contact center.
+  const heroEl = document.getElementById("showreel");
+  const contactEl = document.getElementById("contact");
+  const positionNav = () => {
+    if (!heroEl || !contactEl) return;
+    const hRect = heroEl.getBoundingClientRect();
+    const cRect = contactEl.getBoundingClientRect();
+    const sy = window.scrollY;
+    const vh = window.innerHeight;
+    const heroPageCenter = hRect.top + sy + hRect.height / 2;
+    const contactPageCenter = cRect.top + sy + cRect.height / 2;
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - vh);
+    const t = Math.max(0, Math.min(1, sy / maxScroll));
+    // start point: hero center in page coords (= viewport coords at scrollY=0)
+    // end point: contact center in viewport coords at maxScroll = contactPageCenter - maxScroll
+    const start = heroPageCenter;
+    const end = contactPageCenter - maxScroll;
+    const top = start * (1 - t) + end * t;
+    nav.style.top = top + "px";
+    nav.style.transform = "translateY(-50%)";
+  };
+
   let raf = 0;
   const onScroll = () => {
     if (raf) return;
@@ -754,10 +780,14 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
         active = "contact";
       }
       setActive(active);
+      positionNav();
     });
   };
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
+  // Initial layout after fonts load (so hero/contact heights are correct)
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(positionNav);
+  window.addEventListener("load", positionNav);
   onScroll();
 })();
 </script>
