@@ -49,6 +49,16 @@ function applyServerTemplates(html, content) {
   if (attrs.length) {
     html = html.replace(/<body(\s|>)/, `<body ${attrs.join(" ")}$1`);
   }
+  // CSS variables for scrim opacity — injected before </head> for first paint
+  const cssVars = [];
+  if (typeof ui.scrimHero  === "number") cssVars.push(`--scrim-hero: ${ui.scrimHero / 100}`);
+  if (typeof ui.scrimCases === "number") cssVars.push(`--scrim-cases: ${ui.scrimCases / 100}`);
+  if (cssVars.length) {
+    html = html.replace(
+      /<\/head>/,
+      `<style>:root { ${cssVars.join("; ")}; }</style></head>`
+    );
+  }
   return html;
 }
 function serveHtml(filename) {

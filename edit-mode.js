@@ -197,11 +197,60 @@
     });
   }
 
+  // ---- scrim opacity sliders (hero + cases) ----
+  function applyScrimSettings() {
+    const root = document.documentElement.style;
+    const hero  = getPath(content, "ui.scrimHero");
+    const cases = getPath(content, "ui.scrimCases");
+    if (hero  != null) root.setProperty("--scrim-hero",  hero  / 100);
+    else root.removeProperty("--scrim-hero");
+    if (cases != null) root.setProperty("--scrim-cases", cases / 100);
+    else root.removeProperty("--scrim-cases");
+    // Mirror values into slider inputs + their text readout
+    document.querySelectorAll('input[type="range"][data-scrim]').forEach(input => {
+      const key = input.dataset.scrim;
+      const v = (key === "hero") ? hero : cases;
+      const defaults = { hero: 45, cases: 78 };
+      input.value = v != null ? v : defaults[key];
+      const display = document.querySelector(`[data-scrim-val="${key}"]`);
+      if (display) display.textContent = input.value;
+    });
+  }
+
+  // ---- card hover → autoplay vimeo preview ----
+  function wireCardHover() {
+    document.querySelectorAll(".case[data-id]").forEach(card => {
+      if (card.dataset.hoverWired === "1") return;
+      card.dataset.hoverWired = "1";
+      const id = card.dataset.id;
+      const pic = card.querySelector(".pic");
+      if (!pic) return;
+      let ifr = null;
+      card.addEventListener("mouseenter", () => {
+        const vimeo = getPath(content, `cases.${id}.vimeo`);
+        if (!vimeo || !vimeo.id) return;
+        if (ifr) return;
+        const hash = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
+        ifr = document.createElement("iframe");
+        ifr.className = "hover-video";
+        ifr.src = `https://player.vimeo.com/video/${vimeo.id}?${hash}background=1&autoplay=1&loop=1&muted=1&autopause=0`;
+        ifr.allow = "autoplay; fullscreen; picture-in-picture";
+        ifr.allowFullscreen = true;
+        pic.appendChild(ifr);
+      });
+      card.addEventListener("mouseleave", () => {
+        if (ifr) { ifr.remove(); ifr = null; }
+      });
+    });
+  }
+
   // ---- apply overrides to current DOM ----
   function applyOverrides() {
     applyNavFont();
     applyBrandStyle();
     applyCtaStyle();
+    applyScrimSettings();
+    wireCardHover();
     document.querySelectorAll("[data-edit]").forEach(el => {
       const v = getPath(content, el.dataset.edit);
       if (typeof v === "string" && el.textContent !== v) el.textContent = v;
@@ -397,6 +446,21 @@
       applyCtaStyle();
       await saveContent();
     }
+  });
+
+  // Scrim sliders: live-update CSS on `input`, save on `change`
+  document.addEventListener("input", (e) => {
+    const inp = e.target.closest('input[type="range"][data-scrim]');
+    if (!inp) return;
+    const key = inp.dataset.scrim;
+    const path = key === "hero" ? "ui.scrimHero" : "ui.scrimCases";
+    setPath(content, path, parseInt(inp.value, 10));
+    applyScrimSettings();
+  });
+  document.addEventListener("change", async (e) => {
+    const inp = e.target.closest('input[type="range"][data-scrim]');
+    if (!inp) return;
+    await saveContent();
   });
 
   // ---- public API for dynamic pages (case.html re-renders on hashchange) ----

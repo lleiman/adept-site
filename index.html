@@ -176,8 +176,13 @@
     .hero .scrim {
       position: absolute; inset: 0; z-index: 1;
       background:
-        linear-gradient(90deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 40%, rgba(0,0,0,0) 70%),
-        linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.45) 100%);
+        linear-gradient(90deg,
+          rgba(0,0,0, calc(var(--scrim-hero, 0.45) * 1.22)) 0%,
+          rgba(0,0,0, calc(var(--scrim-hero, 0.45) * 0.55)) 40%,
+          rgba(0,0,0, 0) 70%),
+        linear-gradient(180deg,
+          rgba(0,0,0, calc(var(--scrim-hero, 0.45) * 0.33)) 0%,
+          rgba(0,0,0, var(--scrim-hero, 0.45)) 100%);
     }
     .hero .h-text {
       position: absolute;
@@ -533,6 +538,16 @@
       <button data-cta="top-right"    title="C · белая пилюля сверху-справа">C</button>
       <button data-cta="bottom-right" title="D · моно-тег снизу-справа">D</button>
       <button data-cta="arrow"        title="E · только стрелка в круге">E</button>
+    </span>
+    <span class="edit-scrim-picker">
+      <span class="label">Маска hero:</span>
+      <input type="range" data-scrim="hero" min="0" max="100" />
+      <span class="val" data-scrim-val="hero">45</span>
+    </span>
+    <span class="edit-scrim-picker">
+      <span class="label">Маска кейсов:</span>
+      <input type="range" data-scrim="cases" min="0" max="100" />
+      <span class="val" data-scrim-val="cases">78</span>
     </span>
     <span class="spacer"></span>
     <span class="hint" id="edit-saving" style="display:none">сохраняю…</span>
