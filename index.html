@@ -218,6 +218,12 @@
       padding: 4px 36px 16px;
       margin: 0 -36px;
       scrollbar-width: none;
+      /* don't inherit html { scroll-behavior: smooth } — it fights with
+         our per-frame scrollLeft updates and makes the carousel jitter */
+      scroll-behavior: auto;
+      /* hint compositor: promote the track to its own layer */
+      will-change: scroll-position;
+      transform: translateZ(0);
     }
     .cases-track::-webkit-scrollbar { display: none; }
     .cases-track.dragging { cursor: grabbing; user-select: none; }
@@ -240,6 +246,9 @@
       text-decoration: none;
       -webkit-user-drag: none;
       isolation: isolate;
+      /* keep each card's paint/layout self-contained so scrolling
+         past doesn't re-paint the whole track */
+      contain: layout paint;
     }
     .case:hover { transform: translateY(-2px); }
     .case .pic {
