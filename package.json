@@ -4,10 +4,10 @@
   "private": true,
   "description": "ADEPT — AI Production Studio. Portfolio site.",
   "scripts": {
-    "start": "serve . -l ${PORT:-3000} --no-clipboard --no-port-switching"
+    "start": "node server.js"
   },
   "dependencies": {
-    "serve": "14.2.4"
+    "express": "^4.21.0"
   },
   "engines": {
     "node": ">=20"

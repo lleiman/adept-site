@@ -446,145 +446,8 @@
       .side-nav { display: none; }
     }
     html { scroll-behavior: smooth; }
-
-    /* ============ EDIT MODE ============ */
-    /* dashed outline on editable text only when edit-mode is on */
-    body.edit-mode [data-edit] {
-      outline: 1px dashed rgba(207, 228, 48, 0.55);
-      outline-offset: 4px;
-      border-radius: 2px;
-      cursor: text;
-      transition: outline-color .15s ease, background .15s ease;
-    }
-    body.edit-mode [data-edit]:hover { outline-color: var(--lime); }
-    body.edit-mode [data-edit]:focus {
-      outline: 2px solid var(--lime);
-      outline-offset: 4px;
-      background: rgba(207,228,48,.18);
-    }
-    /* image controls — visible in edit-mode only */
-    .edt-img-ctl {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 5;
-      display: none;
-      gap: 6px;
-    }
-    body.edit-mode .edt-img-ctl { display: flex; }
-    .edt-img-ctl button {
-      appearance: none;
-      background: rgba(11,11,8,.78);
-      color: #fff;
-      font: 500 11px/1 "Onest", sans-serif;
-      padding: 8px 12px;
-      border: 0;
-      border-radius: 7px;
-      cursor: pointer;
-      -webkit-backdrop-filter: blur(8px);
-      backdrop-filter: blur(8px);
-      transition: background .12s ease, color .12s ease;
-    }
-    .edt-img-ctl button:hover { background: var(--lime); color: var(--ink); }
-    .edt-img-ctl button.ghost { background: rgba(11,11,8,.55); }
-    .edt-img-ctl button.ghost:hover { background: var(--ink); }
-
-    /* floating Edit pill, visible when edit-mode is OFF */
-    .edit-pill {
-      position: fixed;
-      left: 16px; bottom: 16px;
-      z-index: 90;
-      appearance: none;
-      border: 1px solid rgba(11,11,8,.18);
-      background: rgba(255,255,255,.85);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
-      color: var(--ink);
-      font: 500 12px/1 "Onest", sans-serif;
-      letter-spacing: .02em;
-      padding: 10px 14px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      box-shadow: 0 8px 24px -10px rgba(11,11,8,.25);
-      transition: transform .15s ease, background .15s ease;
-    }
-    .edit-pill:hover { background: #fff; transform: translateY(-1px); }
-    .edit-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .edit-pill kbd {
-      font: 500 10px/1 "JetBrains Mono", monospace;
-      background: rgba(11,11,8,.08);
-      padding: 4px 6px;
-      border-radius: 4px;
-      color: var(--muted);
-    }
-    body.edit-mode .edit-pill { display: none; }
-
-    /* edit bar — visible when edit-mode is ON */
-    .edit-bar {
-      position: fixed;
-      left: 16px; right: 16px; bottom: 16px;
-      z-index: 100;
-      background: var(--ink);
-      color: #fff;
-      border-radius: 14px;
-      padding: 12px 14px 12px 18px;
-      display: none;
-      align-items: center;
-      gap: 14px;
-      font: 500 13px/1 "Onest", sans-serif;
-      box-shadow: 0 24px 60px -20px rgba(11,11,8,.5);
-      flex-wrap: wrap;
-    }
-    body.edit-mode .edit-bar { display: flex; }
-    .edit-bar .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--lime);
-      animation: editPulse 1.6s ease-in-out infinite;
-    }
-    @keyframes editPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: .5; transform: scale(.7); }
-    }
-    .edit-bar .lbl { font-weight: 600; }
-    .edit-bar .hint { color: rgba(255,255,255,.55); font-size: 12px; }
-    .edit-bar .spacer { flex: 1; }
-    .edit-bar button {
-      appearance: none;
-      border: 0;
-      font: 500 13px/1 "Onest", sans-serif;
-      padding: 10px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .edit-bar button.ghost {
-      background: transparent;
-      color: rgba(255,255,255,.7);
-      border: 1px solid rgba(255,255,255,.18);
-    }
-    .edit-bar button.ghost:hover { color: #fff; border-color: rgba(255,255,255,.4); }
-    .edit-bar button.primary { background: var(--lime); color: var(--ink); }
-    .edit-bar button.primary:hover { background: #d8ed3d; }
-    .edit-bar kbd {
-      font: 500 10px/1 "JetBrains Mono", monospace;
-      background: rgba(11,11,8,.25);
-      padding: 4px 6px;
-      border-radius: 4px;
-      color: rgba(255,255,255,.7);
-    }
-    @media (max-width: 720px) {
-      .edit-bar { padding: 10px 12px; font-size: 12px; }
-      .edit-bar .hint { display: none; }
-    }
-    /* hide side-nav while editing (less distraction) */
-    body.edit-mode .side-nav { display: none; }
   </style>
+  <link rel="stylesheet" href="/edit-mode.css" />
 </head>
 <body>
 
@@ -692,17 +555,12 @@
     </footer>
   </main>
 
-  <button class="edit-pill" id="edit-pill" title="Включить режим редактирования">
-    <span class="dot"></span>
-    <span>Edit</span>
-    <kbd>⌘E</kbd>
-  </button>
-
   <div class="edit-bar" role="toolbar" aria-label="Режим редактирования">
     <span class="dot"></span>
     <span class="lbl">Режим редактирования</span>
     <span class="hint">Клик по тексту или картинке • <kbd>ESC</kbd> или <kbd>⌘E</kbd> выйти</span>
     <span class="spacer"></span>
+    <span class="hint" id="edit-saving" style="display:none">сохраняю…</span>
     <button class="ghost" id="edit-reset">Сбросить всё</button>
     <button class="primary" id="edit-done">Готово</button>
   </div>
@@ -954,167 +812,13 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
 
 // ============================================================
 //  EDIT MODE — ⌘E / Ctrl+E toggles inline editing.
-//  Changes persist in localStorage under `adept-content-v1`.
+//  Persistence: edits POST to /api/content (server writes content.json
+//  in the project folder). Admin password "ADEPT" required.
+//  Shared logic for index.html / case.html / portfolio.html lives in
+//  /edit-mode.js, but we inline it here so each page is self-contained.
 // ============================================================
-(function editMode() {
-  const KEY = "adept-content-v1";
-  const body = document.body;
-  const isMac = /Mac|iPhone|iPad/i.test(navigator.platform);
-
-  // ---- storage helpers ----
-  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-  const save = (d) => localStorage.setItem(KEY, JSON.stringify(d));
-  const getPath = (path) => {
-    const parts = path.split(".");
-    let o = load();
-    for (const p of parts) { if (!o || typeof o !== "object") return undefined; o = o[p]; }
-    return o;
-  };
-  const setPath = (path, value) => {
-    const d = load();
-    const parts = path.split(".");
-    let o = d;
-    for (let i = 0; i < parts.length - 1; i++) {
-      o[parts[i]] = o[parts[i]] || {};
-      o = o[parts[i]];
-    }
-    o[parts[parts.length - 1]] = value;
-    save(d);
-  };
-  const unsetPath = (path) => {
-    const d = load();
-    const parts = path.split(".");
-    let o = d;
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!o[parts[i]]) return;
-      o = o[parts[i]];
-    }
-    delete o[parts[parts.length - 1]];
-    save(d);
-  };
-
-  // ---- apply overrides to DOM ----
-  const applyOverrides = () => {
-    // Text
-    document.querySelectorAll("[data-edit]").forEach(el => {
-      const v = getPath(el.dataset.edit);
-      if (typeof v === "string") el.textContent = v;
-    });
-    // Images
-    document.querySelectorAll("[data-edit-img]").forEach(el => {
-      const v = getPath(el.dataset.editImg + ".img");
-      // Stash defaults the first time we see this element
-      if (el.dataset.origBg === undefined) {
-        el.dataset.origBg = el.style.backgroundImage || "";
-        el.dataset.origFilter = el.style.filter || "";
-      }
-      if (typeof v === "string" && v) {
-        el.style.backgroundImage = `url('${v}')`;
-        el.style.filter = "none"; // don't tint user-supplied images
-      } else {
-        el.style.backgroundImage = el.dataset.origBg;
-        el.style.filter = el.dataset.origFilter;
-      }
-    });
-  };
-
-  // ---- mode toggle ----
-  const setMode = (on) => {
-    body.classList.toggle("edit-mode", on);
-    document.querySelectorAll("[data-edit]").forEach(el => {
-      el.contentEditable = on ? "true" : "false";
-      el.spellcheck = false;
-    });
-  };
-  const toggle = () => setMode(!body.classList.contains("edit-mode"));
-
-  // ---- keyboard ----
-  window.addEventListener("keydown", e => {
-    const cmd = isMac ? e.metaKey : e.ctrlKey;
-    if (cmd && (e.key === "e" || e.key === "E")) {
-      e.preventDefault();
-      toggle();
-    } else if (e.key === "Escape" && body.classList.contains("edit-mode")) {
-      setMode(false);
-    }
-  });
-
-  // ---- text save on blur, prevent newlines on Enter ----
-  document.addEventListener("blur", e => {
-    if (!e.target.matches || !e.target.matches("[data-edit]")) return;
-    if (!body.classList.contains("edit-mode")) return;
-    const path = e.target.dataset.edit;
-    const text = e.target.textContent.trim();
-    if (text) setPath(path, text);
-    else { unsetPath(path); applyOverrides(); }
-  }, true);
-  document.addEventListener("keydown", e => {
-    if (!e.target.matches || !e.target.matches("[data-edit]")) return;
-    if (!body.classList.contains("edit-mode")) return;
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      e.target.blur();
-    }
-  });
-
-  // ---- suppress navigation while editing ----
-  document.addEventListener("click", e => {
-    if (!body.classList.contains("edit-mode")) return;
-    if (e.target.closest(".edt-img-ctl, [data-edit], .edit-bar, .edit-pill")) return;
-    const link = e.target.closest("a[href]");
-    if (link) e.preventDefault();
-  }, true);
-
-  // ---- image replace / reset ----
-  document.addEventListener("click", e => {
-    const btn = e.target.closest(".edt-img-ctl button");
-    if (!btn) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const target = btn.dataset.imgTarget;
-    const action = btn.dataset.imgAction;
-    if (action === "replace") {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = () => {
-        const file = input.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-          alert("Картинка больше 5 МБ — localStorage не вместит. Сожми и попробуй снова.");
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            setPath(`${target}.img`, reader.result);
-            applyOverrides();
-          } catch (err) {
-            alert("Не удалось сохранить — localStorage переполнен. Сбрось часть картинок.");
-          }
-        };
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    } else if (action === "reset") {
-      unsetPath(`${target}.img`);
-      applyOverrides();
-    }
-  });
-
-  // ---- toolbar ----
-  document.getElementById("edit-pill")?.addEventListener("click", () => setMode(true));
-  document.getElementById("edit-done")?.addEventListener("click", () => setMode(false));
-  document.getElementById("edit-reset")?.addEventListener("click", () => {
-    if (!confirm("Сбросить все изменения? Это нельзя отменить.")) return;
-    localStorage.removeItem(KEY);
-    location.reload();
-  });
-
-  // ---- apply overrides after carousel + side-nav have rendered ----
-  applyOverrides();
-})();
 </script>
+<script src="/edit-mode.js" defer></script>
 
 </body>
 </html>

@@ -628,6 +628,7 @@
       .side-nav { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="/edit-mode.css" />
 </head>
 <body>
 
@@ -725,6 +726,16 @@
       <span>МСК · BLR · NYC</span>
     </footer>
   </main>
+
+  <div class="edit-bar" role="toolbar" aria-label="Режим редактирования">
+    <span class="dot"></span>
+    <span class="lbl">Режим редактирования</span>
+    <span class="hint">Клик по тексту или картинке • <kbd>ESC</kbd> или <kbd>⌘E</kbd> выйти</span>
+    <span class="spacer"></span>
+    <span class="hint" id="edit-saving" style="display:none">сохраняю…</span>
+    <button class="ghost" id="edit-reset">Сбросить всё</button>
+    <button class="primary" id="edit-done">Готово</button>
+  </div>
 
 <script>
 // ============================================================
@@ -1042,7 +1053,29 @@ function findCase(id) {
   const base = CASES[id];
   if (!base) return null;
   const detail = DETAILS[id] || {};
-  return { id, ...base, ...detail };
+  // Merge in any server-side overrides (cases.<id>.* + details.<id>.*)
+  const overrides = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
+  const caseOv = (overrides.cases && overrides.cases[id]) || {};
+  const detailOv = (overrides.details && overrides.details[id]) || {};
+  return deepMerge({ id, ...base, ...detail }, { ...caseOv, ...detailOv });
+}
+
+function deepMerge(dst, src) {
+  for (const k in src) {
+    if (src[k] && typeof src[k] === "object" && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === "object") {
+      dst[k] = deepMerge({ ...dst[k] }, src[k]);
+    } else if (Array.isArray(src[k]) && Array.isArray(dst[k])) {
+      // Array overrides: merge element-wise (so partial edits don't drop unchanged items)
+      dst[k] = dst[k].map((item, i) => {
+        const ov = src[k][i];
+        if (ov && typeof ov === "object" && typeof item === "object") return deepMerge({ ...item }, ov);
+        return ov !== undefined ? ov : item;
+      });
+    } else if (src[k] !== undefined) {
+      dst[k] = src[k];
+    }
+  }
+  return dst;
 }
 
 function filterCss(data) {
@@ -1073,26 +1106,30 @@ function renderCase(data) {
   const formatComma = (data.format || []).join(", ");
   const tagsComma = (data.tags || []).join(", ");
 
-  const statsHtml = (data.stats || []).map(s => `
+  const statsHtml = (data.stats || []).map((s, i) => `
     <div class="cd-stat">
-      <div class="n">${escapeHtml(s.n)}</div>
-      <div class="l">${escapeHtml(s.l)}</div>
+      <div class="n" data-edit="details.${data.id}.stats.${i}.n">${escapeHtml(s.n)}</div>
+      <div class="l" data-edit="details.${data.id}.stats.${i}.l">${escapeHtml(s.l)}</div>
     </div>`).join("");
 
   const galleryItems = data.gallery || [];
   const galleryClass = galleryItems.length >= 3 ? "g-3" : galleryItems.length === 2 ? "g-2" : "g-1";
-  const galleryHtml = galleryItems.map(g => `
+  const galleryHtml = galleryItems.map((g, i) => `
     <div class="cd-shot">
-      <div class="pic" style="background-image: url('${g.img}'); ${filterCss(data)}"></div>
+      <div class="pic" data-edit-img="details.${data.id}.gallery.${i}" style="background-image: url('${g.img}'); ${filterCss(data)}"></div>
+      <div class="edt-img-ctl">
+        <button data-img-action="replace" data-img-target="details.${data.id}.gallery.${i}">Заменить</button>
+        <button data-img-action="reset" data-img-target="details.${data.id}.gallery.${i}" class="ghost">Сбросить</button>
+      </div>
     </div>`).join("");
 
-  const teamHtml = (data.team || []).map(sec => `
+  const teamHtml = (data.team || []).map((sec, i) => `
     <div class="cd-team-col">
-      <div class="cd-team-group">${escapeHtml(sec.group)}</div>
-      <ul>${sec.lines.map(l => `<li>${escapeHtml(l)}</li>`).join("")}</ul>
+      <div class="cd-team-group" data-edit="details.${data.id}.team.${i}.group">${escapeHtml(sec.group)}</div>
+      <ul>${sec.lines.map((l, j) => `<li data-edit="details.${data.id}.team.${i}.lines.${j}">${escapeHtml(l)}</li>`).join("")}</ul>
     </div>`).join("");
 
-  const descHtml = (data.description || []).map(p => `<p>${escapeHtml(p)}</p>`).join("");
+  const descHtml = (data.description || []).map((p, i) => `<p data-edit="details.${data.id}.description.${i}">${escapeHtml(p)}</p>`).join("");
 
   // Next cases — deterministic subset of 6, excluding current
   const pool = ORDER.filter(id => id !== data.id);
@@ -1122,15 +1159,15 @@ function renderCase(data) {
   return `
     <header class="cd-title">
       <div class="cd-meta-row">
-        <span class="eyebrow">${escapeHtml(data.client || data.eyebrow)}</span>
+        <span class="eyebrow" data-edit="details.${data.id}.client">${escapeHtml(data.client || data.eyebrow)}</span>
         ${tagsHtml}
       </div>
-      <h1 class="cd-h1">${escapeHtml(data.title)}</h1>
-      ${data.lead ? `<p class="cd-lead">${escapeHtml(data.lead)}</p>` : ""}
+      <h1 class="cd-h1" data-edit="cases.${data.id}.title">${escapeHtml(data.title)}</h1>
+      ${data.lead ? `<p class="cd-lead" data-edit="details.${data.id}.lead">${escapeHtml(data.lead)}</p>` : ""}
     </header>
 
     <section class="cd-poster">
-      <div class="pic" style="background-image: url('${data.img}'); ${filterCss(data)}"></div>
+      <div class="pic" data-edit-img="cases.${data.id}" style="background-image: url('${data.img}'); ${filterCss(data)}"></div>
       <div class="scrim"></div>
       <div class="cd-poster-corner"></div>
       <button class="cd-play" type="button" aria-label="Play">
@@ -1140,9 +1177,13 @@ function renderCase(data) {
         <span>Смотреть ролик</span>
       </button>
       <div class="cd-poster-meta">
-        <span class="k">${escapeHtml(data.year || "2025")}</span>
+        <span class="k" data-edit="details.${data.id}.year">${escapeHtml(data.year || "2025")}</span>
         <span class="dot-sep"></span>
         <span class="k">${escapeHtml(formatStr)}</span>
+      </div>
+      <div class="edt-img-ctl">
+        <button data-img-action="replace" data-img-target="cases.${data.id}">Заменить</button>
+        <button data-img-action="reset" data-img-target="cases.${data.id}" class="ghost">Сбросить</button>
       </div>
     </section>
 
@@ -1154,8 +1195,8 @@ function renderCase(data) {
       <div class="cd-about-body">
         <div class="cd-prose">${descHtml}</div>
         <aside class="cd-meta">
-          <div class="row"><span class="k">Клиент</span><span class="v">${escapeHtml(data.client || "—")}</span></div>
-          <div class="row"><span class="k">Год</span><span class="v">${escapeHtml(data.year || "2025")}</span></div>
+          <div class="row"><span class="k">Клиент</span><span class="v" data-edit="details.${data.id}.client">${escapeHtml(data.client || "—")}</span></div>
+          <div class="row"><span class="k">Год</span><span class="v" data-edit="details.${data.id}.year">${escapeHtml(data.year || "2025")}</span></div>
           <div class="row"><span class="k">Формат</span><span class="v">${escapeHtml(formatComma || "—")}</span></div>
           <div class="row"><span class="k">Теги</span><span class="v">${escapeHtml(tagsComma || "—")}</span></div>
         </aside>
@@ -1190,7 +1231,12 @@ function update() {
   const data = findCase(id);
   document.title = data ? `${data.title} — ADEPT` : `Кейс «${id}» — ADEPT`;
   $("#case-root").innerHTML = renderCase(data);
+  // Re-apply overrides to newly rendered DOM
+  if (window.AdeptEdit) window.AdeptEdit.apply();
 }
+
+// Re-render when content is fetched/changed by the edit module
+window.addEventListener("adept-content-loaded", update);
 
 // ------- form ------------------------------------------------------------
 function wireForm() {
@@ -1220,6 +1266,7 @@ window.addEventListener("hashchange", () => {
   update();
 });
 </script>
+<script src="/edit-mode.js" defer></script>
 
 </body>
 </html>

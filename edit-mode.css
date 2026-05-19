@@ -1,0 +1,116 @@
+/* ============================================================
+   ADEPT — inline edit mode
+   Shared by index.html / case.html / portfolio.html.
+   ============================================================ */
+
+/* dashed outline on editable text only when edit-mode is on */
+body.edit-mode [data-edit] {
+  outline: 1px dashed rgba(207, 228, 48, 0.55);
+  outline-offset: 4px;
+  border-radius: 2px;
+  cursor: text;
+  transition: outline-color .15s ease, background .15s ease;
+}
+body.edit-mode [data-edit]:hover { outline-color: var(--lime, #cfe430); }
+body.edit-mode [data-edit]:focus {
+  outline: 2px solid var(--lime, #cfe430);
+  outline-offset: 4px;
+  background: rgba(207, 228, 48, .18);
+}
+
+/* image controls — visible in edit-mode only */
+.edt-img-ctl {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: none;
+  gap: 6px;
+}
+body.edit-mode .edt-img-ctl { display: flex; }
+.edt-img-ctl button {
+  appearance: none;
+  background: rgba(11, 11, 8, .78);
+  color: #fff;
+  font: 500 11px/1 "Onest", sans-serif;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: background .12s ease, color .12s ease;
+}
+.edt-img-ctl button:hover { background: var(--lime, #cfe430); color: var(--ink, #0b0b08); }
+.edt-img-ctl button.ghost { background: rgba(11, 11, 8, .55); }
+.edt-img-ctl button.ghost:hover { background: var(--ink, #0b0b08); }
+
+/* edit bar — fixed bottom, visible only in edit-mode */
+.edit-bar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100;
+  background: var(--ink, #0b0b08);
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 14px 12px 18px;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  font: 500 13px/1 "Onest", sans-serif;
+  box-shadow: 0 24px 60px -20px rgba(11, 11, 8, .5);
+  flex-wrap: wrap;
+}
+body.edit-mode .edit-bar { display: flex; }
+.edit-bar .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lime, #cfe430);
+  animation: editPulse 1.6s ease-in-out infinite;
+}
+@keyframes editPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.7); }
+}
+.edit-bar .lbl { font-weight: 600; }
+.edit-bar .hint { color: rgba(255, 255, 255, .55); font-size: 12px; }
+.edit-bar .spacer { flex: 1; }
+.edit-bar button {
+  appearance: none;
+  border: 0;
+  font: 500 13px/1 "Onest", sans-serif;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.edit-bar button.ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, .7);
+  border: 1px solid rgba(255, 255, 255, .18);
+}
+.edit-bar button.ghost:hover { color: #fff; border-color: rgba(255, 255, 255, .4); }
+.edit-bar button.primary { background: var(--lime, #cfe430); color: var(--ink, #0b0b08); }
+.edit-bar button.primary:hover { background: #d8ed3d; }
+.edit-bar kbd {
+  font: 500 10px/1 "JetBrains Mono", monospace;
+  background: rgba(11, 11, 8, .25);
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, .7);
+}
+@media (max-width: 720px) {
+  .edit-bar { padding: 10px 12px; font-size: 12px; }
+  .edit-bar .hint { display: none; }
+}
+
+/* hide side-nav while editing (less distraction) */
+body.edit-mode .side-nav { display: none; }
+
+/* keep edit bar above the toast/saving indicator */
+.edit-bar #edit-saving { color: var(--lime, #cfe430); font-size: 12px; }

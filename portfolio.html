@@ -368,6 +368,7 @@
     }
 
   </style>
+  <link rel="stylesheet" href="/edit-mode.css" />
 </head>
 <body>
 
@@ -393,8 +394,8 @@
 
     <header class="pf-title">
       <div>
-        <span class="eyebrow">Все проекты</span>
-        <h1>Портфолио</h1>
+        <span class="eyebrow" data-edit="portfolio.eyebrow">Все проекты</span>
+        <h1 data-edit="portfolio.title">Портфолио</h1>
       </div>
       <div class="count" id="case-count">17 проектов</div>
     </header>
@@ -465,6 +466,16 @@
     </footer>
   </main>
 
+  <div class="edit-bar" role="toolbar" aria-label="Режим редактирования">
+    <span class="dot"></span>
+    <span class="lbl">Режим редактирования</span>
+    <span class="hint">Клик по тексту или картинке • <kbd>ESC</kbd> или <kbd>⌘E</kbd> выйти</span>
+    <span class="spacer"></span>
+    <span class="hint" id="edit-saving" style="display:none">сохраняю…</span>
+    <button class="ghost" id="edit-reset">Сбросить всё</button>
+    <button class="primary" id="edit-done">Готово</button>
+  </div>
+
 <script>
 const BRANDS = [
   "SBER", "VK", "ГИГАЧАТ", "ВТБ", "РОСАТОМ",
@@ -506,12 +517,12 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   grid.innerHTML = ORDER.map(id => {
     const c = CASES[id]; if (!c) return "";
     return `
-      <a class="pf-card" href="/case#${id}">
-        <div class="pic" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
+      <a class="pf-card" href="/case#${id}" data-id="${id}">
+        <div class="pic" data-edit-img="cases.${id}" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
         <div class="scrim"></div>
         <div class="label">
-          <span class="eyebrow">${escapeHtml(c.eyebrow)}</span>
-          <div class="title">${escapeHtml(c.title)}</div>
+          <span class="eyebrow" data-edit="cases.${id}.eyebrow">${escapeHtml(c.eyebrow)}</span>
+          <div class="title" data-edit="cases.${id}.title">${escapeHtml(c.title)}</div>
         </div>
         <div class="arrow">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
@@ -519,8 +530,14 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
           </svg>
           <span>смотреть</span>
         </div>
+        <div class="edt-img-ctl">
+          <button data-img-action="replace" data-img-target="cases.${id}">Заменить</button>
+          <button data-img-action="reset" data-img-target="cases.${id}" class="ghost">Сбросить</button>
+        </div>
       </a>`;
   }).join("");
+  // Re-apply edit overrides to newly rendered cards
+  if (window.AdeptEdit) window.AdeptEdit.apply();
 })();
 
 (function wireForm() {
@@ -541,6 +558,7 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   });
 })();
 </script>
+<script src="/edit-mode.js" defer></script>
 
 </body>
 </html>
