@@ -10,10 +10,9 @@
 //    POST /api/upload    → save a base64 image to ./uploads/<name>, return url
 //    Static: any other path under project root
 //
-//  Persistence: edits are written to ./content.json and ./uploads/ —
-//  i.e. directly inside the project directory. On Railway this means
-//  changes survive the current deploy; redeploys reset to git state
-//  (unless a Railway Volume is mounted at the project root).
+//  Persistence: edits live in $DATA_DIR (defaults to ./ for local dev).
+//  On Railway set DATA_DIR=/data and mount a Volume at /data — then
+//  content.json and uploads/ survive every redeploy.
 // ============================================================
 
 const express = require("express");
@@ -24,10 +23,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ADEPT";
 const ROOT = __dirname;
-const CONTENT_FILE = path.join(ROOT, "content.json");
-const UPLOADS_DIR = path.join(ROOT, "uploads");
+const DATA_DIR = process.env.DATA_DIR || ROOT;
+const CONTENT_FILE = path.join(DATA_DIR, "content.json");
+const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+console.log(`ADEPT data dir: ${DATA_DIR}`);
 
 app.use(express.json({ limit: "15mb" }));
 
@@ -82,7 +85,10 @@ app.post("/api/check", (req, res) => {
   res.json({ ok: password === ADMIN_PASSWORD });
 });
 
-// ---- static files (must be after /api routes) ----
+// ---- uploaded images live in the data dir (so they survive redeploys) ----
+app.use("/uploads", express.static(UPLOADS_DIR, { maxAge: "1d" }));
+
+// ---- static files (must be after /api and /uploads routes) ----
 app.use(express.static(ROOT, { extensions: ["html"] }));
 
 // ---- 404 fallback ----
