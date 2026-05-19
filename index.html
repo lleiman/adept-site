@@ -411,10 +411,10 @@
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
-    /* side nav — fixed right, centered on hero axis, Onest, active = bold */
+    /* side nav — fixed right, pulled closer to content on wide viewports */
     .side-nav {
       position: fixed;
-      right: 36px;
+      right: clamp(36px, calc((100vw - 1240px) / 4), 200px);
       top: 40%;
       transform: translateY(-50%);
       z-index: 50;
@@ -435,15 +435,15 @@
       transition: font-weight .2s ease, opacity .2s ease;
     }
     .side-nav a:hover { opacity: 0.7; }
-    .side-nav a.active { font-weight: 700; }
+    .side-nav a.active { font-weight: 600; }
     @media (max-width: 1400px) {
-      .side-nav { right: 20px; }
       .side-nav a { font-size: 18px; }
       .side-nav ul { gap: 28px; }
     }
     @media (max-width: 1100px) {
       .side-nav { display: none; }
     }
+    html { scroll-behavior: smooth; }
   </style>
 </head>
 <body>
@@ -713,7 +713,7 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   });
 })();
 
-// ---- side-nav scroll-spy ----
+// ---- side-nav scroll-spy + ShowReel → scroll to top ----
 (function wireSideNav() {
   const nav = document.querySelector(".side-nav");
   if (!nav) return;
@@ -728,6 +728,16 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
     links.forEach(l => l.classList.toggle("active", l.dataset.section === id));
   };
   setActive("showreel");
+
+  // ShowReel always returns to the very top (initial page-load position)
+  const showreelLink = nav.querySelector('a[data-section="showreel"]');
+  if (showreelLink) {
+    showreelLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      history.replaceState(null, "", window.location.pathname);
+    });
+  }
 
   let raf = 0;
   const onScroll = () => {

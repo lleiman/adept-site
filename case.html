@@ -595,10 +595,10 @@
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
-    /* side nav — fixed right, Onest, active = bold */
+    /* side nav — fixed right, pulled closer to content on wide viewports */
     .side-nav {
       position: fixed;
-      right: 36px;
+      right: clamp(36px, calc((100vw - 1240px) / 4), 200px);
       top: 40%;
       transform: translateY(-50%);
       z-index: 50;
@@ -619,9 +619,8 @@
       transition: font-weight .2s ease, opacity .2s ease;
     }
     .side-nav a:hover { opacity: 0.7; }
-    .side-nav a.active { font-weight: 700; }
+    .side-nav a.active { font-weight: 600; }
     @media (max-width: 1400px) {
-      .side-nav { right: 20px; }
       .side-nav a { font-size: 18px; }
       .side-nav ul { gap: 28px; }
     }
@@ -634,7 +633,7 @@
 
   <nav class="side-nav" aria-label="Главная навигация">
     <ul>
-      <li><a href="/#showreel">— ShowReel</a></li>
+      <li><a href="/">— ShowReel</a></li>
       <li><a href="/#cases" class="active">— Кейсы</a></li>
       <li><a href="/portfolio">— Портфолио</a></li>
       <li><a href="/#contact">— Связаться</a></li>
