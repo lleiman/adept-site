@@ -175,29 +175,33 @@
         el.dataset.origFilter = el.style.filter || "";
       }
 
-      // Clean any existing injected video
       const old = el.querySelector(":scope > iframe.adept-video");
-      if (old) old.remove();
 
-      // If video mode + vimeo set → render iframe over the slot
+      // If video mode + vimeo set → render iframe over the slot, no poster
+      // (the user explicitly wants no still-frame flash before the video)
       if (videoMode && vimeo && vimeo.id) {
+        const wantedSrc = vimeoSrc(vimeo, videoMode);
+        if (old && old.src === wantedSrc) {
+          // Server already injected the right iframe; just clear bg image
+          // so there's no flash, leave the iframe alone (no restart).
+          el.style.backgroundImage = "none";
+          el.style.filter = "none";
+          return;
+        }
+        if (old) old.remove();
         const ifr = document.createElement("iframe");
         ifr.className = "adept-video";
-        ifr.src = vimeoSrc(vimeo, videoMode);
+        ifr.src = wantedSrc;
         ifr.allow = "autoplay; fullscreen; picture-in-picture; clipboard-write";
         ifr.allowFullscreen = true;
-        ifr.loading = "lazy";
         el.appendChild(ifr);
-        // Keep poster image (or default) underneath as a fallback
-        if (typeof imgUrl === "string" && imgUrl) {
-          el.style.backgroundImage = `url('${imgUrl}')`;
-          el.style.filter = "none";
-        } else {
-          el.style.backgroundImage = el.dataset.origBg;
-          el.style.filter = el.dataset.origFilter || "";
-        }
+        el.style.backgroundImage = "none";
+        el.style.filter = "none";
         return;
       }
+
+      // No video → remove any leftover iframe (e.g. after "Сбросить")
+      if (old) old.remove();
 
       // Otherwise just image (override or default)
       if (typeof imgUrl === "string" && imgUrl) {
