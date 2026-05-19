@@ -134,6 +134,30 @@
     saveTimer = setTimeout(saveContent, 200);
   }
 
+  // ---- Vimeo helpers ----
+  function parseVimeoInput(input) {
+    if (!input) return null;
+    const s = String(input).trim();
+    // 1. iframe embed code or player URL
+    let m = s.match(/player\.vimeo\.com\/video\/(\d+)(?:[?&]h=([a-zA-Z0-9]+))?/);
+    if (m) return { id: m[1], hash: m[2] || "" };
+    // 2. vimeo.com/123 or vimeo.com/123/abc
+    m = s.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([a-zA-Z0-9]+))?/);
+    if (m) return { id: m[1], hash: m[2] || "" };
+    // 3. plain numeric ID
+    m = s.match(/^(\d{6,})$/);
+    if (m) return { id: m[1], hash: "" };
+    return null;
+  }
+  function vimeoSrc(vimeo, mode) {
+    if (!vimeo || !vimeo.id) return null;
+    const h = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
+    const params = mode === "background"
+      ? "background=1&autoplay=1&loop=1&muted=1&autopause=0"
+      : "title=0&byline=0&portrait=0&dnt=1";
+    return `https://player.vimeo.com/video/${vimeo.id}?${h}${params}`;
+  }
+
   // ---- apply overrides to current DOM ----
   function applyOverrides() {
     document.querySelectorAll("[data-edit]").forEach(el => {
@@ -141,13 +165,43 @@
       if (typeof v === "string" && el.textContent !== v) el.textContent = v;
     });
     document.querySelectorAll("[data-edit-img]").forEach(el => {
-      const v = getPath(content, el.dataset.editImg + ".img");
+      const prefix = el.dataset.editImg;
+      const imgUrl = getPath(content, prefix + ".img");
+      const vimeo = getPath(content, prefix + ".vimeo");
+      const videoMode = el.dataset.videoMode; // "background" | "player" | undefined
+
       if (el.dataset.origBg === undefined) {
         el.dataset.origBg = el.style.backgroundImage || "";
         el.dataset.origFilter = el.style.filter || "";
       }
-      if (typeof v === "string" && v) {
-        el.style.backgroundImage = `url('${v}')`;
+
+      // Clean any existing injected video
+      const old = el.querySelector(":scope > iframe.adept-video");
+      if (old) old.remove();
+
+      // If video mode + vimeo set → render iframe over the slot
+      if (videoMode && vimeo && vimeo.id) {
+        const ifr = document.createElement("iframe");
+        ifr.className = "adept-video";
+        ifr.src = vimeoSrc(vimeo, videoMode);
+        ifr.allow = "autoplay; fullscreen; picture-in-picture; clipboard-write";
+        ifr.allowFullscreen = true;
+        ifr.loading = "lazy";
+        el.appendChild(ifr);
+        // Keep poster image (or default) underneath as a fallback
+        if (typeof imgUrl === "string" && imgUrl) {
+          el.style.backgroundImage = `url('${imgUrl}')`;
+          el.style.filter = "none";
+        } else {
+          el.style.backgroundImage = el.dataset.origBg;
+          el.style.filter = el.dataset.origFilter || "";
+        }
+        return;
+      }
+
+      // Otherwise just image (override or default)
+      if (typeof imgUrl === "string" && imgUrl) {
+        el.style.backgroundImage = `url('${imgUrl}')`;
         el.style.filter = "none";
       } else {
         el.style.backgroundImage = el.dataset.origBg;
@@ -239,8 +293,23 @@
         applyOverrides();
       };
       input.click();
+    } else if (action === "vimeo") {
+      const cur = getPath(content, `${target}.vimeo`);
+      const current = cur && cur.id ? `https://vimeo.com/${cur.id}${cur.hash ? "/" + cur.hash : ""}` : "";
+      const raw = prompt("Вставь Vimeo URL / ID / embed-код\n(пусто = убрать видео):", current);
+      if (raw === null) return; // cancelled
+      if (raw.trim() === "") {
+        unsetPath(content, `${target}.vimeo`);
+      } else {
+        const parsed = parseVimeoInput(raw);
+        if (!parsed) { alert("Не удалось распознать ссылку Vimeo"); return; }
+        setPath(content, `${target}.vimeo`, parsed);
+      }
+      await saveContent();
+      applyOverrides();
     } else if (action === "reset") {
       unsetPath(content, `${target}.img`);
+      unsetPath(content, `${target}.vimeo`);
       await saveContent();
       applyOverrides();
     }

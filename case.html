@@ -1107,9 +1107,10 @@ function renderCase(data) {
   const galleryClass = galleryItems.length >= 3 ? "g-3" : galleryItems.length === 2 ? "g-2" : "g-1";
   const galleryHtml = galleryItems.map((g, i) => `
     <div class="cd-shot">
-      <div class="pic" data-edit-img="details.${data.id}.gallery.${i}" style="background-image: url('${g.img}'); ${filterCss(data)}"></div>
+      <div class="pic" data-edit-img="details.${data.id}.gallery.${i}" data-video-mode="player" style="background-image: url('${g.img}'); ${filterCss(data)}"></div>
       <div class="edt-img-ctl">
-        <button data-img-action="replace" data-img-target="details.${data.id}.gallery.${i}">Заменить</button>
+        <button data-img-action="replace" data-img-target="details.${data.id}.gallery.${i}">Картинка</button>
+        <button data-img-action="vimeo" data-img-target="details.${data.id}.gallery.${i}">Vimeo</button>
         <button data-img-action="reset" data-img-target="details.${data.id}.gallery.${i}" class="ghost">Сбросить</button>
       </div>
     </div>`).join("");
@@ -1158,7 +1159,7 @@ function renderCase(data) {
     </header>
 
     <section class="cd-poster">
-      <div class="pic" data-edit-img="cases.${data.id}" style="background-image: url('${data.img}'); ${filterCss(data)}"></div>
+      <div class="pic" data-edit-img="cases.${data.id}" data-video-mode="player" style="background-image: url('${data.img}'); ${filterCss(data)}"></div>
       <div class="scrim"></div>
       <div class="cd-poster-corner"></div>
       <button class="cd-play" type="button" aria-label="Play">
@@ -1173,7 +1174,8 @@ function renderCase(data) {
         <span class="k">${escapeHtml(formatStr)}</span>
       </div>
       <div class="edt-img-ctl">
-        <button data-img-action="replace" data-img-target="cases.${data.id}">Заменить</button>
+        <button data-img-action="replace" data-img-target="cases.${data.id}">Картинка</button>
+        <button data-img-action="vimeo" data-img-target="cases.${data.id}">Vimeo</button>
         <button data-img-action="reset" data-img-target="cases.${data.id}" class="ghost">Сбросить</button>
       </div>
     </section>

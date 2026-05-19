@@ -112,5 +112,28 @@ body.edit-mode .edit-bar { display: flex; }
 /* hide side-nav while editing (less distraction) */
 body.edit-mode .side-nav { display: none; }
 
+/* ---- video embed (Vimeo) inside an editable image slot ---- */
+[data-edit-img] {
+  position: relative;
+  overflow: hidden;
+}
+iframe.adept-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  z-index: 1;
+  pointer-events: auto;
+}
+/* hero video runs as background — hide play button area, let scrim sit on top */
+.hero iframe.adept-video {
+  z-index: 0;
+  pointer-events: none; /* so hero text & corner stay clickable / clean */
+}
+/* in case poster, hide the default Play badge if we have a video embedded */
+.cd-poster:has(iframe.adept-video) .cd-play,
+.cd-poster:has(iframe.adept-video) .scrim { display: none; }
+
 /* keep edit bar above the toast/saving indicator */
 .edit-bar #edit-saving { color: var(--lime, #cfe430); font-size: 12px; }
