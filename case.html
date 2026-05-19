@@ -595,41 +595,35 @@
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
-    /* side nav — same as index */
+    /* side nav — fixed right, Onest, active = bold */
     .side-nav {
       position: fixed;
-      left: 20px;
-      top: 50%;
+      right: 36px;
+      top: 40%;
       transform: translateY(-50%);
       z-index: 50;
-      background: rgba(255,255,255,0.78);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
-      padding: 16px 18px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      box-shadow: 0 12px 32px -18px rgba(11,11,8,.25);
     }
     .side-nav ul {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 38px;
     }
     .side-nav a {
       display: inline-block;
-      font: 500 13px/1 "JetBrains Mono", ui-monospace, monospace;
-      letter-spacing: 0.02em;
-      color: rgba(11, 11, 8, 0.55);
-      text-decoration: none;
-      transform-origin: left center;
-      transition: transform .28s cubic-bezier(.2,.8,.2,1), color .2s ease;
-      will-change: transform;
-    }
-    .side-nav a:hover { color: var(--ink); }
-    .side-nav a.active {
+      font: 400 24px/1 "Onest", sans-serif;
+      letter-spacing: -0.005em;
       color: var(--ink);
-      transform: scale(1.28);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: font-weight .2s ease, opacity .2s ease;
+    }
+    .side-nav a:hover { opacity: 0.7; }
+    .side-nav a.active { font-weight: 700; }
+    @media (max-width: 1400px) {
+      .side-nav { right: 20px; }
+      .side-nav a { font-size: 18px; }
+      .side-nav ul { gap: 28px; }
     }
     @media (max-width: 1100px) {
       .side-nav { display: none; }
@@ -640,10 +634,10 @@
 
   <nav class="side-nav" aria-label="Главная навигация">
     <ul>
-      <li><a href="/#showreel">— showreel</a></li>
-      <li><a href="/#cases" class="active">— кейсы</a></li>
-      <li><a href="/portfolio">— портфолио</a></li>
-      <li><a href="/#contact">— связаться</a></li>
+      <li><a href="/#showreel">— ShowReel</a></li>
+      <li><a href="/#cases" class="active">— Кейсы</a></li>
+      <li><a href="/portfolio">— Портфолио</a></li>
+      <li><a href="/#contact">— Связаться</a></li>
     </ul>
   </nav>
 
