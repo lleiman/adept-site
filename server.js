@@ -45,6 +45,7 @@ function applyServerTemplates(html, content) {
   const attrs = [];
   if (ui.navFont && ui.navFont !== "unbounded-caps") attrs.push(`data-nav-font="${ui.navFont}"`);
   if (ui.brandStyle && ui.brandStyle !== "tag-lime") attrs.push(`data-brand-style="${ui.brandStyle}"`);
+  if (ui.ctaStyle && ui.ctaStyle !== "center") attrs.push(`data-cta-style="${ui.ctaStyle}"`);
   if (attrs.length) {
     html = html.replace(/<body(\s|>)/, `<body ${attrs.join(" ")}$1`);
   }

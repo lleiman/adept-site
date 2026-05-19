@@ -291,27 +291,117 @@
       .case .label .title { font-size: 18px; }
       .case .label { left: 16px; right: 16px; bottom: 14px; }
     }
+    /* ===== hover «смотреть» variants — switched via body[data-cta-style] =====
+       Default (no body attr) = A: center-dark, since the lime brand
+       stamps now sit top-left. */
     .case-cta {
-      position: absolute; z-index: 3;
-      top: 14px; left: 14px;
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 7px 12px;
-      background: rgba(11,11,8,.72);
+      position: absolute; z-index: 4;
+      display: inline-flex; align-items: center; gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      transition: opacity .22s ease, transform .22s ease, background .22s ease, color .22s ease;
+      /* default position: A — center-dark */
+      top: 50%; left: 50%;
+      transform: translate(-50%, calc(-50% + 6px));
+      padding: 13px 22px;
+      background: rgba(11, 11, 8, 0.85);
       color: #fff;
       border-radius: 999px;
-      font: 500 10px/1 "JetBrains Mono", monospace;
-      letter-spacing: .14em;
+      font: 600 12px/1 "Onest", sans-serif;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      opacity: 0;
-      transform: translateY(-4px);
-      transition: opacity .2s ease, transform .2s ease, background .2s ease, color .2s ease;
-      pointer-events: none;
     }
     .case:hover .case-cta {
-      opacity: 1; transform: none;
-      background: var(--lime); color: var(--ink);
+      opacity: 1;
+      transform: translate(-50%, -50%);
+      background: var(--lime);
+      color: var(--ink);
+    }
+
+    /* B: cover — dim the whole card, big text centered */
+    body[data-cta-style="cover"] .case::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: rgba(11,11,8,0.55);
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    body[data-cta-style="cover"] .case:hover::after { opacity: 1; }
+    body[data-cta-style="cover"] .case-cta {
+      top: 50%; left: 50%; right: auto; bottom: auto;
+      transform: translate(-50%, calc(-50% + 6px));
+      padding: 0;
+      background: transparent;
+      color: #fff;
+      font: 600 16px/1 "Unbounded", "Onest", sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    body[data-cta-style="cover"] .case:hover .case-cta {
+      transform: translate(-50%, -50%);
+      background: transparent;
+      color: var(--lime);
+    }
+
+    /* C: top-right — small white pill, top-right corner */
+    body[data-cta-style="top-right"] .case-cta {
+      top: 14px; left: auto; right: 14px; bottom: auto;
+      transform: translateY(-4px);
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.95);
+      color: var(--ink);
+      border-radius: 999px;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.14em;
+    }
+    body[data-cta-style="top-right"] .case:hover .case-cta {
+      transform: translateY(0);
+      background: var(--lime);
+      color: var(--ink);
+    }
+
+    /* D: bottom-right — mono lime tag at bottom-right (above title block) */
+    body[data-cta-style="bottom-right"] .case-cta {
+      top: auto; left: auto;
+      bottom: 22px; right: 22px;
+      transform: translateY(4px);
+      padding: 7px 12px;
+      background: rgba(11,11,8,0.78);
+      color: var(--lime);
+      border-radius: 4px;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.14em;
+    }
+    body[data-cta-style="bottom-right"] .case:hover .case-cta {
+      transform: translateY(0);
+      background: var(--lime);
+      color: var(--ink);
+    }
+
+    /* E: arrow — just the arrow icon in a circle, top-right */
+    body[data-cta-style="arrow"] .case-cta {
+      top: 14px; left: auto; right: 14px; bottom: auto;
+      transform: translateY(-4px) scale(0.85);
+      width: 42px; height: 42px;
+      padding: 0;
+      justify-content: center;
+      background: rgba(11,11,8,0.85);
+      color: #fff;
+      border-radius: 50%;
+      gap: 0;
+    }
+    body[data-cta-style="arrow"] .case-cta span { display: none; }
+    body[data-cta-style="arrow"] .case-cta svg { width: 18px; height: 18px; }
+    body[data-cta-style="arrow"] .case:hover .case-cta {
+      transform: translateY(0) scale(1);
+      background: var(--lime);
+      color: var(--ink);
     }
 
     /* column spans */
@@ -675,6 +765,14 @@
       <button data-brand="stamp-dark" title="C · чёрный штамп сверху-слева">C</button>
       <button data-brand="outline"    title="D · контурная рамка снизу-справа">D</button>
       <button data-brand="stamp-lime" title="E · лайм-штамп сверху-слева">E</button>
+    </span>
+    <span class="edit-cta-picker">
+      <span class="label">Hover-кнопка:</span>
+      <button data-cta="center"       title="A · в центре, чёрная → лайм (по-умолч.)">A</button>
+      <button data-cta="cover"        title="B · затемнение + надпись в центре">B</button>
+      <button data-cta="top-right"    title="C · белая пилюля сверху-справа">C</button>
+      <button data-cta="bottom-right" title="D · моно-тег снизу-справа">D</button>
+      <button data-cta="arrow"        title="E · только стрелка в круге">E</button>
     </span>
     <span class="spacer"></span>
     <span class="hint" id="edit-saving" style="display:none">сохраняю…</span>

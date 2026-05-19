@@ -184,10 +184,24 @@
     });
   }
 
+  // ---- hover-cta variant ----
+  function applyCtaStyle() {
+    const variant = getPath(content, "ui.ctaStyle") || "center";
+    if (variant === "center") {
+      delete document.body.dataset.ctaStyle;
+    } else {
+      document.body.dataset.ctaStyle = variant;
+    }
+    document.querySelectorAll(".edit-cta-picker button[data-cta]").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.cta === variant ? "true" : "false");
+    });
+  }
+
   // ---- apply overrides to current DOM ----
   function applyOverrides() {
     applyNavFont();
     applyBrandStyle();
+    applyCtaStyle();
     document.querySelectorAll("[data-edit]").forEach(el => {
       const v = getPath(content, el.dataset.edit);
       if (typeof v === "string" && el.textContent !== v) el.textContent = v;
@@ -375,6 +389,12 @@
     if (brandBtn) {
       setPath(content, "ui.brandStyle", brandBtn.dataset.brand);
       applyBrandStyle();
+      await saveContent();
+    }
+    const ctaBtn = e.target.closest(".edit-cta-picker button[data-cta]");
+    if (ctaBtn) {
+      setPath(content, "ui.ctaStyle", ctaBtn.dataset.cta);
+      applyCtaStyle();
       await saveContent();
     }
   });
