@@ -1,4 +1,100 @@
 /* ============================================================
+   ADEPT — LOGO text variants
+   The header logo is a text element styled via body[data-logo="…"].
+   Default (no body attr) = A · lime-text.
+   ============================================================ */
+
+.logo-text {
+  font: 700 40px/1 "Unbounded", "Onest", sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--lime);
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: opacity .2s ease;
+}
+.logo-text:hover { opacity: 0.78; }
+.logo-text .l-ad,
+.logo-text .l-ept { display: inline; }
+@media (max-width: 720px) {
+  .logo-text { font-size: 28px; }
+}
+
+/* B · ink-bold — Unbounded 800 in ink */
+body[data-logo="ink-bold"] .logo-text {
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+/* C · ink-text — Unbounded 500 in ink (lighter) */
+body[data-logo="ink-text"] .logo-text {
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+/* D · stamp-lime — lime block, ink letters */
+body[data-logo="stamp-lime"] .logo-text {
+  background: var(--lime);
+  color: var(--ink);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+/* E · stamp-ink — ink block, white letters */
+body[data-logo="stamp-ink"] .logo-text {
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+/* F · mono — JetBrains Mono caps */
+body[data-logo="mono"] .logo-text {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--ink);
+  letter-spacing: 0.1em;
+}
+@media (max-width: 720px) {
+  body[data-logo="mono"] .logo-text { font-size: 22px; }
+}
+/* G · wide — very wide tracking */
+body[data-logo="wide"] .logo-text {
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.32em;
+  font-size: 32px;
+}
+@media (max-width: 720px) {
+  body[data-logo="wide"] .logo-text { font-size: 22px; }
+}
+/* H · dot — bullet-prefixed */
+body[data-logo="dot"] .logo-text { color: var(--ink); gap: 12px; }
+body[data-logo="dot"] .logo-text::before {
+  content: "";
+  display: inline-block;
+  width: 14px; height: 14px;
+  background: var(--lime);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+/* I · brackets — [ ADEPT ] */
+body[data-logo="brackets"] .logo-text {
+  color: var(--ink);
+  font-weight: 500;
+}
+body[data-logo="brackets"] .logo-text::before { content: "[\00a0"; color: var(--lime); margin-right: 4px; }
+body[data-logo="brackets"] .logo-text::after  { content: "\00a0]"; color: var(--lime); margin-left: 4px; }
+/* J · split — AD lime, EPT ink */
+body[data-logo="split"] .logo-text .l-ad  { color: var(--lime); }
+body[data-logo="split"] .logo-text .l-ept { color: var(--ink); }
+
+
+/* ============================================================
    ADEPT — case card (.case) shared styles
    Used by /, /portfolio and the "next cases" block on /case.
    ============================================================ */

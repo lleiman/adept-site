@@ -197,6 +197,19 @@
     });
   }
 
+  // ---- logo variant ----
+  function applyLogoStyle() {
+    const variant = getPath(content, "ui.logoStyle") || "lime-text";
+    if (variant === "lime-text") {
+      delete document.body.dataset.logo;
+    } else {
+      document.body.dataset.logo = variant;
+    }
+    document.querySelectorAll(".edit-logo-picker button[data-logo]").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.logo === variant ? "true" : "false");
+    });
+  }
+
   // ---- scrim opacity sliders (hero + cases) ----
   function applyScrimSettings() {
     const root = document.documentElement.style;
@@ -289,6 +302,7 @@
     applyNavFont();
     applyBrandStyle();
     applyCtaStyle();
+    applyLogoStyle();
     applyScrimSettings();
     wireCardHover();
     document.querySelectorAll("[data-edit]").forEach(el => {
@@ -484,6 +498,12 @@
     if (ctaBtn) {
       setPath(content, "ui.ctaStyle", ctaBtn.dataset.cta);
       applyCtaStyle();
+      await saveContent();
+    }
+    const logoBtn = e.target.closest(".edit-logo-picker button[data-logo]");
+    if (logoBtn) {
+      setPath(content, "ui.logoStyle", logoBtn.dataset.logo);
+      applyLogoStyle();
       await saveContent();
     }
   });

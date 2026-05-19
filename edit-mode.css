@@ -315,3 +315,41 @@ body[data-nav-font="onest-mixed"] .header-nav a {
   .edit-scrim-picker .label { display: none; }
   .edit-scrim-picker input[type="range"] { width: 60px; }
 }
+
+/* ---- logo picker (10 variants A-J) ---- */
+.edit-logo-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+  flex-wrap: wrap;
+}
+.edit-logo-picker .label {
+  font-size: 11px;
+  color: rgba(255,255,255,.55);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.edit-logo-picker button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.7);
+  border-radius: 6px;
+  padding: 6px 9px;
+  font: 500 11px/1 "JetBrains Mono", monospace;
+  cursor: pointer;
+  min-width: 28px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.edit-logo-picker button:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.edit-logo-picker button[aria-pressed="true"] {
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+  border-color: transparent;
+}
+@media (max-width: 720px) {
+  .edit-logo-picker .label { display: none; }
+}
