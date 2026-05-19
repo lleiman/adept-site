@@ -158,8 +158,22 @@
     return `https://player.vimeo.com/video/${vimeo.id}?${h}${params}`;
   }
 
+  // ---- nav font variant ----
+  function applyNavFont() {
+    const variant = getPath(content, "ui.navFont") || "unbounded-caps";
+    if (variant === "unbounded-caps") {
+      delete document.body.dataset.navFont;
+    } else {
+      document.body.dataset.navFont = variant;
+    }
+    document.querySelectorAll(".edit-font-picker button[data-font]").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.font === variant ? "true" : "false");
+    });
+  }
+
   // ---- apply overrides to current DOM ----
   function applyOverrides() {
+    applyNavFont();
     document.querySelectorAll("[data-edit]").forEach(el => {
       const v = getPath(content, el.dataset.edit);
       if (typeof v === "string" && el.textContent !== v) el.textContent = v;
@@ -336,6 +350,12 @@
       content = {};
       await saveContent();
       location.reload();
+    }
+    const fontBtn = e.target.closest(".edit-font-picker button[data-font]");
+    if (fontBtn) {
+      setPath(content, "ui.navFont", fontBtn.dataset.font);
+      applyNavFont();
+      await saveContent();
     }
   });
 

@@ -34,34 +34,46 @@ console.log(`ADEPT data dir: ${DATA_DIR}`);
 
 app.use(express.json({ limit: "15mb" }));
 
-// ---- server-side render of hero video (no image-then-video flash) ----
+// ---- server-side render helpers ----
 function vimeoBackgroundSrc(vimeo) {
   if (!vimeo || !vimeo.id) return null;
   const h = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
   return `https://player.vimeo.com/video/${vimeo.id}?${h}background=1&autoplay=1&loop=1&muted=1&autopause=0`;
 }
-app.get("/", (req, res) => {
-  fs.readFile(path.join(ROOT, "index.html"), "utf8", (err, html) => {
-    if (err) return res.status(500).send("read failed");
-    const content = readContent();
-    const src = vimeoBackgroundSrc(content && content.hero && content.hero.vimeo);
-    if (src) {
-      // Strip the inline style (poster image) AND inject the iframe inside
-      // the hero .pic div, so the very first paint already has the video.
-      html = html.replace(
-        /<div class="pic" data-edit-img="hero" data-video-mode="background"[^>]*><\/div>/,
-        `<div class="pic" data-edit-img="hero" data-video-mode="background" style="background:none"><iframe class="adept-video" src="${src}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
-      );
-    }
-    res.set("Cache-Control", "no-store");
-    res.set("Content-Type", "text/html; charset=utf-8");
-    res.send(html);
-  });
-});
+function applyServerTemplates(html, content) {
+  // 1. nav-font variant → body attribute (no font flash on reload)
+  const navFont = content && content.ui && content.ui.navFont;
+  if (navFont && navFont !== "unbounded-caps") {
+    html = html.replace(/<body(\s|>)/, `<body data-nav-font="${navFont}"$1`);
+  }
+  return html;
+}
+function serveHtml(filename) {
+  return (req, res) => {
+    fs.readFile(path.join(ROOT, filename), "utf8", (err, html) => {
+      if (err) return res.status(500).send("read failed");
+      const content = readContent();
+      // Hero video injection on index.html only
+      if (filename === "index.html") {
+        const src = vimeoBackgroundSrc(content && content.hero && content.hero.vimeo);
+        if (src) {
+          html = html.replace(
+            /<div class="pic" data-edit-img="hero" data-video-mode="background"[^>]*><\/div>/,
+            `<div class="pic" data-edit-img="hero" data-video-mode="background" style="background:none"><iframe class="adept-video" src="${src}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
+          );
+        }
+      }
+      html = applyServerTemplates(html, content);
+      res.set("Cache-Control", "no-store");
+      res.set("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    });
+  };
+}
 
-// ---- clean URL routes ----
-app.get("/case", (req, res) => res.sendFile(path.join(ROOT, "case.html")));
-app.get("/portfolio", (req, res) => res.sendFile(path.join(ROOT, "portfolio.html")));
+app.get("/", serveHtml("index.html"));
+app.get("/case", serveHtml("case.html"));
+app.get("/portfolio", serveHtml("portfolio.html"));
 
 // ---- content API ----
 function readContent() {

@@ -137,3 +137,56 @@ iframe.adept-video {
 
 /* keep edit bar above the toast/saving indicator */
 .edit-bar #edit-saving { color: var(--lime, #cfe430); font-size: 12px; }
+
+/* ---- header nav font variants ----
+   Default (no body attr) = variant A = Unbounded caps */
+body[data-nav-font="onest-caps"] .header-nav a {
+  font-family: "Onest", ui-sans-serif, sans-serif;
+  letter-spacing: 0.06em;
+}
+body[data-nav-font="onest-mixed"] .header-nav a {
+  font-family: "Onest", ui-sans-serif, sans-serif;
+  font-size: 16px;
+  text-transform: none;
+  letter-spacing: -0.005em;
+}
+@media (max-width: 720px) {
+  body[data-nav-font="onest-mixed"] .header-nav a { font-size: 14px; }
+}
+
+/* ---- font picker inside the edit bar ---- */
+.edit-font-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+}
+.edit-font-picker .label {
+  font-size: 11px;
+  color: rgba(255,255,255,.55);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.edit-font-picker button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.7);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  min-width: 36px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.edit-font-picker button:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.edit-font-picker button[aria-pressed="true"] {
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+  border-color: transparent;
+}
+@media (max-width: 720px) {
+  .edit-font-picker .label { display: none; }
+}
