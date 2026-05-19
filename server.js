@@ -41,10 +41,12 @@ function vimeoBackgroundSrc(vimeo) {
   return `https://player.vimeo.com/video/${vimeo.id}?${h}background=1&autoplay=1&loop=1&muted=1&autopause=0`;
 }
 function applyServerTemplates(html, content) {
-  // 1. nav-font variant → body attribute (no font flash on reload)
-  const navFont = content && content.ui && content.ui.navFont;
-  if (navFont && navFont !== "unbounded-caps") {
-    html = html.replace(/<body(\s|>)/, `<body data-nav-font="${navFont}"$1`);
+  const ui = (content && content.ui) || {};
+  const attrs = [];
+  if (ui.navFont && ui.navFont !== "unbounded-caps") attrs.push(`data-nav-font="${ui.navFont}"`);
+  if (ui.brandStyle && ui.brandStyle !== "tag-lime") attrs.push(`data-brand-style="${ui.brandStyle}"`);
+  if (attrs.length) {
+    html = html.replace(/<body(\s|>)/, `<body ${attrs.join(" ")}$1`);
   }
   return html;
 }

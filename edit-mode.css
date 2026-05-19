@@ -190,3 +190,39 @@ body[data-nav-font="onest-mixed"] .header-nav a {
 @media (max-width: 720px) {
   .edit-font-picker .label { display: none; }
 }
+
+/* ---- brand-tag picker (same shape, separate name) ---- */
+.edit-brand-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+}
+.edit-brand-picker .label {
+  font-size: 11px;
+  color: rgba(255,255,255,.55);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.edit-brand-picker button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.7);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: 500 11px/1 "JetBrains Mono", monospace;
+  cursor: pointer;
+  min-width: 32px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.edit-brand-picker button:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.edit-brand-picker button[aria-pressed="true"] {
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+  border-color: transparent;
+}
+@media (max-width: 720px) {
+  .edit-brand-picker .label { display: none; }
+}

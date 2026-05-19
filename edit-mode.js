@@ -171,9 +171,23 @@
     });
   }
 
+  // ---- brand-tag variant ----
+  function applyBrandStyle() {
+    const variant = getPath(content, "ui.brandStyle") || "tag-lime";
+    if (variant === "tag-lime") {
+      delete document.body.dataset.brandStyle;
+    } else {
+      document.body.dataset.brandStyle = variant;
+    }
+    document.querySelectorAll(".edit-brand-picker button[data-brand]").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.brand === variant ? "true" : "false");
+    });
+  }
+
   // ---- apply overrides to current DOM ----
   function applyOverrides() {
     applyNavFont();
+    applyBrandStyle();
     document.querySelectorAll("[data-edit]").forEach(el => {
       const v = getPath(content, el.dataset.edit);
       if (typeof v === "string" && el.textContent !== v) el.textContent = v;
@@ -355,6 +369,12 @@
     if (fontBtn) {
       setPath(content, "ui.navFont", fontBtn.dataset.font);
       applyNavFont();
+      await saveContent();
+    }
+    const brandBtn = e.target.closest(".edit-brand-picker button[data-brand]");
+    if (brandBtn) {
+      setPath(content, "ui.brandStyle", brandBtn.dataset.brand);
+      applyBrandStyle();
       await saveContent();
     }
   });

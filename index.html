@@ -333,9 +333,109 @@
       .case.sp-6, .case.sp-7, .case.sp-8 { grid-column: span 6; height: 260px; }
       .case.h-l { height: 320px; }
     }
+
+    /* "посмотреть все" link below the grid */
+    .cases-more {
+      text-align: center;
+      margin: 8px 0 40px;
+    }
+    .cases-more-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      border: 1.5px solid var(--ink);
+      border-radius: 999px;
+      font: 500 13px/1 "Unbounded", "Onest", sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      transition: background .15s, color .15s, border-color .15s, transform .15s;
+    }
+    .cases-more-link:hover {
+      background: var(--lime);
+      border-color: var(--lime);
+      transform: translateY(-1px);
+    }
+
+    /* ============ BRAND TAG VARIANTS ============
+       .case-brand is rendered on every card but hidden by default.
+       body[data-brand-style="..."] switches which variant shows up. */
+    .case-brand { display: none; }
+
+    /* B: pill — small white rounded pill, top-right */
+    body[data-brand-style="pill"] .case .label .eyebrow { display: none; }
+    body[data-brand-style="pill"] .case-brand {
+      display: inline-block;
+      position: absolute;
+      top: 14px; right: 14px;
+      z-index: 3;
+      padding: 7px 14px;
+      background: rgba(255, 255, 255, 0.95);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      color: var(--ink);
+      border-radius: 999px;
+      font: 600 11px/1 "Onest", sans-serif;
+      letter-spacing: 0.02em;
+      max-width: 60%;
+    }
+
+    /* C: stamp-dark — black squared stamp, top-left, JetBrains Mono caps */
+    body[data-brand-style="stamp-dark"] .case .label .eyebrow { display: none; }
+    body[data-brand-style="stamp-dark"] .case-brand {
+      display: inline-block;
+      position: absolute;
+      top: 14px; left: 14px;
+      z-index: 3;
+      padding: 7px 12px;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 4px;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* D: outline — bordered transparent tag, bottom-right */
+    body[data-brand-style="outline"] .case .label .eyebrow { display: none; }
+    body[data-brand-style="outline"] .case-brand {
+      display: inline-block;
+      position: absolute;
+      bottom: 22px; right: 22px;
+      z-index: 3;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,0.6);
+      color: #fff;
+      border-radius: 4px;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: transparent;
+    }
+
+    /* E: stamp-lime — lime filled stamp, top-left, Unbounded caps */
+    body[data-brand-style="stamp-lime"] .case .label .eyebrow { display: none; }
+    body[data-brand-style="stamp-lime"] .case-brand {
+      display: inline-block;
+      position: absolute;
+      top: 14px; left: 14px;
+      z-index: 3;
+      padding: 8px 14px;
+      background: var(--lime);
+      color: var(--ink);
+      border-radius: 4px;
+      font: 600 10px/1 "Unbounded", "Onest", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     @media (max-width: 560px) {
-      .case-title { font-size: 13px; padding: 6px 10px; }
-      .case-client { font-size: 10px; padding: 6px 10px; }
+      .case-brand {
+        font-size: 10px !important;
+        padding: 5px 10px !important;
+      }
     }
 
     .cta {
@@ -485,6 +585,15 @@
 
     <section class="cases-grid" id="cases" data-list></section>
 
+    <div class="cases-more">
+      <a class="cases-more-link" href="/portfolio">
+        Посмотреть все проекты
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+          <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
+        </svg>
+      </a>
+    </div>
+
     <section class="cta" id="contact">
       <div class="cta-corner"></div>
       <div class="layout">
@@ -559,6 +668,14 @@
       <button data-font="onest-caps" title="Onest · капс" style="font-family:'Onest',sans-serif;text-transform:uppercase">B</button>
       <button data-font="onest-mixed" title="Onest · смешанный" style="font-family:'Onest',sans-serif">Aa</button>
     </span>
+    <span class="edit-brand-picker">
+      <span class="label">Бренд-тег:</span>
+      <button data-brand="tag-lime"   title="A · лайм-eyebrow (по-умолч.)">A</button>
+      <button data-brand="pill"       title="B · белая пилюля сверху-справа">B</button>
+      <button data-brand="stamp-dark" title="C · чёрный штамп сверху-слева">C</button>
+      <button data-brand="outline"    title="D · контурная рамка снизу-справа">D</button>
+      <button data-brand="stamp-lime" title="E · лайм-штамп сверху-слева">E</button>
+    </span>
     <span class="spacer"></span>
     <span class="hint" id="edit-saving" style="display:none">сохраняю…</span>
     <button class="ghost" id="edit-reset">Сбросить всё</button>
@@ -576,24 +693,25 @@ const BRANDS = [
 ];
 
 // All cases — keyed by id. `eyebrow` is the small lime tag above the title.
+// `brand` is the short brand name used by the 4 alternative tag variants.
 const CASES = {
-  dragon:     { eyebrow: "AI-ВИДЕО · 10 НЕД.",         title: "Филиппины — история дракона",  hueShift: 80,  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" },
-  vk:         { eyebrow: "VHS · VK NEW YEAR",          title: "VK — новогодние ролики",         hueShift: 200, img: "https://images.unsplash.com/photo-1626808642875-0aa545482dfb?auto=format&fit=crop&w=1200&q=80" },
-  sberzvuk:   { eyebrow: "KEY VISUAL · СБЕРЗВУК",      title: "СберЗвук — рекламный AI-ролик",  hueShift: 0,   img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80" },
-  tutu:       { eyebrow: "PRODUCT HERO · ТУТУ",        title: "ТуТу — рекламный ролик",         hueShift: -20, img: "https://images.unsplash.com/photo-1614851099511-773084f6911d?auto=format&fit=crop&w=1200&q=80" },
-  diksi:      { eyebrow: "STATIC · ДИКСИ",             title: "Дикси — кампания",               hueShift: 110, img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" },
-  rosatom:    { eyebrow: "EVENT VISUAL · РОСАТОМ",     title: "Радуга × РосАтом — экраны",      hueShift: 60,  img: "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=1200&q=80" },
-  bankusa:    { eyebrow: "CG + AI · BANK USA",         title: "Bank USA — 15-сек ролик",        hueShift: 30,  img: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80" },
-  gigachat:   { eyebrow: "DIGITAL ASSETS · ГИГАЧАТ",   title: "ГигаЧат — серия креативов",      hueShift: 90,  img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80" },
-  sberkosmos: { eyebrow: "TENDER · СБЕР КОСМОС",       title: "Сбер Космос — тендер",           hueShift: 250, img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1200&q=80" },
-  spa:        { eyebrow: "STATIC + 3D · СПА",          title: "Интерактивный СПА · 20 м",       hueShift: 180, img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80" },
-  kurs:       { eyebrow: "EDUCATION · 150 ВЫПУСКНИКОВ",title: "Курс по AI для нейрокреаторов",  hueShift: -30, img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80" },
-  music:      { eyebrow: "ПРОДАКШН · MUSIC VIDEO",     title: "Music video — формат студии",    hueShift: 150, img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80" },
-  asmr:       { eyebrow: "ПРОДАКШН · ASMR",            title: "ASMR",                           hueShift: 20,  img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" },
-  fashion:    { eyebrow: "ПРОДАКШН · FASHION",         title: "Fashion",                        hueShift: -10, img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80" },
-  avatars:    { eyebrow: "ПРОДАКШН · AVATARS",         title: "Avatars",                        hueShift: 320, img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1200&q=80" },
-  miratorg:   { eyebrow: "AI-VIDEO · МИРАТОРГ",        title: "Мираторг — тендер-ролик",        hueShift: 90,  img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" },
-  vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          hueShift: 220, img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80" },
+  dragon:     { eyebrow: "AI-ВИДЕО · 10 НЕД.",         title: "Филиппины — история дракона",  brand: "Манила",        hueShift: 80,  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" },
+  vk:         { eyebrow: "VHS · VK NEW YEAR",          title: "VK — новогодние ролики",         brand: "VK",            hueShift: 200, img: "https://images.unsplash.com/photo-1626808642875-0aa545482dfb?auto=format&fit=crop&w=1200&q=80" },
+  sberzvuk:   { eyebrow: "KEY VISUAL · СБЕРЗВУК",      title: "СберЗвук — рекламный AI-ролик",  brand: "СберЗвук",      hueShift: 0,   img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80" },
+  tutu:       { eyebrow: "PRODUCT HERO · ТУТУ",        title: "ТуТу — рекламный ролик",         brand: "ТуТу",          hueShift: -20, img: "https://images.unsplash.com/photo-1614851099511-773084f6911d?auto=format&fit=crop&w=1200&q=80" },
+  diksi:      { eyebrow: "STATIC · ДИКСИ",             title: "Дикси — кампания",               brand: "Дикси",         hueShift: 110, img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" },
+  rosatom:    { eyebrow: "EVENT VISUAL · РОСАТОМ",     title: "Радуга × РосАтом — экраны",      brand: "РосАтом",       hueShift: 60,  img: "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=1200&q=80" },
+  bankusa:    { eyebrow: "CG + AI · BANK USA",         title: "Bank USA — 15-сек ролик",        brand: "Bank USA",      hueShift: 30,  img: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80" },
+  gigachat:   { eyebrow: "DIGITAL ASSETS · ГИГАЧАТ",   title: "ГигаЧат — серия креативов",      brand: "ГигаЧат",       hueShift: 90,  img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80" },
+  sberkosmos: { eyebrow: "TENDER · СБЕР КОСМОС",       title: "Сбер Космос — тендер",           brand: "Сбер Космос",   hueShift: 250, img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1200&q=80" },
+  spa:        { eyebrow: "STATIC + 3D · СПА",          title: "Интерактивный СПА · 20 м",       brand: "Частный",       hueShift: 180, img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80" },
+  kurs:       { eyebrow: "EDUCATION · 150 ВЫПУСКНИКОВ",title: "Курс по AI для нейрокреаторов",  brand: "ЦЕХ",           hueShift: -30, img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80" },
+  music:      { eyebrow: "ПРОДАКШН · MUSIC VIDEO",     title: "Music video — формат студии",    brand: "Music",         hueShift: 150, img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80" },
+  asmr:       { eyebrow: "ПРОДАКШН · ASMR",            title: "ASMR",                           brand: "ASMR",          hueShift: 20,  img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" },
+  fashion:    { eyebrow: "ПРОДАКШН · FASHION",         title: "Fashion",                        brand: "Fashion",       hueShift: -10, img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80" },
+  avatars:    { eyebrow: "ПРОДАКШН · AVATARS",         title: "Avatars",                        brand: "Avatars",       hueShift: 320, img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1200&q=80" },
+  miratorg:   { eyebrow: "AI-VIDEO · МИРАТОРГ",        title: "Мираторг — тендер-ролик",        brand: "Мираторг",      hueShift: 90,  img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" },
+  vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          brand: "ВТБ",           hueShift: 220, img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80" },
 };
 
 // Static asymmetric grid: 12-col template, each entry is [id, "sp-N h-X"].
@@ -634,10 +752,11 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   $("#brands-list").innerHTML = BRANDS.map(b => `<span>${escapeHtml(b)}</span>`).join("");
 })();
 
-// ---- cases (asymmetric static grid) ----
+// ---- cases (asymmetric static grid, first 7 only) ----
 (function renderCases() {
   const root = $("#cases");
-  root.innerHTML = LAYOUT.map(([id, cls]) => {
+  // First 7 cases = first 3 rows of LAYOUT (2-3-2 pattern)
+  root.innerHTML = LAYOUT.slice(0, 7).map(([id, cls]) => {
     const c = CASES[id]; if (!c) return "";
     return `
       <a class="case ${cls}" href="case.html#${id}" data-id="${id}" draggable="false">
@@ -649,6 +768,7 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
             <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
           </svg>
         </div>
+        <span class="case-brand" data-edit="cases.${id}.brand">${escapeHtml(c.brand)}</span>
         <div class="label">
           <span class="eyebrow" data-edit="cases.${id}.eyebrow">${escapeHtml(c.eyebrow)}</span>
           <div class="title" data-edit="cases.${id}.title">${escapeHtml(c.title)}</div>
