@@ -501,23 +501,23 @@ const BRANDS = [
 // Same shape as index.html CASES, with added `brand` + `category`.
 // Categories: video / visual / installation / tender / format
 const CASES = {
-  dragon:     { eyebrow: "AI-ВИДЕО · 10 НЕД.",         title: "Филиппины — история дракона",  brand: "Манила",      category: "video",        hueShift: 80,  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" },
-  vk:         { eyebrow: "VHS · VK NEW YEAR",          title: "VK — новогодние ролики",         brand: "VK",          category: "video",        hueShift: 200, img: "https://images.unsplash.com/photo-1626808642875-0aa545482dfb?auto=format&fit=crop&w=1200&q=80" },
-  sberzvuk:   { eyebrow: "KEY VISUAL · СБЕРЗВУК",      title: "СберЗвук — рекламный AI-ролик",  brand: "СберЗвук",    category: "visual",       hueShift: 0,   img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80" },
-  tutu:       { eyebrow: "PRODUCT HERO · ТУТУ",        title: "ТуТу — рекламный ролик",         brand: "ТуТу",        category: "video",        hueShift: -20, img: "https://images.unsplash.com/photo-1614851099511-773084f6911d?auto=format&fit=crop&w=1200&q=80" },
-  diksi:      { eyebrow: "STATIC · ДИКСИ",             title: "Дикси — кампания",               brand: "Дикси",       category: "visual",       hueShift: 110, img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" },
-  rosatom:    { eyebrow: "EVENT VISUAL · РОСАТОМ",     title: "Радуга × РосАтом — экраны",      brand: "РосАтом",     category: "installation", hueShift: 60,  img: "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=1200&q=80" },
-  bankusa:    { eyebrow: "CG + AI · BANK USA",         title: "Bank USA — 15-сек ролик",        brand: "Bank USA",    category: "video",        hueShift: 30,  img: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80" },
-  gigachat:   { eyebrow: "DIGITAL ASSETS · ГИГАЧАТ",   title: "ГигаЧат — серия креативов",      brand: "ГигаЧат",     category: "visual",       hueShift: 90,  img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80" },
-  sberkosmos: { eyebrow: "TENDER · СБЕР КОСМОС",       title: "Сбер Космос — тендер",           brand: "Сбер Космос", category: "tender",       hueShift: 250, img: "https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1200&q=80" },
-  spa:        { eyebrow: "STATIC + 3D · СПА",          title: "Интерактивный СПА · 20 м",       brand: "Частный",     category: "installation", hueShift: 180, img: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80" },
-  kurs:       { eyebrow: "EDUCATION · 150 ВЫПУСКНИКОВ",title: "Курс по AI для нейрокреаторов",  brand: "ЦЕХ",         category: "format",       hueShift: -30, img: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80" },
-  music:      { eyebrow: "ПРОДАКШН · MUSIC VIDEO",     title: "Music video — формат студии",    brand: "Music",       category: "video",        hueShift: 150, img: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80" },
-  asmr:       { eyebrow: "ПРОДАКШН · ASMR",            title: "ASMR",                           brand: "ASMR",        category: "format",       hueShift: 20,  img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" },
-  fashion:    { eyebrow: "ПРОДАКШН · FASHION",         title: "Fashion",                        brand: "Fashion",     category: "format",       hueShift: -10, img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80" },
-  avatars:    { eyebrow: "ПРОДАКШН · AVATARS",         title: "Avatars",                        brand: "Avatars",     category: "format",       hueShift: 320, img: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=1200&q=80" },
-  miratorg:   { eyebrow: "AI-VIDEO · МИРАТОРГ",        title: "Мираторг — тендер-ролик",        brand: "Мираторг",    category: "video",        hueShift: 90,  img: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" },
-  vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          brand: "ВТБ",         category: "tender",       hueShift: 220, img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80" },
+  dragon:     { eyebrow: "AI-ВИДЕО · 10 НЕД.",         title: "Филиппины — история дракона",  brand: "Манила",      category: "video",        hueShift: 80,  img: "" },
+  vk:         { eyebrow: "VHS · VK NEW YEAR",          title: "VK — новогодние ролики",         brand: "VK",          category: "video",        hueShift: 200, img: "" },
+  sberzvuk:   { eyebrow: "KEY VISUAL · СБЕРЗВУК",      title: "СберЗвук — рекламный AI-ролик",  brand: "СберЗвук",    category: "visual",       hueShift: 0,   img: "" },
+  tutu:       { eyebrow: "PRODUCT HERO · ТУТУ",        title: "ТуТу — рекламный ролик",         brand: "ТуТу",        category: "video",        hueShift: -20, img: "" },
+  diksi:      { eyebrow: "STATIC · ДИКСИ",             title: "Дикси — кампания",               brand: "Дикси",       category: "visual",       hueShift: 110, img: "" },
+  rosatom:    { eyebrow: "EVENT VISUAL · РОСАТОМ",     title: "Радуга × РосАтом — экраны",      brand: "РосАтом",     category: "installation", hueShift: 60,  img: "" },
+  bankusa:    { eyebrow: "CG + AI · BANK USA",         title: "Bank USA — 15-сек ролик",        brand: "Bank USA",    category: "video",        hueShift: 30,  img: "" },
+  gigachat:   { eyebrow: "DIGITAL ASSETS · ГИГАЧАТ",   title: "ГигаЧат — серия креативов",      brand: "ГигаЧат",     category: "visual",       hueShift: 90,  img: "" },
+  sberkosmos: { eyebrow: "TENDER · СБЕР КОСМОС",       title: "Сбер Космос — тендер",           brand: "Сбер Космос", category: "tender",       hueShift: 250, img: "" },
+  spa:        { eyebrow: "STATIC + 3D · СПА",          title: "Интерактивный СПА · 20 м",       brand: "Частный",     category: "installation", hueShift: 180, img: "" },
+  kurs:       { eyebrow: "EDUCATION · 150 ВЫПУСКНИКОВ",title: "Курс по AI для нейрокреаторов",  brand: "ЦЕХ",         category: "format",       hueShift: -30, img: "" },
+  music:      { eyebrow: "ПРОДАКШН · MUSIC VIDEO",     title: "Music video — формат студии",    brand: "Music",       category: "video",        hueShift: 150, img: "" },
+  asmr:       { eyebrow: "ПРОДАКШН · ASMR",            title: "ASMR",                           brand: "ASMR",        category: "format",       hueShift: 20,  img: "" },
+  fashion:    { eyebrow: "ПРОДАКШН · FASHION",         title: "Fashion",                        brand: "Fashion",     category: "format",       hueShift: -10, img: "" },
+  avatars:    { eyebrow: "ПРОДАКШН · AVATARS",         title: "Avatars",                        brand: "Avatars",     category: "format",       hueShift: 320, img: "" },
+  miratorg:   { eyebrow: "AI-VIDEO · МИРАТОРГ",        title: "Мираторг — тендер-ролик",        brand: "Мираторг",    category: "video",        hueShift: 90,  img: "" },
+  vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          brand: "ВТБ",         category: "tender",       hueShift: 220, img: "" },
 };
 
 const ORDER = ["dragon","rosatom","sberzvuk","tutu","vk","diksi","bankusa","gigachat","sberkosmos","spa","kurs","music","miratorg","vtb","asmr","fashion","avatars"];
@@ -560,9 +560,12 @@ const WIDE_POSITIONS = new Set([0, 3]);
   grid.innerHTML = ORDER.map((id, i) => {
     const c = CASES[id]; if (!c) return "";
     const wide = WIDE_POSITIONS.has(i % 7) ? " span-wide" : "";
+    const picStyle = c.img
+      ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
+      : "";
     return `
       <a class="case${wide}" href="/case#${id}" data-id="${id}" data-category="${c.category}">
-        <div class="pic" data-edit-img="cases.${id}" style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"></div>
+        <div class="pic" data-edit-img="cases.${id}"${picStyle}></div>
         <div class="scrim"></div>
         <div class="case-cta">
           <span>смотреть</span>
