@@ -132,7 +132,8 @@ iframe.adept-video {
   pointer-events: none; /* so hero text & corner stay clickable / clean */
 }
 /* in case poster, hide the default Play badge if we have a video embedded */
-.cd-poster:has(iframe.adept-video) .cd-play,
+/* Hide the scrim gradient under a playing video so the autoplay
+   shows clean, with just the meta line on top */
 .cd-poster:has(iframe.adept-video) .scrim { display: none; }
 
 /* keep edit bar above the toast/saving indicator */
