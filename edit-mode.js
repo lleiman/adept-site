@@ -1,7 +1,7 @@
 // ============================================================
 //  ADEPT — inline edit mode (shared across pages)
 //
-//  Toggle with ⌘E (Mac) or Ctrl+E. On first toggle in a session
+//  Toggle with ⌘B (Mac) or Ctrl+B. On first toggle in a session
 //  prompts for admin password; valid password caches in
 //  sessionStorage so subsequent toggles are immediate.
 //
@@ -472,7 +472,7 @@
   // ---- keyboard ----
   window.addEventListener("keydown", e => {
     const cmd = isMac ? e.metaKey : e.ctrlKey;
-    if (cmd && (e.key === "e" || e.key === "E")) {
+    if (cmd && (e.key === "b" || e.key === "B")) {
       e.preventDefault();
       toggle();
     } else if (e.key === "Escape" && body.classList.contains("edit-mode")) {
