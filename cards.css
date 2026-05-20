@@ -208,6 +208,30 @@ body.menu-open .header-burger span:nth-child(3) {
   background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0, var(--scrim-cases, 0.78)) 100%);
 }
 
+/* ===== drag-to-reorder (edit mode) ===== */
+body.edit-mode .case[data-id] {
+  cursor: move;
+}
+body.edit-mode .case[data-id]:active {
+  cursor: grabbing;
+}
+.case.dragging {
+  opacity: 0.4;
+  transform: scale(0.96) !important;
+}
+.case.drag-over {
+  outline: 3px dashed var(--lime, #cfe430);
+  outline-offset: -8px;
+}
+.case.drag-over::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(207, 228, 48, 0.12);
+  z-index: 5;
+  pointer-events: none;
+}
+
 /* Vimeo hover-preview (eagerly mounted by edit-mode.js on page load,
    paused via the SDK until hover) — sits inside .pic */
 .case .pic .hover-video {

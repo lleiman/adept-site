@@ -541,7 +541,24 @@ const CASES = {
   vtb:        { eyebrow: "TENDER · ВТБ",               title: "ВТБ — тендерный ролик",          brand: "ВТБ",         category: "tender",       hueShift: 220, img: "" },
 };
 
-const ORDER = ["dragon","rosatom","sberzvuk","tutu","vk","diksi","bankusa","gigachat","sberkosmos","spa","kurs","music","miratorg","vtb","asmr","fashion","avatars"];
+// Same default order as index.html. Can be overridden by content.ui.order
+// (set via admin drag-and-drop).
+const DEFAULT_ORDER = [
+  "dragon", "vk", "sberzvuk", "tutu", "diksi", "rosatom", "bankusa",
+  "gigachat", "sberkosmos", "spa", "kurs", "music",
+  "asmr", "fashion", "avatars", "miratorg", "vtb"
+];
+
+function getOrder() {
+  const saved = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.order;
+  if (Array.isArray(saved) && saved.length) {
+    const valid = saved.filter(id => CASES[id]);
+    const missing = DEFAULT_ORDER.filter(id => !valid.includes(id));
+    return [...valid, ...missing];
+  }
+  return DEFAULT_ORDER.slice();
+}
+window.adeptGetOrder = getOrder;
 
 const CATEGORIES = [
   { id: "all",          label: "Все" },
@@ -556,17 +573,19 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 
-(function renderFilters() {
-  const counts = ORDER.reduce((m, id) => {
-    const cat = CASES[id]?.category;
+function renderFilters() {
+  const order = getOrder();
+  const counts = order.reduce((m, id) => {
+    const cat = CASES[id] && CASES[id].category;
     if (cat) m[cat] = (m[cat] || 0) + 1;
     return m;
   }, {});
-  counts.all = ORDER.length;
+  counts.all = order.length;
   $("#pf-filters").innerHTML = CATEGORIES.map((c, i) =>
     `<button class="pf-filter${i === 0 ? " active" : ""}" data-filter="${c.id}">${escapeHtml(c.label)} <span class="count">${counts[c.id] || 0}</span></button>`
   ).join("");
-})();
+}
+renderFilters();
 
 // Pattern per 7-card cycle:
 //   row 1: wide + single   → positions 0 (wide), 1
@@ -575,10 +594,11 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
 //   then repeats. Whatever overflows the last full cycle stays as singles.
 const WIDE_POSITIONS = new Set([0, 3]);
 
-(function renderGrid() {
+function renderGrid() {
   const grid = $("#pf-grid");
-  $("#case-count").textContent = `${ORDER.length} проектов`;
-  grid.innerHTML = ORDER.map((id, i) => {
+  const order = getOrder();
+  $("#case-count").textContent = `${order.length} проектов`;
+  grid.innerHTML = order.map((id, i) => {
     const c = CASES[id]; if (!c) return "";
     const wide = WIDE_POSITIONS.has(i % 7) ? " span-wide" : "";
     const picStyle = c.img
@@ -607,7 +627,9 @@ const WIDE_POSITIONS = new Set([0, 3]);
       </a>`;
   }).join("");
   if (window.AdeptEdit) window.AdeptEdit.apply();
-})();
+}
+window.adeptRenderCases = renderGrid;
+renderGrid();
 
 // Filter buttons → hide non-matching cards. Drop the wide-span pattern
 // while filtered so the layout doesn't get holes from missing slots.

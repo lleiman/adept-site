@@ -614,32 +614,35 @@ const CASES = {
 // Static asymmetric grid: 12-col template, each entry is [id, "sp-N h-X"].
 // Pattern: 2 / 3 / 2 / 3 / 2 / 3 / 2 — 17 cases total. Widths and heights
 // rotate so nothing repeats verbatim, giving the page rhythm without chaos.
-const LAYOUT = [
-  // row 1 — pair
-  ["dragon",    "sp-7 h-l"],
-  ["vk",        "sp-5 h-l"],
-  // row 2 — trio
-  ["sberzvuk",  "sp-4 h-m"],
-  ["tutu",      "sp-4 h-m"],
-  ["diksi",     "sp-4 h-m"],
-  // row 3 — pair mirrored
-  ["rosatom",   "sp-5 h-l"],
-  ["bankusa",   "sp-7 h-l"],
-  // row 4 — trio
-  ["gigachat",  "sp-4 h-m"],
-  ["sberkosmos","sp-4 h-m"],
-  ["spa",       "sp-4 h-m"],
-  // row 5 — balanced pair
-  ["kurs",      "sp-6 h-l"],
-  ["music",     "sp-6 h-l"],
-  // row 6 — trio
-  ["asmr",      "sp-4 h-m"],
-  ["fashion",   "sp-4 h-m"],
-  ["avatars",   "sp-4 h-m"],
-  // row 7 — wide finale
-  ["miratorg",  "sp-8 h-l"],
-  ["vtb",       "sp-4 h-l"],
+// Default case order. Can be overridden by content.ui.order (set via
+// admin drag-and-drop). Size classes for the visible first 7 are
+// applied by position via SIZE_PATTERN below, so reordering doesn't
+// break the 2+3+2 row rhythm.
+const DEFAULT_ORDER = [
+  "dragon", "vk", "sberzvuk", "tutu", "diksi", "rosatom", "bankusa",
+  "gigachat", "sberkosmos", "spa", "kurs", "music",
+  "asmr", "fashion", "avatars", "miratorg", "vtb"
 ];
+const SIZE_PATTERN = [
+  "sp-7 h-l",  // 0 — row 1 wide
+  "sp-5 h-l",  // 1
+  "sp-4 h-m",  // 2 — row 2 trio
+  "sp-4 h-m",  // 3
+  "sp-4 h-m",  // 4
+  "sp-5 h-l",  // 5 — row 3 pair mirrored
+  "sp-7 h-l",  // 6
+];
+
+function getOrder() {
+  const saved = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.order;
+  if (Array.isArray(saved) && saved.length) {
+    const valid = saved.filter(id => CASES[id]);
+    const missing = DEFAULT_ORDER.filter(id => !valid.includes(id));
+    return [...valid, ...missing];
+  }
+  return DEFAULT_ORDER.slice();
+}
+window.adeptGetOrder = getOrder;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
@@ -649,12 +652,13 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
   $("#brands-list").innerHTML = BRANDS.map(b => `<span>${escapeHtml(b)}</span>`).join("");
 })();
 
-// ---- cases (asymmetric static grid, first 7 only) ----
-(function renderCases() {
+// ---- cases (asymmetric static grid, first 7 from current order) ----
+function renderCases() {
   const root = $("#cases");
-  // First 7 cases = first 3 rows of LAYOUT (2-3-2 pattern)
-  root.innerHTML = LAYOUT.slice(0, 7).map(([id, cls]) => {
+  const order = getOrder();
+  root.innerHTML = order.slice(0, 7).map((id, i) => {
     const c = CASES[id]; if (!c) return "";
+    const cls = SIZE_PATTERN[i] || "sp-4 h-m";
     const picStyle = c.img
       ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";
@@ -680,7 +684,10 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
         </div>
       </a>`;
   }).join("");
-})();
+  if (window.AdeptEdit) window.AdeptEdit.apply();
+}
+window.adeptRenderCases = renderCases;
+renderCases();
 
 // ---- form ----
 (function wireForm() {
