@@ -1147,7 +1147,7 @@ function renderCase(data) {
       : "";
     return `
       <a class="cd-next-card" href="#${id}">
-        <div class="pic"${picStyle}></div>
+        <div class="pic" data-edit-img="cases.${id}"${picStyle}></div>
         <div class="scrim"></div>
         <div class="label">
           <span class="eyebrow">${escapeHtml(c.eyebrow)}</span>
