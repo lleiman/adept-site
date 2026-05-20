@@ -211,6 +211,16 @@ body.menu-open .header-burger span:nth-child(3) {
 /* ===== drag-to-reorder (edit mode) ===== */
 body.edit-mode .case[data-id] {
   cursor: move;
+  /* the base .case has -webkit-user-drag: none for link-drag safety —
+     override here so HTML5 drag-and-drop actually fires */
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.edit-mode .case[data-id] * {
+  /* inner elements (.pic, .scrim, .label, …) inherit the drag rule
+     so dragging from the image area also initiates a drag */
+  -webkit-user-drag: inherit;
 }
 body.edit-mode .case[data-id]:active {
   cursor: grabbing;
