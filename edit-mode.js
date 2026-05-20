@@ -332,6 +332,10 @@
       const imgUrl = getPath(content, prefix + ".img");
       const vimeo = getPath(content, prefix + ".vimeo");
       const videoMode = el.dataset.videoMode; // "background" | "player" | undefined
+      // Poster priority for the .pic background: user-uploaded img >
+      // cached vimeo thumbnail. The poster sits behind the iframe and
+      // shows as a static first-frame placeholder while the player loads.
+      const poster = imgUrl || (vimeo && vimeo.thumb) || "";
 
       if (el.dataset.origBg === undefined) {
         el.dataset.origBg = el.style.backgroundImage || "";
@@ -339,41 +343,40 @@
       }
 
       const old = el.querySelector(":scope > iframe.adept-video");
+      const setPoster = () => {
+        if (poster) {
+          el.style.backgroundImage = `url('${poster}')`;
+          el.style.backgroundSize = "cover";
+          el.style.backgroundPosition = "center";
+          el.style.filter = "none";
+        } else {
+          el.style.backgroundImage = el.dataset.origBg || "none";
+          el.style.filter = el.dataset.origFilter || "";
+        }
+      };
 
-      // If video mode + vimeo set → render iframe over the slot, no poster
-      // (the user explicitly wants no still-frame flash before the video)
+      // If video mode + vimeo set → render iframe over the slot, with
+      // the cached thumbnail underneath as a no-flash first-frame poster.
       if (videoMode && vimeo && vimeo.id) {
         const wantedSrc = vimeoSrc(vimeo, videoMode);
-        if (old && old.src === wantedSrc) {
-          // Server already injected the right iframe; just clear bg image
-          // so there's no flash, leave the iframe alone (no restart).
-          el.style.backgroundImage = "none";
-          el.style.filter = "none";
-          return;
+        if (!old || old.src !== wantedSrc) {
+          if (old) old.remove();
+          const ifr = document.createElement("iframe");
+          ifr.className = "adept-video";
+          ifr.src = wantedSrc;
+          ifr.allow = "autoplay; fullscreen; picture-in-picture; clipboard-write";
+          ifr.allowFullscreen = true;
+          el.appendChild(ifr);
         }
-        if (old) old.remove();
-        const ifr = document.createElement("iframe");
-        ifr.className = "adept-video";
-        ifr.src = wantedSrc;
-        ifr.allow = "autoplay; fullscreen; picture-in-picture; clipboard-write";
-        ifr.allowFullscreen = true;
-        el.appendChild(ifr);
-        el.style.backgroundImage = "none";
-        el.style.filter = "none";
+        setPoster();
         return;
       }
 
-      // No video → remove any leftover iframe (e.g. after "Сбросить")
+      // No video mode on this slot → remove any leftover adept-video iframe
+      // (the .hover-video iframes used by card-hover are a separate class
+      //  and aren't touched here).
       if (old) old.remove();
-
-      // Otherwise just image (override or default)
-      if (typeof imgUrl === "string" && imgUrl) {
-        el.style.backgroundImage = `url('${imgUrl}')`;
-        el.style.filter = "none";
-      } else {
-        el.style.backgroundImage = el.dataset.origBg;
-        el.style.filter = el.dataset.origFilter || "";
-      }
+      setPoster();
     });
   }
 

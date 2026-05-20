@@ -69,11 +69,18 @@ function serveHtml(filename) {
       const content = readContent();
       // Hero video injection on index.html only
       if (filename === "index.html") {
-        const src = vimeoBackgroundSrc(content && content.hero && content.hero.vimeo);
+        const heroVimeo = content && content.hero && content.hero.vimeo;
+        const src = vimeoBackgroundSrc(heroVimeo);
         if (src) {
+          // Use the cached Vimeo thumbnail as a static poster so the
+          // first paint shows the first frame instead of black while
+          // the iframe boots up.
+          const poster = heroVimeo && heroVimeo.thumb
+            ? `style="background-image:url('${heroVimeo.thumb}');background-size:cover;background-position:center"`
+            : `style="background:none"`;
           html = html.replace(
             /<div class="pic" data-edit-img="hero" data-video-mode="background"[^>]*><\/div>/,
-            `<div class="pic" data-edit-img="hero" data-video-mode="background" style="background:none"><iframe class="adept-video" src="${src}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
+            `<div class="pic" data-edit-img="hero" data-video-mode="background" ${poster}><iframe class="adept-video" src="${src}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
           );
         }
       }
@@ -103,12 +110,63 @@ app.get("/api/content", (req, res) => {
   res.json(readContent());
 });
 
-app.post("/api/content", (req, res) => {
+// ---- Vimeo poster cache ----
+// For any vimeo entry without a `thumb` field, fetch the first-frame
+// preview via Vimeo's oEmbed API, download it to /uploads/, and store
+// the local URL so it survives forever in the data volume.
+async function ensureVimeoThumb(vimeo) {
+  if (!vimeo || typeof vimeo !== "object" || !vimeo.id || vimeo.thumb) return;
+  try {
+    const inputUrl = vimeo.hash
+      ? `https://vimeo.com/${vimeo.id}/${vimeo.hash}`
+      : `https://vimeo.com/${vimeo.id}`;
+    const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(inputUrl)}&width=1920`;
+    const oembedRes = await fetch(oembedUrl, { headers: { "User-Agent": "adept-site" } });
+    if (!oembedRes.ok) { console.warn("oEmbed", oembedRes.status, vimeo.id); return; }
+    const meta = await oembedRes.json();
+    const thumbUrl = meta && meta.thumbnail_url;
+    if (!thumbUrl) return;
+
+    const imgRes = await fetch(thumbUrl);
+    if (!imgRes.ok) return;
+    const buf = Buffer.from(await imgRes.arrayBuffer());
+    const extMatch = thumbUrl.match(/\.(jpe?g|png|webp)(?:\?|$)/i);
+    const ext = (extMatch ? extMatch[1] : "jpg").toLowerCase().replace("jpeg", "jpg");
+    const filename = `vimeo-${vimeo.id}.${ext}`;
+    fs.writeFileSync(path.join(UPLOADS_DIR, filename), buf);
+    vimeo.thumb = `/uploads/${filename}`;
+    console.log(`Cached vimeo thumb ${vimeo.id} -> ${vimeo.thumb} (${buf.length} bytes)`);
+  } catch (e) {
+    console.warn("ensureVimeoThumb error:", e.message, e.cause && e.cause.message);
+  }
+}
+
+// Walk the content tree and fill in `.thumb` for every vimeo entry
+async function ensureAllVimeoThumbs(content) {
+  if (!content || typeof content !== "object") return;
+  await ensureVimeoThumb(content.hero && content.hero.vimeo);
+  const cases = content.cases || {};
+  for (const id of Object.keys(cases)) {
+    await ensureVimeoThumb(cases[id] && cases[id].vimeo);
+  }
+  const details = content.details || {};
+  for (const id of Object.keys(details)) {
+    const gallery = (details[id] && details[id].gallery) || [];
+    for (let i = 0; i < gallery.length; i++) {
+      await ensureVimeoThumb(gallery[i] && gallery[i].vimeo);
+    }
+  }
+}
+
+app.post("/api/content", async (req, res) => {
   const { password, content } = req.body || {};
   if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: "auth" });
   if (typeof content !== "object" || content === null) return res.status(400).json({ error: "bad payload" });
-  try { writeContent(content); res.json({ ok: true }); }
-  catch (e) { console.error(e); res.status(500).json({ error: "write failed" }); }
+  try {
+    await ensureAllVimeoThumbs(content);
+    writeContent(content);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: "write failed" }); }
 });
 
 // ---- image upload (base64 → file in /uploads) ----
