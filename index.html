@@ -634,14 +634,37 @@ const SIZE_PATTERN = [
   "sp-7 h-l",  // 6
 ];
 
+// Merge hardcoded CASES with content.customCases (built via the in-page
+// case constructor — Cmd+B → «+ Кейс»). Custom entries can override
+// existing keys but the typical use is brand-new ids.
+function getAllCases() {
+  const custom = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().customCases) || {};
+  const out = Object.assign({}, CASES);
+  for (const id of Object.keys(custom)) {
+    const cc = custom[id] || {};
+    out[id] = Object.assign({}, out[id] || {}, {
+      eyebrow: cc.eyebrow != null ? cc.eyebrow : (out[id] && out[id].eyebrow) || "",
+      title:   cc.title   != null ? cc.title   : (out[id] && out[id].title)   || "",
+      brand:   cc.brand   != null ? cc.brand   : (out[id] && out[id].brand)   || "",
+      hueShift: typeof cc.hueShift === "number" ? cc.hueShift : ((out[id] && out[id].hueShift) || 0),
+      img:     cc.img     != null ? cc.img     : (out[id] && out[id].img)     || "",
+    });
+  }
+  return out;
+}
+
 function getOrder() {
+  const all = getAllCases();
+  const allIds = Object.keys(all);
+  const customExtras = allIds.filter(id => !DEFAULT_ORDER.includes(id));
+  const fullDefault = [...DEFAULT_ORDER, ...customExtras];
   const saved = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.order;
   if (Array.isArray(saved) && saved.length) {
-    const valid = saved.filter(id => CASES[id]);
-    const missing = DEFAULT_ORDER.filter(id => !valid.includes(id));
+    const valid = saved.filter(id => all[id]);
+    const missing = fullDefault.filter(id => !valid.includes(id));
     return [...valid, ...missing];
   }
-  return DEFAULT_ORDER.slice();
+  return fullDefault;
 }
 window.adeptGetOrder = getOrder;
 
@@ -657,8 +680,9 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
 function renderCases() {
   const root = $("#cases");
   const order = getOrder();
+  const all = getAllCases();
   root.innerHTML = order.slice(0, 7).map((id, i) => {
-    const c = CASES[id]; if (!c) return "";
+    const c = all[id]; if (!c) return "";
     const cls = SIZE_PATTERN[i] || "sp-4 h-m";
     const picStyle = c.img
       ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
@@ -689,6 +713,8 @@ function renderCases() {
 }
 window.adeptRenderCases = renderCases;
 renderCases();
+// Re-render once content.json arrives — custom cases live there.
+window.addEventListener("adept-content-loaded", renderCases);
 
 // ---- form ----
 (function wireForm() {

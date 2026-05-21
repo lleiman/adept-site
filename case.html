@@ -1090,10 +1090,46 @@ function getCaseId() {
   return q.get("id") || "dragon";
 }
 
+// Build merged case + details maps that include customCases (created via
+// the in-page constructor at Cmd+B → «+ Кейс»). Custom entries get a top-level
+// shape identical to CASES, with their long-form payload nested under .details.
+function getAllCases() {
+  const overrides = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
+  const custom = overrides.customCases || {};
+  const out = Object.assign({}, CASES);
+  for (const id of Object.keys(custom)) {
+    const cc = custom[id] || {};
+    out[id] = Object.assign({}, out[id] || {}, {
+      eyebrow: cc.eyebrow != null ? cc.eyebrow : (out[id] && out[id].eyebrow) || "",
+      title:   cc.title   != null ? cc.title   : (out[id] && out[id].title)   || "",
+      brand:   cc.brand   != null ? cc.brand   : (out[id] && out[id].brand)   || "",
+      hueShift: typeof cc.hueShift === "number" ? cc.hueShift : ((out[id] && out[id].hueShift) || 0),
+      img:     cc.img     != null ? cc.img     : (out[id] && out[id].img)     || "",
+    });
+  }
+  return out;
+}
+function getAllDetails() {
+  const overrides = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
+  const custom = overrides.customCases || {};
+  const out = Object.assign({}, DETAILS);
+  for (const id of Object.keys(custom)) {
+    if (custom[id] && custom[id].details) out[id] = custom[id].details;
+  }
+  return out;
+}
+function getFullOrder() {
+  const all = getAllCases();
+  const extras = Object.keys(all).filter(id => !ORDER.includes(id));
+  return [...ORDER, ...extras];
+}
+
 function findCase(id) {
-  const base = CASES[id];
+  const all = getAllCases();
+  const allDetails = getAllDetails();
+  const base = all[id];
   if (!base) return null;
-  const detail = DETAILS[id] || {};
+  const detail = allDetails[id] || {};
   // Merge in any server-side overrides (cases.<id>.* + details.<id>.*)
   const overrides = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
   const caseOv = (overrides.cases && overrides.cases[id]) || {};
@@ -1169,14 +1205,17 @@ function renderCase(data) {
 
   const descHtml = (data.description || []).map((p, i) => `<p data-edit="details.${data.id}.description.${i}">${escapeHtml(p)}</p>`).join("");
 
-  // Next cases — deterministic subset of 6, excluding current
-  const pool = ORDER.filter(id => id !== data.id);
+  // Next cases — deterministic subset of 6, excluding current.
+  // Uses the full order (hardcoded ORDER + custom case ids appended).
+  const fullOrder = getFullOrder();
+  const all = getAllCases();
+  const pool = fullOrder.filter(id => id !== data.id);
   const start = (data.id.length * 3) % Math.max(1, pool.length - 6);
   const picks = pool.slice(start, start + 6);
   while (picks.length < 6 && picks.length < pool.length) picks.push(pool[picks.length]);
 
   const nextHtml = picks.map(id => {
-    const c = CASES[id]; if (!c) return "";
+    const c = all[id]; if (!c) return "";
     const picStyle = c.img
       ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";

@@ -550,14 +550,36 @@ const DEFAULT_ORDER = [
   "asmr", "fashion", "avatars", "miratorg", "vtb"
 ];
 
+// Merge hardcoded CASES with content.customCases (from the case constructor).
+function getAllCases() {
+  const custom = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().customCases) || {};
+  const out = Object.assign({}, CASES);
+  for (const id of Object.keys(custom)) {
+    const cc = custom[id] || {};
+    out[id] = Object.assign({}, out[id] || {}, {
+      eyebrow:  cc.eyebrow  != null ? cc.eyebrow  : (out[id] && out[id].eyebrow)  || "",
+      title:    cc.title    != null ? cc.title    : (out[id] && out[id].title)    || "",
+      brand:    cc.brand    != null ? cc.brand    : (out[id] && out[id].brand)    || "",
+      category: cc.category != null ? cc.category : (out[id] && out[id].category) || "video",
+      hueShift: typeof cc.hueShift === "number" ? cc.hueShift : ((out[id] && out[id].hueShift) || 0),
+      img:      cc.img      != null ? cc.img      : (out[id] && out[id].img)      || "",
+    });
+  }
+  return out;
+}
+
 function getOrder() {
+  const all = getAllCases();
+  const allIds = Object.keys(all);
+  const customExtras = allIds.filter(id => !DEFAULT_ORDER.includes(id));
+  const fullDefault = [...DEFAULT_ORDER, ...customExtras];
   const saved = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.order;
   if (Array.isArray(saved) && saved.length) {
-    const valid = saved.filter(id => CASES[id]);
-    const missing = DEFAULT_ORDER.filter(id => !valid.includes(id));
+    const valid = saved.filter(id => all[id]);
+    const missing = fullDefault.filter(id => !valid.includes(id));
     return [...valid, ...missing];
   }
-  return DEFAULT_ORDER.slice();
+  return fullDefault;
 }
 window.adeptGetOrder = getOrder;
 
@@ -576,8 +598,9 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;"
 
 function renderFilters() {
   const order = getOrder();
+  const all = getAllCases();
   const counts = order.reduce((m, id) => {
-    const cat = CASES[id] && CASES[id].category;
+    const cat = all[id] && all[id].category;
     if (cat) m[cat] = (m[cat] || 0) + 1;
     return m;
   }, {});
@@ -598,9 +621,10 @@ const WIDE_POSITIONS = new Set([0, 3]);
 function renderGrid() {
   const grid = $("#pf-grid");
   const order = getOrder();
+  const all = getAllCases();
   $("#case-count").textContent = `${order.length} проектов`;
   grid.innerHTML = order.map((id, i) => {
-    const c = CASES[id]; if (!c) return "";
+    const c = all[id]; if (!c) return "";
     const wide = WIDE_POSITIONS.has(i % 7) ? " span-wide" : "";
     const picStyle = c.img
       ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
@@ -631,6 +655,8 @@ function renderGrid() {
 }
 window.adeptRenderCases = renderGrid;
 renderGrid();
+// Custom cases live in content.json — re-render filters + grid once it arrives.
+window.addEventListener("adept-content-loaded", () => { renderFilters(); renderGrid(); });
 
 // Filter buttons → hide non-matching cards. Drop the wide-span pattern
 // while filtered so the layout doesn't get holes from missing slots.

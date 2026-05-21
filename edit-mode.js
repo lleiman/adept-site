@@ -615,11 +615,341 @@
     await saveContent();
   });
 
+  // ============================================================
+  //  Case constructor (modal triggered from edit-bar)
+  //  Lives entirely in this file so all three pages share it.
+  //  Writes to content.customCases.<id>; getAllCases() in each
+  //  page merges those into the rendered grid.
+  // ============================================================
+  const escapeHtml = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+  function injectCaseBuilderUI() {
+    const bar = document.querySelector(".edit-bar");
+    if (bar && !bar.querySelector("#edit-add-case")) {
+      const btn = document.createElement("button");
+      btn.id = "edit-add-case";
+      btn.type = "button";
+      btn.className = "ghost cb-trigger";
+      btn.textContent = "+ Кейс";
+      const spacer = bar.querySelector(".spacer");
+      if (spacer) bar.insertBefore(btn, spacer);
+      else bar.appendChild(btn);
+    }
+    if (document.getElementById("case-builder")) return;
+    const m = document.createElement("div");
+    m.id = "case-builder";
+    m.className = "case-builder";
+    m.hidden = true;
+    m.innerHTML = `
+      <div class="cb-backdrop" data-cb-close></div>
+      <div class="cb-panel" role="dialog" aria-modal="true" aria-labelledby="cb-title">
+        <header class="cb-head">
+          <h2 id="cb-title">Кейсы — конструктор</h2>
+          <button type="button" class="cb-x" data-cb-close aria-label="Закрыть">×</button>
+        </header>
+        <nav class="cb-tabs">
+          <button type="button" class="cb-tab active" data-tab="list">Существующие</button>
+          <button type="button" class="cb-tab" data-tab="form">+ Новый кейс</button>
+        </nav>
+        <section class="cb-view cb-view-list">
+          <div class="cb-list"></div>
+        </section>
+        <form class="cb-view cb-view-form" hidden>
+          <div class="cb-grid">
+            <label class="cb-fld">
+              <span>ID <em>(латиница, цифры, дефис)</em></span>
+              <input name="id" pattern="[a-z0-9\\-]+" required placeholder="amnyamania">
+            </label>
+            <label class="cb-fld">
+              <span>Бренд</span>
+              <input name="brand" required placeholder="Пятёрочка">
+            </label>
+            <label class="cb-fld cb-fld-wide">
+              <span>Заголовок</span>
+              <input name="title" required placeholder="Амнямания 2 — детская кампания">
+            </label>
+            <label class="cb-fld cb-fld-wide">
+              <span>Eyebrow <em>(мини-заголовок над тайтлом)</em></span>
+              <input name="eyebrow" placeholder="CG-АНИМАЦИЯ · ПЯТЁРОЧКА">
+            </label>
+            <label class="cb-fld">
+              <span>Категория</span>
+              <select name="category">
+                <option value="video">AI-видео</option>
+                <option value="visual">Визуал & статика</option>
+                <option value="installation">Инсталляции</option>
+                <option value="tender">Тендеры</option>
+                <option value="format">Форматы</option>
+              </select>
+            </label>
+            <label class="cb-fld">
+              <span>Hue shift (-180..360)</span>
+              <input name="hueShift" type="number" value="0" min="-180" max="360">
+            </label>
+            <label class="cb-fld">
+              <span>Клиент</span>
+              <input name="client" placeholder="Пятёрочка">
+            </label>
+            <label class="cb-fld">
+              <span>Год</span>
+              <input name="year" placeholder="2025">
+            </label>
+            <label class="cb-fld">
+              <span>Формат <em>(через запятую)</em></span>
+              <input name="format" placeholder="CG-анимация, Рекламный ролик">
+            </label>
+            <label class="cb-fld">
+              <span>Теги <em>(через запятую)</em></span>
+              <input name="tags" placeholder="CG, ANIMATION, FAMILY">
+            </label>
+          </div>
+          <label class="cb-fld cb-fld-block">
+            <span>Lead <em>(короткий вводный абзац)</em></span>
+            <textarea name="lead" rows="3"></textarea>
+          </label>
+          <label class="cb-fld cb-fld-block">
+            <span>Описание <em>(параграфы — через пустую строку)</em></span>
+            <textarea name="description" rows="8"></textarea>
+          </label>
+          <fieldset class="cb-fs">
+            <legend>Стат-плитки</legend>
+            <div class="cb-stats"></div>
+            <button type="button" class="cb-mini cb-add-stat">+ Стат</button>
+          </fieldset>
+          <fieldset class="cb-fs">
+            <legend>Команда</legend>
+            <div class="cb-team"></div>
+            <button type="button" class="cb-mini cb-add-team">+ Группа</button>
+          </fieldset>
+          <input type="hidden" name="editingId">
+          <footer class="cb-foot">
+            <button type="button" class="cb-mini cb-cancel" data-cb-close>Отмена</button>
+            <button type="submit" class="cb-primary cb-save">Сохранить кейс</button>
+          </footer>
+        </form>
+      </div>`;
+    document.body.appendChild(m);
+  }
+
+  function cbSwitchTab(name) {
+    document.querySelectorAll(".cb-tab").forEach(b => {
+      b.classList.toggle("active", b.dataset.tab === name);
+    });
+    const list = document.querySelector(".cb-view-list");
+    const form = document.querySelector(".cb-view-form");
+    if (list) list.hidden = name !== "list";
+    if (form) form.hidden = name !== "form";
+  }
+
+  function cbRenderList() {
+    const root = document.querySelector(".cb-list");
+    if (!root) return;
+    const custom = (content && content.customCases) || {};
+    const ids = Object.keys(custom);
+    if (!ids.length) {
+      root.innerHTML = `<p class="cb-empty">Пока ни одного кастомного кейса. Жми «+ Новый кейс».</p>`;
+      return;
+    }
+    root.innerHTML = ids.map(id => {
+      const cc = custom[id] || {};
+      return `
+        <div class="cb-item" data-id="${escapeHtml(id)}">
+          <div class="cb-item-meta">
+            <div class="cb-item-title">${escapeHtml(cc.title || id)}</div>
+            <div class="cb-item-sub">${escapeHtml(cc.brand || "—")} · ${escapeHtml(cc.eyebrow || "—")}</div>
+          </div>
+          <div class="cb-item-actions">
+            <button type="button" class="cb-mini" data-cb-edit="${escapeHtml(id)}">Править</button>
+            <button type="button" class="cb-mini cb-danger" data-cb-delete="${escapeHtml(id)}">Удалить</button>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function cbClearForm() {
+    const form = document.querySelector(".cb-view-form");
+    if (!form) return;
+    form.reset();
+    form.editingId.value = "";
+    form.id.readOnly = false;
+    form.hueShift.value = "0";
+    form.category.value = "video";
+    const statsRoot = document.querySelector(".cb-stats");
+    const teamRoot = document.querySelector(".cb-team");
+    if (statsRoot) statsRoot.innerHTML = "";
+    if (teamRoot) teamRoot.innerHTML = "";
+    cbAddStat();
+    cbAddTeam();
+  }
+
+  function cbFillForm(id) {
+    const custom = (content && content.customCases) || {};
+    const cc = custom[id] || {};
+    const d = cc.details || {};
+    const form = document.querySelector(".cb-view-form");
+    if (!form) return;
+    cbClearForm();
+    form.id.value = id;
+    form.id.readOnly = true;
+    form.brand.value = cc.brand || "";
+    form.title.value = cc.title || "";
+    form.eyebrow.value = cc.eyebrow || "";
+    form.category.value = cc.category || "video";
+    form.hueShift.value = typeof cc.hueShift === "number" ? cc.hueShift : 0;
+    form.client.value = d.client || "";
+    form.year.value = d.year || "";
+    form.format.value = (d.format || []).join(", ");
+    form.tags.value = (d.tags || []).join(", ");
+    form.lead.value = d.lead || "";
+    form.description.value = (d.description || []).join("\n\n");
+    form.editingId.value = id;
+    const statsRoot = document.querySelector(".cb-stats");
+    const teamRoot = document.querySelector(".cb-team");
+    if (statsRoot) statsRoot.innerHTML = "";
+    if (teamRoot) teamRoot.innerHTML = "";
+    (d.stats && d.stats.length ? d.stats : [{}]).forEach(s => cbAddStat(s.n || "", s.l || ""));
+    (d.team && d.team.length ? d.team : [{}]).forEach(t => cbAddTeam(t.group || "", (t.lines || []).join("\n")));
+  }
+
+  function cbAddStat(n = "", l = "") {
+    const root = document.querySelector(".cb-stats");
+    if (!root) return;
+    const row = document.createElement("div");
+    row.className = "cb-row cb-row-stat";
+    row.innerHTML = `
+      <input data-stat="n" value="${escapeHtml(n)}" placeholder="2">
+      <input data-stat="l" value="${escapeHtml(l)}" placeholder="суток на ролик">
+      <button type="button" class="cb-mini cb-row-del" aria-label="Удалить">×</button>`;
+    root.appendChild(row);
+  }
+  function cbAddTeam(group = "", lines = "") {
+    const root = document.querySelector(".cb-team");
+    if (!root) return;
+    const row = document.createElement("div");
+    row.className = "cb-row cb-row-team";
+    row.innerHTML = `
+      <input data-team="group" value="${escapeHtml(group)}" placeholder="ADEPT">
+      <textarea data-team="lines" rows="3" placeholder="Креативный директор — Илья К.&#10;AI-генерации — Алексей О.">${escapeHtml(lines)}</textarea>
+      <button type="button" class="cb-mini cb-row-del" aria-label="Удалить">×</button>`;
+    root.appendChild(row);
+  }
+
+  function openBuilder() {
+    if (!password) return;
+    injectCaseBuilderUI();
+    const m = document.getElementById("case-builder");
+    if (!m) return;
+    m.hidden = false;
+    document.body.classList.add("cb-open");
+    cbClearForm();
+    cbSwitchTab("list");
+    cbRenderList();
+  }
+  function closeBuilder() {
+    const m = document.getElementById("case-builder");
+    if (!m) return;
+    m.hidden = true;
+    document.body.classList.remove("cb-open");
+  }
+
+  async function cbSaveCaseFromForm(form) {
+    if (!password) return;
+    const idRaw = (form.id.value || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (!idRaw) { alert("Укажи ID (латиница / цифры / дефис)"); return; }
+    const stats = Array.from(form.querySelectorAll(".cb-row-stat")).map(r => ({
+      n: r.querySelector('[data-stat="n"]').value.trim(),
+      l: r.querySelector('[data-stat="l"]').value.trim(),
+    })).filter(s => s.n || s.l);
+    const team = Array.from(form.querySelectorAll(".cb-row-team")).map(r => ({
+      group: r.querySelector('[data-team="group"]').value.trim(),
+      lines: r.querySelector('[data-team="lines"]').value.split(/\n+/).map(l => l.trim()).filter(Boolean),
+    })).filter(t => t.group || t.lines.length);
+    const cc = {
+      eyebrow: form.eyebrow.value.trim(),
+      title: form.title.value.trim(),
+      brand: form.brand.value.trim(),
+      category: form.category.value || "video",
+      hueShift: parseInt(form.hueShift.value, 10) || 0,
+      details: {
+        client: form.client.value.trim() || form.brand.value.trim(),
+        year: form.year.value.trim() || "2025",
+        format: form.format.value.split(",").map(s => s.trim()).filter(Boolean),
+        tags: form.tags.value.split(",").map(s => s.trim()).filter(Boolean),
+        lead: form.lead.value.trim(),
+        description: form.description.value.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean),
+        stats: stats,
+        gallery: [{ img: "" }, { img: "" }, { img: "" }],
+        team: team,
+      },
+    };
+    if (!content.customCases) content.customCases = {};
+    const wasNew = !content.customCases[idRaw];
+    content.customCases[idRaw] = Object.assign(content.customCases[idRaw] || {}, cc);
+    if (wasNew) {
+      if (!content.ui) content.ui = {};
+      if (!Array.isArray(content.ui.order)) content.ui.order = [];
+      if (!content.ui.order.includes(idRaw)) content.ui.order.push(idRaw);
+    }
+    const ok = await saveContent();
+    if (!ok) return;
+    cbRenderList();
+    cbSwitchTab("list");
+    if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
+    // case.html listens to this event to fully re-render
+    window.dispatchEvent(new Event("adept-content-loaded"));
+  }
+
+  async function cbDeleteCase(id) {
+    if (!confirm(`Удалить кейс «${id}»? Уберём его из content.json (картинки в /uploads останутся).`)) return;
+    if (content.customCases) delete content.customCases[id];
+    if (content.cases) delete content.cases[id];
+    if (content.details) delete content.details[id];
+    if (content.ui && Array.isArray(content.ui.order)) {
+      content.ui.order = content.ui.order.filter(x => x !== id);
+    }
+    await saveContent();
+    cbRenderList();
+    if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
+    window.dispatchEvent(new Event("adept-content-loaded"));
+  }
+
+  // Wire builder events (delegated)
+  document.addEventListener("click", async e => {
+    if (e.target.closest("#edit-add-case")) { e.preventDefault(); openBuilder(); return; }
+    if (e.target.closest("[data-cb-close]")) { e.preventDefault(); closeBuilder(); return; }
+    const tab = e.target.closest(".cb-tab");
+    if (tab) { e.preventDefault(); cbSwitchTab(tab.dataset.tab); return; }
+    if (e.target.closest(".cb-add-stat")) { e.preventDefault(); cbAddStat(); return; }
+    if (e.target.closest(".cb-add-team")) { e.preventDefault(); cbAddTeam(); return; }
+    const delBtn = e.target.closest(".cb-row-del");
+    if (delBtn) { e.preventDefault(); delBtn.closest(".cb-row").remove(); return; }
+    const editBtn = e.target.closest("[data-cb-edit]");
+    if (editBtn) { e.preventDefault(); cbFillForm(editBtn.dataset.cbEdit); cbSwitchTab("form"); return; }
+    const delCaseBtn = e.target.closest("[data-cb-delete]");
+    if (delCaseBtn) { e.preventDefault(); await cbDeleteCase(delCaseBtn.dataset.cbDelete); return; }
+  });
+  document.addEventListener("submit", e => {
+    const form = e.target.closest(".cb-view-form");
+    if (!form) return;
+    e.preventDefault();
+    cbSaveCaseFromForm(form);
+  });
+  window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && document.body.classList.contains("cb-open")) {
+      const tgt = e.target;
+      // don't close while user is editing a field — only when focus is outside
+      if (tgt && (tgt.matches("input,textarea,select"))) return;
+      closeBuilder();
+    }
+  });
+
   // ---- public API for dynamic pages (case.html re-renders on hashchange) ----
   window.AdeptEdit = {
     apply: applyOverrides,
     content: () => content,
     refetch: fetchContent,
+    openCaseBuilder: openBuilder,
   };
 
   // ---- bootstrap ----
