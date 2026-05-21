@@ -464,38 +464,30 @@
       <div class="cta-corner"></div>
       <div class="layout">
         <div>
-          <span class="eyebrow">Обсудить проект</span>
-          <h2>Бриф, дедлайн, референсы —<br/>дальше уже наша работа.</h2>
-          <p class="blurb">
-            AI-видео, key visuals, экранный контент, статика, инсталляции.
-            Отвечаем в течение рабочего дня. Берём в работу проекты с чётким брифом и
-            сроком от 2 дней.
-          </p>
+          <span class="eyebrow" data-edit="cta.eyebrow">Обсудить проект</span>
+          <h2><span data-edit="cta.h2_line1">Бриф, дедлайн, референсы —</span><br/><span data-edit="cta.h2_line2">дальше уже наша работа.</span></h2>
+          <p class="blurb" data-edit="cta.blurb">AI-видео, key visuals, экранный контент, статика, инсталляции. Отвечаем в течение рабочего дня. Берём в работу проекты с чётким брифом и сроком от 2 дней.</p>
           <div class="meta">
-            <div class="row"><span class="k">Telegram</span><span class="v"><a href="https://t.me/aiadepts">@aiadepts</a></span></div>
-            <div class="row"><span class="k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio">hi@adept.studio</a></span></div>
-            <div class="row"><span class="k">Часы</span><span class="v">МСК · 10:00 — 21:00</span></div>
-            <div class="row"><span class="k">Бюджет</span><span class="v">от 200 000 ₽ · pre-production / pitch — отдельно</span></div>
+            <div class="row"><span class="k" data-edit="cta.meta.tg_k">Telegram</span><span class="v"><a href="https://t.me/aiadepts" data-edit="cta.meta.tg_v">@aiadepts</a></span></div>
+            <div class="row"><span class="k" data-edit="cta.meta.email_k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio" data-edit="cta.meta.email_v">hi@adept.studio</a></span></div>
+            <div class="row"><span class="k" data-edit="cta.meta.hours_k">Часы</span><span class="v" data-edit="cta.meta.hours_v">МСК · 10:00 — 21:00</span></div>
+            <div class="row"><span class="k" data-edit="cta.meta.budget_k">Бюджет</span><span class="v" data-edit="cta.meta.budget_v">от 200 000 ₽ · pre-production / pitch — отдельно</span></div>
           </div>
         </div>
 
         <form class="form" id="contact-form">
           <div class="row">
             <div class="field">
-              <label for="f-name">Имя / Бренд</label>
+              <label for="f-name" data-edit="cta.form.label_name">Имя / Бренд</label>
               <input id="f-name" type="text" placeholder="Иван · ADEPT" />
             </div>
             <div class="field">
-              <label for="f-contact">Telegram / E-mail</label>
+              <label for="f-contact" data-edit="cta.form.label_contact">Telegram / E-mail</label>
               <input id="f-contact" type="text" placeholder="@username или mail@" />
             </div>
           </div>
-          <div class="field">
-            <label for="f-brief">Задача</label>
-            <textarea id="f-brief" placeholder="Что нужно сделать, формат, сроки, ссылки на референсы."></textarea>
-          </div>
           <div class="submit">
-            <span class="hint" id="form-hint">Файлы и доски — кидайте в Telegram после отправки.</span>
+            <span class="hint" id="form-hint" data-edit="cta.form.hint">Файлы и доски — кидайте в Telegram после отправки.</span>
             <button class="btn" type="submit">
               <span id="form-btn-text">Отправить</span>
               <span class="arr">

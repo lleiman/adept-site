@@ -627,14 +627,24 @@
   function injectCaseBuilderUI() {
     const bar = document.querySelector(".edit-bar");
     if (bar && !bar.querySelector("#edit-add-case")) {
-      const btn = document.createElement("button");
-      btn.id = "edit-add-case";
-      btn.type = "button";
-      btn.className = "ghost cb-trigger";
-      btn.textContent = "+ Кейс";
       const spacer = bar.querySelector(".spacer");
-      if (spacer) bar.insertBefore(btn, spacer);
-      else bar.appendChild(btn);
+      // "+ Кейс" — open the case constructor modal
+      const btnAdd = document.createElement("button");
+      btnAdd.id = "edit-add-case";
+      btnAdd.type = "button";
+      btnAdd.className = "ghost cb-trigger";
+      btnAdd.textContent = "+ Кейс";
+      if (spacer) bar.insertBefore(btnAdd, spacer);
+      else bar.appendChild(btnAdd);
+      // "Обновить превью" — clear cached Vimeo first-frame jpgs and re-fetch
+      const btnRefresh = document.createElement("button");
+      btnRefresh.id = "edit-refresh-thumbs";
+      btnRefresh.type = "button";
+      btnRefresh.className = "ghost cb-trigger";
+      btnRefresh.textContent = "↻ Превью Vimeo";
+      btnRefresh.title = "Перевыкачать первые кадры из Vimeo (если ты обновил постер в Vimeo)";
+      if (spacer) bar.insertBefore(btnRefresh, spacer);
+      else bar.appendChild(btnRefresh);
     }
     if (document.getElementById("case-builder")) return;
     const m = document.createElement("div");
@@ -914,9 +924,45 @@
     window.dispatchEvent(new Event("adept-content-loaded"));
   }
 
+  async function refreshVimeoThumbs() {
+    if (!password) return;
+    if (!confirm("Перекачать первые кадры из Vimeo для всех роликов? Это удалит кеш на сервере и заново подтянет постеры (может занять 5–15 секунд).")) return;
+    showSaving(true);
+    try {
+      const r = await fetch("/api/refresh-thumbs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      if (!r.ok) {
+        if (r.status === 401) { password = ""; sessionStorage.removeItem("adept-auth"); }
+        showSaving(false);
+        alert("Не удалось обновить превью");
+        return;
+      }
+      const j = await r.json();
+      showSaving(false, `обновлено: ${j.refreshed || 0}`);
+      // Pull fresh content + force re-render of pic backgrounds
+      await fetchContent();
+      // Bust the browser-side image cache so the new jpg shows up immediately
+      document.querySelectorAll("[data-edit-img]").forEach(el => {
+        if (el.style.backgroundImage && el.style.backgroundImage.includes("/uploads/vimeo-")) {
+          const bust = "?t=" + Date.now();
+          el.style.backgroundImage = el.style.backgroundImage.replace(/'\)/, bust + "')");
+        }
+      });
+      if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
+    } catch (e) {
+      console.error(e);
+      showSaving(false);
+      alert("Сеть отвалилась — попробуй ещё раз");
+    }
+  }
+
   // Wire builder events (delegated)
   document.addEventListener("click", async e => {
     if (e.target.closest("#edit-add-case")) { e.preventDefault(); openBuilder(); return; }
+    if (e.target.closest("#edit-refresh-thumbs")) { e.preventDefault(); await refreshVimeoThumbs(); return; }
     if (e.target.closest("[data-cb-close]")) { e.preventDefault(); closeBuilder(); return; }
     const tab = e.target.closest(".cb-tab");
     if (tab) { e.preventDefault(); cbSwitchTab(tab.dataset.tab); return; }
@@ -953,9 +999,16 @@
   };
 
   // ---- bootstrap ----
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fetchContent);
-  } else {
+  function bootstrap() {
+    // Inject the case-builder button + modal markup so they're available
+    // the moment edit mode is toggled on (the bar itself is hidden until
+    // body.edit-mode, but the button needs to live inside it).
+    injectCaseBuilderUI();
     fetchContent();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootstrap);
+  } else {
+    bootstrap();
   }
 })();

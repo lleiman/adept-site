@@ -169,6 +169,56 @@ app.post("/api/content", async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: "write failed" }); }
 });
 
+// ---- refresh Vimeo thumbs (deletes cached jpgs + re-fetches via oEmbed) ----
+// Vimeo lets editors swap a clip's preview frame at any time. Our cache lives
+// forever on the volume, so without this endpoint the site keeps serving the
+// first thumbnail forever. Admin → "Обновить превью" → this fires.
+function collectVimeoEntries(content) {
+  const out = [];
+  if (content && typeof content === "object") {
+    if (content.hero && content.hero.vimeo) out.push(content.hero.vimeo);
+    for (const id of Object.keys(content.cases || {})) {
+      const v = content.cases[id] && content.cases[id].vimeo;
+      if (v) out.push(v);
+    }
+    for (const id of Object.keys(content.details || {})) {
+      const gallery = (content.details[id] && content.details[id].gallery) || [];
+      for (const item of gallery) if (item && item.vimeo) out.push(item.vimeo);
+    }
+    for (const id of Object.keys(content.customCases || {})) {
+      const cc = content.customCases[id] || {};
+      if (cc.vimeo) out.push(cc.vimeo);
+      const gallery = (cc.details && cc.details.gallery) || [];
+      for (const item of gallery) if (item && item.vimeo) out.push(item.vimeo);
+    }
+  }
+  return out;
+}
+
+app.post("/api/refresh-thumbs", async (req, res) => {
+  const { password } = req.body || {};
+  if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: "auth" });
+  try {
+    const content = readContent();
+    const entries = collectVimeoEntries(content);
+    let cleared = 0;
+    for (const v of entries) {
+      if (!v || !v.id) continue;
+      for (const ext of ["jpg", "png", "webp"]) {
+        const p = path.join(UPLOADS_DIR, `vimeo-${v.id}.${ext}`);
+        try { if (fs.existsSync(p)) { fs.unlinkSync(p); cleared++; } } catch (_) {}
+      }
+      delete v.thumb;
+    }
+    await ensureAllVimeoThumbs(content);
+    writeContent(content);
+    res.json({ ok: true, refreshed: entries.length, filesCleared: cleared });
+  } catch (e) {
+    console.error("refresh-thumbs error:", e);
+    res.status(500).json({ error: "refresh failed" });
+  }
+});
+
 // ---- image upload (base64 → file in /uploads) ----
 app.post("/api/upload", (req, res) => {
   const { password, dataUrl } = req.body || {};
