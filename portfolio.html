@@ -270,7 +270,28 @@
     .cta .meta a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(11,11,8,.25); }
     .cta .meta a:hover { border-bottom-color: var(--lime-2); }
     .cta-right { display: flex; flex-direction: column; gap: 22px; }
-    .cta-right .meta { margin-top: 0; }
+    .cta-right .meta {
+      margin-top: 8px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(11,11,8,0.12);
+      gap: 12px;
+    }
+    .cta-right .meta .row { align-items: center; gap: 18px; }
+    .cta-right .meta .k {
+      width: 92px;
+      font-size: 11px;
+    }
+    .cta-right .meta .v,
+    .cta-right .meta a {
+      font: 500 22px/1.1 "Unbounded", "Onest", sans-serif;
+      letter-spacing: -0.01em;
+      border-bottom: none;
+    }
+    .cta-right .meta a:hover { color: var(--lime-2, #cfe430); }
+    @media (max-width: 720px) {
+      .cta-right .meta .v, .cta-right .meta a { font-size: 18px; }
+      .cta-right .meta .k { width: 72px; }
+    }
     .cta-corner {
       position: absolute;
       top: 20px; left: 20px;
@@ -406,10 +427,6 @@
         </div>
 
         <div class="cta-right">
-          <div class="meta">
-            <div class="row"><span class="k" data-edit="cta.meta.tg_k">Telegram</span><span class="v"><a href="https://t.me/aiadepts" data-edit="cta.meta.tg_v">@aiadepts</a></span></div>
-            <div class="row"><span class="k" data-edit="cta.meta.email_k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio" data-edit="cta.meta.email_v">hi@adept.studio</a></span></div>
-          </div>
           <form class="form" id="contact-form">
           <div class="row">
             <div class="field">
@@ -433,6 +450,10 @@
             </button>
           </div>
         </form>
+          <div class="meta">
+            <div class="row"><span class="k" data-edit="cta.meta.tg_k">Telegram</span><span class="v"><a href="https://t.me/aiadepts" data-edit="cta.meta.tg_v">@aiadepts</a></span></div>
+            <div class="row"><span class="k" data-edit="cta.meta.email_k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio" data-edit="cta.meta.email_v">hi@adept.studio</a></span></div>
+          </div>
         </div>
       </div>
     </section>
