@@ -959,10 +959,36 @@
     }
   }
 
+  // ---- inline tag editor (case detail pages) ----
+  async function editCaseTags(caseId) {
+    if (!password) return;
+    const cur = (
+      getPath(content, `details.${caseId}.tags`) ||
+      getPath(content, `customCases.${caseId}.details.tags`) ||
+      []
+    ).filter(t => t != null && t !== "");
+    const raw = prompt(
+      "Теги через запятую (например: AI VIDEO, BRAND, TENDER).\nПусто = убрать все теги.",
+      cur.join(", ")
+    );
+    if (raw === null) return; // cancelled
+    const tags = raw.split(",").map(s => s.trim()).filter(Boolean);
+    // Write to both possible homes so it works for hardcoded AND custom cases
+    if (getPath(content, `customCases.${caseId}`)) {
+      setPath(content, `customCases.${caseId}.details.tags`, tags);
+    }
+    setPath(content, `details.${caseId}.tags`, tags);
+    const ok = await saveContent();
+    if (!ok) return;
+    window.dispatchEvent(new Event("adept-content-loaded"));
+  }
+
   // Wire builder events (delegated)
   document.addEventListener("click", async e => {
     if (e.target.closest("#edit-add-case")) { e.preventDefault(); openBuilder(); return; }
     if (e.target.closest("#edit-refresh-thumbs")) { e.preventDefault(); await refreshVimeoThumbs(); return; }
+    const tagsBtn = e.target.closest(".cd-tags-edit[data-edit-tags]");
+    if (tagsBtn) { e.preventDefault(); await editCaseTags(tagsBtn.dataset.editTags); return; }
     if (e.target.closest("[data-cb-close]")) { e.preventDefault(); closeBuilder(); return; }
     const tab = e.target.closest(".cb-tab");
     if (tab) { e.preventDefault(); cbSwitchTab(tab.dataset.tab); return; }

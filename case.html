@@ -176,6 +176,23 @@
       color: var(--ink-2);
       background: rgba(255,255,255,.55);
     }
+    /* "Теги ✎" — visible only in edit-mode */
+    .cd-tags-edit {
+      display: none;
+      appearance: none;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 7px 12px;
+      border: 1px dashed rgba(207, 228, 48, .65);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(207, 228, 48, .12);
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+    .cd-tags-edit:hover { background: var(--lime, #cfe430); border-color: transparent; }
+    body.edit-mode .cd-tags-edit { display: inline-flex; align-items: center; }
     .cd-h1 {
       font-family: "Unbounded", "Onest", sans-serif;
       font-weight: 700;
@@ -1135,13 +1152,17 @@ function deepMerge(dst, src) {
     if (src[k] && typeof src[k] === "object" && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === "object") {
       dst[k] = deepMerge({ ...dst[k] }, src[k]);
     } else if (Array.isArray(src[k]) && Array.isArray(dst[k])) {
-      // Array overrides: merge element-wise (so partial edits don't drop unchanged items)
+      // Array overrides: merge element-wise (so partial edits don't drop unchanged items).
+      // Treat `null` overrides as "no change" — they're an artefact of sparse arrays
+      // produced by setPath when editing a higher index than the array's current length
+      // (JSON.stringify turns empty slots into nulls). Without this, those nulls
+      // would silently wipe the hardcoded element and crash the renderer.
       dst[k] = dst[k].map((item, i) => {
         const ov = src[k][i];
         if (ov && typeof ov === "object" && typeof item === "object") return deepMerge({ ...item }, ov);
-        return ov !== undefined ? ov : item;
+        return (ov !== undefined && ov !== null) ? ov : item;
       });
-    } else if (src[k] !== undefined) {
+    } else if (src[k] !== undefined && src[k] !== null) {
       dst[k] = src[k];
     }
   }
@@ -1164,18 +1185,25 @@ function renderCase(data) {
       </section>`;
   }
 
-  const tagsHtml = (data.tags || []).map(t => `<span class="cd-tag">${escapeHtml(t)}</span>`).join("");
-  const formatStr = (data.format || []).join(" · ");
-  const formatComma = (data.format || []).join(", ");
-  const tagsComma = (data.tags || []).join(", ");
+  // Filter out null/undefined slots that can creep into arrays via sparse-array
+  // editing through setPath (JSON.stringify turns empty array slots into nulls).
+  const tagsList = (data.tags || []).filter(t => t != null && t !== "");
+  const formatList = (data.format || []).filter(t => t != null && t !== "");
+  const tagsHtml = tagsList.map(t => `<span class="cd-tag">${escapeHtml(t)}</span>`).join("");
+  const formatStr = formatList.join(" · ");
+  const formatComma = formatList.join(", ");
+  const tagsComma = tagsList.join(", ");
 
-  const statsHtml = (data.stats || []).map((s, i) => `
+  const statsHtml = (data.stats || []).map((s, i) => {
+    if (!s || (s.n == null && s.l == null)) return "";
+    return `
     <div class="cd-stat">
       <div class="n" data-edit="details.${data.id}.stats.${i}.n">${escapeHtml(s.n)}</div>
       <div class="l" data-edit="details.${data.id}.stats.${i}.l">${escapeHtml(s.l)}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 
-  const galleryItems = data.gallery || [];
+  const galleryItems = (data.gallery || []).filter(g => g != null);
   const galleryClass = galleryItems.length >= 3 ? "g-3" : galleryItems.length === 2 ? "g-2" : "g-1";
   const galleryHtml = galleryItems.map((g, i) => {
     const gStyle = g.img ? ` style="background-image: url('${g.img}'); ${filterCss(data)}"` : "";
@@ -1190,13 +1218,10 @@ function renderCase(data) {
     </div>`;
   }).join("");
 
-  const teamHtml = (data.team || []).map((sec, i) => `
-    <div class="cd-team-col">
-      <div class="cd-team-group" data-edit="details.${data.id}.team.${i}.group">${escapeHtml(sec.group)}</div>
-      <ul>${sec.lines.map((l, j) => `<li data-edit="details.${data.id}.team.${i}.lines.${j}">${escapeHtml(l)}</li>`).join("")}</ul>
-    </div>`).join("");
-
-  const descHtml = (data.description || []).map((p, i) => `<p data-edit="details.${data.id}.description.${i}">${escapeHtml(p)}</p>`).join("");
+  const descHtml = (data.description || []).map((p, i) => {
+    if (p == null || p === "") return "";
+    return `<p data-edit="details.${data.id}.description.${i}">${escapeHtml(p)}</p>`;
+  }).join("");
 
   // Next cases — deterministic subset of 6, excluding current.
   // Uses the full order (hardcoded ORDER + custom case ids appended).
@@ -1234,6 +1259,7 @@ function renderCase(data) {
       <div class="cd-meta-row">
         <span class="eyebrow" data-edit="details.${data.id}.client">${escapeHtml(data.client || data.eyebrow)}</span>
         ${tagsHtml}
+        <button type="button" class="cd-tags-edit" data-edit-tags="${data.id}" title="Изменить теги">Теги ✎</button>
       </div>
       <h1 class="cd-h1" data-edit="cases.${data.id}.title">${escapeHtml(data.title)}</h1>
       ${data.lead ? `<p class="cd-lead" data-edit="details.${data.id}.lead">${escapeHtml(data.lead)}</p>` : ""}
@@ -1274,15 +1300,6 @@ function renderCase(data) {
     ${statsHtml ? `<section class="cd-stats">${statsHtml}</section>` : ""}
 
     ${galleryHtml ? `<section class="cd-gallery ${galleryClass}">${galleryHtml}</section>` : ""}
-
-    ${teamHtml ? `
-    <section class="cd-team">
-      <div class="cd-section-head">
-        <span class="eyebrow">Команда проекта</span>
-        <h2>Кто это сделал</h2>
-      </div>
-      <div class="cd-team-grid">${teamHtml}</div>
-    </section>` : ""}
 
     <section class="cd-next">
       <div class="cd-section-head center">
