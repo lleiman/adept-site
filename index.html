@@ -341,6 +341,9 @@
     .cta .meta .v { color: var(--ink); }
     .cta .meta a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(11,11,8,.25); }
     .cta .meta a:hover { border-bottom-color: var(--lime-2); }
+    /* right column now holds tg+email above the form */
+    .cta-right { display: flex; flex-direction: column; gap: 22px; }
+    .cta-right .meta { margin-top: 0; }
     .cta-corner {
       position: absolute;
       top: 20px; left: 20px;
@@ -467,19 +470,18 @@
           <span class="eyebrow" data-edit="cta.eyebrow">Обсудить проект</span>
           <h2><span data-edit="cta.h2_line1">Бриф, дедлайн, референсы —</span><br/><span data-edit="cta.h2_line2">дальше уже наша работа.</span></h2>
           <p class="blurb" data-edit="cta.blurb">AI-видео, key visuals, экранный контент, статика, инсталляции. Отвечаем в течение рабочего дня. Берём в работу проекты с чётким брифом и сроком от 2 дней.</p>
+        </div>
+
+        <div class="cta-right">
           <div class="meta">
             <div class="row"><span class="k" data-edit="cta.meta.tg_k">Telegram</span><span class="v"><a href="https://t.me/aiadepts" data-edit="cta.meta.tg_v">@aiadepts</a></span></div>
             <div class="row"><span class="k" data-edit="cta.meta.email_k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio" data-edit="cta.meta.email_v">hi@adept.studio</a></span></div>
-            <div class="row"><span class="k" data-edit="cta.meta.hours_k">Часы</span><span class="v" data-edit="cta.meta.hours_v">МСК · 10:00 — 21:00</span></div>
-            <div class="row"><span class="k" data-edit="cta.meta.budget_k">Бюджет</span><span class="v" data-edit="cta.meta.budget_v">от 200 000 ₽ · pre-production / pitch — отдельно</span></div>
           </div>
-        </div>
-
-        <form class="form" id="contact-form">
+          <form class="form" id="contact-form">
           <div class="row">
             <div class="field">
               <label for="f-name" data-edit="cta.form.label_name">Имя / Бренд</label>
-              <input id="f-name" type="text" placeholder="Иван · ADEPT" />
+              <input id="f-name" type="text" placeholder="" />
             </div>
             <div class="field">
               <label for="f-contact" data-edit="cta.form.label_contact">Telegram / E-mail</label>
@@ -498,6 +500,7 @@
             </button>
           </div>
         </form>
+        </div>
       </div>
     </section>
 
