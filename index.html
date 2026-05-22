@@ -172,17 +172,18 @@
       border-radius: 16px;
       overflow: hidden;
       background: #0b0b08;
-      /* Lock the box to ~viewport height from first paint, so the h1
-         can sit centered immediately and never jump when the Vimeo
-         iframe finishes booting. `min-height` keeps it adaptive on
-         very tall mobile screens; max-height caps it on huge 4K. */
-      min-height: min(86vh, 720px);
+      /* Lock geometry to 16:9 so the iframe never gets letterboxed.
+         aspect-ratio computes height from width at first paint, so the
+         box reaches its final dimensions before the iframe finishes
+         booting — the centered .h-text sits in place from t=0. */
+      aspect-ratio: 16 / 9;
       isolation: isolate;
+      /* `contain` keeps descendant changes (iframe load, font swap)
+         from triggering layout work on the parent — kills the late
+         «jump» of the h1 on slow connections. */
+      contain: layout paint;
       /* same 1px ink outline as case cards */
       box-shadow: 0 0 0 1px var(--ink);
-    }
-    @media (max-width: 720px) {
-      .hero { min-height: 78vh; }
     }
     .hero .pic {
       position: absolute; inset: 0; z-index: 0;
