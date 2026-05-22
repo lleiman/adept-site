@@ -145,6 +145,80 @@
       gap: 28px;
       margin: 8px 0 40px;
     }
+    /* «Смотреть Шоурил» — inline pill in the title row (right slot) */
+    .showreel-cta {
+      align-self: end;
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 22px 13px 13px;
+      background: var(--lime);
+      color: var(--ink);
+      border: 0;
+      border-radius: 999px;
+      font: 600 14px/1 "Onest", sans-serif;
+      cursor: pointer;
+      box-shadow: 0 14px 32px -10px rgba(207, 228, 48, .55), 0 0 0 1px rgba(11, 11, 8, .12);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .showreel-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 44px -10px rgba(207, 228, 48, .75), 0 0 0 1px rgba(11, 11, 8, .18);
+    }
+    .showreel-cta .play {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+      background: var(--ink);
+      color: var(--lime);
+      border-radius: 50%;
+      font-size: 9px;
+      padding-left: 2px;
+      flex-shrink: 0;
+    }
+    /* Showreel lightbox modal — shared with /case + index */
+    .showreel-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .showreel-modal[hidden] { display: none; }
+    .showreel-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(11, 11, 8, .92);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+    .showreel-frame { position: relative; width: min(96vw, 1280px); max-height: 88vh; }
+    .showreel-video {
+      position: relative; width: 100%;
+      aspect-ratio: 16/9; background: #000;
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .6);
+    }
+    .showreel-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .showreel-close {
+      position: absolute; top: -48px; right: 0;
+      width: 40px; height: 40px;
+      background: transparent; color: #fff;
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 50%;
+      font: 400 22px/1 "Onest", sans-serif;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .showreel-close:hover { background: var(--lime); color: var(--ink); border-color: var(--lime); }
+    body.showreel-open { overflow: hidden; }
+    @media (max-width: 720px) {
+      .showreel-modal { padding: 12px; }
+      .showreel-close { top: -44px; width: 36px; height: 36px; font-size: 20px; }
+      .showreel-cta { padding: 11px 18px 11px 11px; font-size: 13px; gap: 10px; }
+      .showreel-cta .play { width: 22px; height: 22px; font-size: 8px; }
+    }
     .pf-title h1 {
       font-family: "Unbounded", "Onest", sans-serif;
       font-weight: 700;
@@ -447,6 +521,10 @@
         <span class="eyebrow" data-edit="portfolio.eyebrow">Все проекты</span>
         <h1 data-edit="portfolio.title">Портфолио</h1>
       </div>
+      <button class="showreel-cta" type="button" id="open-showreel">
+        <span class="play" aria-hidden="true">▶</span>
+        <span data-edit="hero.cta">Смотреть Шоурил 2026</span>
+      </button>
     </header>
 
     <nav class="pf-filters" id="pf-filters" aria-label="Фильтр по рубрикам"></nav>
@@ -512,6 +590,17 @@
       <span class="foot-legal" data-edit="footer.legal">Полная юридическая чистота AI-контента. Передача исключительных авторских прав по B2B-договорам.</span>
     </footer>
   </main>
+
+  <!-- Showreel lightbox — same Vimeo as hero on index, opened from the top-right pill -->
+  <div class="showreel-modal" id="showreel-modal" hidden role="dialog" aria-modal="true" aria-label="Шоурил 2026">
+    <div class="showreel-backdrop" data-showreel-close></div>
+    <div class="showreel-frame">
+      <button class="showreel-close" type="button" data-showreel-close aria-label="Закрыть">×</button>
+      <div class="showreel-video">
+        <iframe src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
   <div class="edit-bar" role="toolbar" aria-label="Режим редактирования">
     <span class="dot"></span>
@@ -725,6 +814,37 @@ window.addEventListener("adept-content-loaded", () => { renderFilters(); renderG
       const match = filter === "all" || card.dataset.category === filter;
       card.classList.toggle("is-hidden", !match);
     });
+  });
+})();
+
+// ---- Showreel lightbox (shared visual with index hero) ----
+(function wireShowreel() {
+  const modal = document.getElementById("showreel-modal");
+  const openBtn = document.getElementById("open-showreel");
+  if (!modal || !openBtn) return;
+  const iframe = modal.querySelector("iframe");
+  function open() {
+    const vimeo = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().hero && window.AdeptEdit.content().hero.vimeo;
+    if (!vimeo || !vimeo.id) {
+      alert("Шоурил ещё не залит. Cmd+B на главной → Vimeo на hero блоке.");
+      return;
+    }
+    const hash = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
+    iframe.src = `https://player.vimeo.com/video/${vimeo.id}?${hash}autoplay=1&title=0&byline=0&portrait=0&dnt=1`;
+    modal.hidden = false;
+    document.body.classList.add("showreel-open");
+  }
+  function close() {
+    iframe.src = "";
+    modal.hidden = true;
+    document.body.classList.remove("showreel-open");
+  }
+  openBtn.addEventListener("click", open);
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-showreel-close]")) close();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) close();
   });
 })();
 
