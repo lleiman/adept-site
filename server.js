@@ -18,6 +18,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const cheerio = require("cheerio");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,17 @@ function vimeoBackgroundSrc(vimeo) {
   const h = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
   return `https://player.vimeo.com/video/${vimeo.id}?${h}background=1&autoplay=1&loop=1&muted=1&autopause=0`;
 }
+// dotted-path getter, matches edit-mode.js's getPath()
+function getPath(obj, dotted) {
+  if (!obj || typeof obj !== "object" || typeof dotted !== "string") return undefined;
+  const parts = dotted.split(".");
+  let o = obj;
+  for (const p of parts) {
+    if (!o || typeof o !== "object") return undefined;
+    o = o[p];
+  }
+  return o;
+}
 function applyServerTemplates(html, content) {
   const ui = (content && content.ui) || {};
   const attrs = [];
@@ -61,6 +73,27 @@ function applyServerTemplates(html, content) {
       /<\/head>/,
       `<style>:root { ${cssVars.join("; ")}; }</style></head>`
     );
+  }
+  // SSR text + href overrides — eliminates the «old → new» flash that
+  // happened when the client fetched /api/content and swapped text after
+  // first paint. Now the browser receives the final copy directly.
+  if (content && Object.keys(content).length) {
+    try {
+      const $ = cheerio.load(html, { decodeEntities: false });
+      $("[data-edit]").each((_, el) => {
+        const $el = $(el);
+        const v = getPath(content, $el.attr("data-edit"));
+        if (typeof v === "string") $el.text(v);
+      });
+      $("[data-edit-href]").each((_, el) => {
+        const $el = $(el);
+        const v = getPath(content, $el.attr("data-edit-href"));
+        if (typeof v === "string" && v) $el.attr("href", v);
+      });
+      html = $.html();
+    } catch (e) {
+      console.warn("SSR overrides failed:", e.message);
+    }
   }
   return html;
 }
