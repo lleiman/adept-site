@@ -151,14 +151,6 @@
       font-size: clamp(40px, 6vw, 84px);
       margin: 10px 0 0;
     }
-    .pf-title .count {
-      font: 500 12px/1.2 "JetBrains Mono", monospace;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      white-space: nowrap;
-      padding-bottom: 8px;
-    }
     @media (max-width: 720px) {
       .pf-title { grid-template-columns: 1fr; }
     }
@@ -191,12 +183,6 @@
       color: #fff;
       border-color: var(--ink);
     }
-    .pf-filter .count {
-      font: 500 11px/1 "JetBrains Mono", monospace;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-    }
-    .pf-filter.active .count { color: rgba(255,255,255,0.6); }
 
     /* portfolio grid — 3 cols with a repeating 2+1 / 1+2 / 1+1+1 pattern
        (`.span-wide` is set on positions 0 & 3 of every 7-card cycle) */
@@ -436,7 +422,6 @@
         <span class="eyebrow" data-edit="portfolio.eyebrow">Все проекты</span>
         <h1 data-edit="portfolio.title">Портфолио</h1>
       </div>
-      <div class="count" id="case-count">17 проектов</div>
     </header>
 
     <nav class="pf-filters" id="pf-filters" aria-label="Фильтр по рубрикам"></nav>
@@ -636,16 +621,8 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 
 function renderFilters() {
-  const order = getOrder();
-  const all = getAllCases();
-  const counts = order.reduce((m, id) => {
-    const cat = all[id] && all[id].category;
-    if (cat) m[cat] = (m[cat] || 0) + 1;
-    return m;
-  }, {});
-  counts.all = order.length;
   $("#pf-filters").innerHTML = CATEGORIES.map((c, i) =>
-    `<button class="pf-filter${i === 0 ? " active" : ""}" data-filter="${c.id}">${escapeHtml(c.label)} <span class="count">${counts[c.id] || 0}</span></button>`
+    `<button class="pf-filter${i === 0 ? " active" : ""}" data-filter="${c.id}">${escapeHtml(c.label)}</button>`
   ).join("");
 }
 renderFilters();
@@ -661,15 +638,20 @@ function renderGrid() {
   const grid = $("#pf-grid");
   const order = getOrder();
   const all = getAllCases();
-  $("#case-count").textContent = `${order.length} проектов`;
-  grid.innerHTML = order.map((id, i) => {
+  const hidden = new Set(((window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.hiddenCases)) || []);
+  const isEdit = document.body.classList.contains("edit-mode");
+  // In edit-mode we keep hidden cases in the grid so admin can flip them back.
+  // In view mode they're filtered out completely.
+  const list = isEdit ? order : order.filter(id => !hidden.has(id));
+  grid.innerHTML = list.map((id, i) => {
     const c = all[id]; if (!c) return "";
     const wide = WIDE_POSITIONS.has(i % 7) ? " span-wide" : "";
+    const isHidden = hidden.has(id);
     const picStyle = c.img
       ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";
     return `
-      <a class="case${wide}" href="/case#${id}" data-id="${id}" data-category="${c.category}">
+      <a class="case${wide}${isHidden ? ' case--hidden' : ''}" href="/case#${id}" data-id="${id}" data-category="${c.category}">
         <div class="pic" data-edit-img="cases.${id}"${picStyle}></div>
         <div class="scrim"></div>
         <div class="case-cta">
@@ -686,6 +668,7 @@ function renderGrid() {
         <div class="edt-img-ctl">
           <button data-img-action="replace" data-img-target="cases.${id}">Картинка</button>
           <button data-img-action="vimeo"   data-img-target="cases.${id}">Vimeo</button>
+          <button data-img-action="${isHidden ? 'show' : 'hide'}" data-img-target="cases.${id}" class="ghost">${isHidden ? 'Показать' : 'Скрыть'}</button>
           <button data-img-action="reset"   data-img-target="cases.${id}" class="ghost">Сбросить</button>
         </div>
       </a>`;
@@ -707,13 +690,10 @@ window.addEventListener("adept-content-loaded", () => { renderFilters(); renderG
     const filter = btn.dataset.filter;
     $$(".pf-filter").forEach(b => b.classList.toggle("active", b === btn));
     grid.classList.toggle("filtered", filter !== "all");
-    let visible = 0;
     $$(".pf-grid .case").forEach(card => {
       const match = filter === "all" || card.dataset.category === filter;
       card.classList.toggle("is-hidden", !match);
-      if (match) visible++;
     });
-    $("#case-count").textContent = `${visible} проектов`;
   });
 })();
 

@@ -1274,11 +1274,12 @@ function renderCase(data) {
     return `<p data-edit="details.${data.id}.description.${i}">${escapeHtml(p)}</p>`;
   }).join("");
 
-  // Next cases — deterministic subset of 6, excluding current.
+  // Next cases — deterministic subset of 6, excluding current and hidden ones.
   // Uses the full order (hardcoded ORDER + custom case ids appended).
   const fullOrder = getFullOrder();
   const all = getAllCases();
-  const pool = fullOrder.filter(id => id !== data.id);
+  const hidden = new Set(((window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.hiddenCases)) || []);
+  const pool = fullOrder.filter(id => id !== data.id && !hidden.has(id));
   const start = (data.id.length * 3) % Math.max(1, pool.length - 6);
   const picks = pool.slice(start, start + 6);
   while (picks.length < 6 && picks.length < pool.length) picks.push(pool[picks.length]);

@@ -727,14 +727,20 @@ function renderCases() {
   const root = $("#cases");
   const order = getOrder();
   const all = getAllCases();
-  root.innerHTML = order.slice(0, 7).map((id, i) => {
+  const hidden = new Set(((window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.hiddenCases)) || []);
+  const isEdit = document.body.classList.contains("edit-mode");
+  // In edit-mode keep hidden cases in the slice so the admin can flip them back.
+  // In view mode they're filtered out so the public sees 7 visible cards.
+  const list = isEdit ? order : order.filter(id => !hidden.has(id));
+  root.innerHTML = list.slice(0, 7).map((id, i) => {
     const c = all[id]; if (!c) return "";
     const cls = SIZE_PATTERN[i] || "sp-4 h-m";
+    const isHidden = hidden.has(id);
     const picStyle = c.img
       ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";
     return `
-      <a class="case ${cls}" href="case.html#${id}" data-id="${id}" draggable="false">
+      <a class="case ${cls}${isHidden ? ' case--hidden' : ''}" href="case.html#${id}" data-id="${id}" draggable="false">
         <div class="pic" data-edit-img="cases.${id}"${picStyle}></div>
         <div class="scrim"></div>
         <div class="case-cta">
@@ -751,6 +757,7 @@ function renderCases() {
         <div class="edt-img-ctl">
           <button data-img-action="replace" data-img-target="cases.${id}">Картинка</button>
           <button data-img-action="vimeo"   data-img-target="cases.${id}">Vimeo</button>
+          <button data-img-action="${isHidden ? 'show' : 'hide'}" data-img-target="cases.${id}" class="ghost">${isHidden ? 'Показать' : 'Скрыть'}</button>
           <button data-img-action="reset"   data-img-target="cases.${id}" class="ghost">Сбросить</button>
         </div>
       </a>`;

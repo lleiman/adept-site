@@ -483,6 +483,9 @@
       el.spellcheck = false;
     });
     setCardsDraggable(on);
+    // Re-render so hidden cases appear in edit-mode and disappear out of it.
+    if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
+    window.dispatchEvent(new Event("adept-content-loaded"));
   }
   function toggle() { return setMode(!body.classList.contains("edit-mode")); }
 
@@ -567,6 +570,17 @@
       unsetPath(content, `${target}.vimeo`);
       await saveContent();
       applyOverrides();
+    } else if (action === "hide" || action === "show") {
+      // target is "cases.<id>" → strip the prefix
+      const id = String(target).replace(/^cases\./, "");
+      if (!id) return;
+      const cur = (getPath(content, "ui.hiddenCases") || []).filter(x => x !== id);
+      if (action === "hide") cur.push(id);
+      setPath(content, "ui.hiddenCases", cur);
+      await saveContent();
+      if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
+      // case.html listens for this to re-render the «next cases» grid
+      window.dispatchEvent(new Event("adept-content-loaded"));
     }
   });
 

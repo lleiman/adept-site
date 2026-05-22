@@ -267,6 +267,32 @@ body.edit-mode .case[data-id]:active {
 }
 .case.is-playing::after { opacity: 0 !important; }
 
+/* ===== hidden cases =====
+   Default: filtered out of the rendered list by JS — but if anything sneaks
+   through (e.g. a fast-path render before content arrives), we hide it via CSS.
+   In edit-mode the card stays visible at 45% with a «СКРЫТ» chip so admin can
+   un-hide it from the floating .edt-img-ctl. */
+.case--hidden { display: none; }
+body.edit-mode .case--hidden {
+  display: block;
+  opacity: .45;
+  filter: grayscale(.4);
+}
+body.edit-mode .case--hidden::before {
+  content: "СКРЫТ";
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  background: rgba(11, 11, 8, .88);
+  color: var(--lime, #cfe430);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font: 600 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: .14em;
+  pointer-events: none;
+}
+
 /* default label block: lime eyebrow above white Unbounded title */
 .case .label {
   position: absolute; z-index: 3;
