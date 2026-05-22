@@ -264,6 +264,42 @@ body[data-nav-font="onest-mixed"] .header-nav a {
   .edit-cta-picker .label { display: none; }
 }
 
+/* ---- cta-layout picker (3 variants for the contact block) ---- */
+.edit-ctalayout-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+}
+.edit-ctalayout-picker .label {
+  font-size: 11px;
+  color: rgba(255,255,255,.55);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.edit-ctalayout-picker button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.7);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: 500 11px/1 "JetBrains Mono", monospace;
+  cursor: pointer;
+  min-width: 32px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.edit-ctalayout-picker button:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.edit-ctalayout-picker button[aria-pressed="true"] {
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+  border-color: transparent;
+}
+@media (max-width: 720px) {
+  .edit-ctalayout-picker .label { display: none; }
+}
+
 /* ---- scrim sliders ---- */
 .edit-scrim-picker {
   display: inline-flex;

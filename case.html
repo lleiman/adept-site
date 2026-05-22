@@ -486,8 +486,37 @@
     .cta .layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 48px;
+      grid-template-rows: auto auto;
+      column-gap: 48px;
+      row-gap: 28px;
       align-items: start;
+    }
+    .cta-text { grid-column: 1; grid-row: 1; }
+    .cta .form { grid-column: 2; grid-row: 1; }
+    .cta .meta {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      padding-top: 22px;
+      margin-top: 4px;
+      border-top: 1px solid rgba(11,11,8,0.12);
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 14px 56px;
+      align-items: baseline;
+    }
+    .cta .meta .row { gap: 14px; align-items: baseline; }
+    body[data-cta-layout="under-form"] .cta-text { grid-column: 1; grid-row: 1 / span 2; }
+    body[data-cta-layout="under-form"] .cta .form { grid-column: 2; grid-row: 1; }
+    body[data-cta-layout="under-form"] .cta .meta {
+      grid-column: 2; grid-row: 2;
+      flex-direction: column; gap: 12px;
+    }
+    body[data-cta-layout="under-text"] .cta-text { grid-column: 1; grid-row: 1; }
+    body[data-cta-layout="under-text"] .cta .form { grid-column: 2; grid-row: 1 / span 2; }
+    body[data-cta-layout="under-text"] .cta .meta {
+      grid-column: 1; grid-row: 2;
+      flex-direction: column; gap: 12px;
     }
     .cta h2 {
       font-family: "Unbounded", "Onest", sans-serif;
@@ -497,48 +526,45 @@
       margin: 0 0 14px;
       line-height: 1.0;
     }
-    .cta .blurb { color: var(--ink-2); font-size: 16px; margin-bottom: 22px; max-width: 480px; }
-    .cta .meta {
-      font-size: 13px;
-      color: var(--muted);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 24px;
-    }
-    .cta .meta .row { display: flex; gap: 16px; align-items: baseline; }
+    .cta .blurb { color: var(--ink-2); font-size: 16px; margin-bottom: 0; max-width: 480px; }
+    /* contacts: shared styling across all 3 layout variants */
     .cta .meta .k {
       color: var(--muted);
-      width: 78px; flex-shrink: 0;
       font-family: "JetBrains Mono", monospace;
-      font-size: 11px; letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-    .cta .meta .v { color: var(--ink); }
-    .cta .meta a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(11,11,8,.25); }
-    .cta .meta a:hover { border-bottom-color: var(--lime-2); }
-    .cta-right { display: flex; flex-direction: column; gap: 22px; }
-    .cta-right .meta {
-      margin-top: 8px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(11,11,8,0.12);
-      gap: 12px;
-    }
-    .cta-right .meta .row { align-items: center; gap: 18px; }
-    .cta-right .meta .k {
-      width: 92px;
       font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      width: auto;
+      flex-shrink: 0;
     }
-    .cta-right .meta .v,
-    .cta-right .meta a {
-      font: 500 22px/1.1 "Unbounded", "Onest", sans-serif;
+    .cta .meta .v,
+    .cta .meta a {
+      font: 600 24px/1.05 "Unbounded", "Onest", sans-serif;
       letter-spacing: -0.01em;
-      border-bottom: none;
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 0;
     }
-    .cta-right .meta a:hover { color: var(--lime-2, #cfe430); }
+    .cta .meta a:hover { color: var(--lime-2, #aabd24); }
+    /* compact variants (under-form / under-text) get a smaller meta type */
+    body[data-cta-layout="under-form"] .cta .meta .v,
+    body[data-cta-layout="under-form"] .cta .meta a,
+    body[data-cta-layout="under-text"] .cta .meta .v,
+    body[data-cta-layout="under-text"] .cta .meta a { font-size: 20px; }
+    body[data-cta-layout="under-form"] .cta .meta,
+    body[data-cta-layout="under-text"] .cta .meta {
+      padding-top: 18px;
+      margin-top: 4px;
+      border-top: 1px solid rgba(11, 11, 8, .12);
+    }
     @media (max-width: 720px) {
-      .cta-right .meta .v, .cta-right .meta a { font-size: 18px; }
-      .cta-right .meta .k { width: 72px; }
+      .cta .layout { grid-template-columns: 1fr !important; }
+      .cta-text, .cta .form, .cta .meta {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+      }
+      .cta .meta { flex-direction: column !important; gap: 14px !important; border-top: 1px solid rgba(11,11,8,0.12); padding-top: 18px; }
+      .cta .meta .v, .cta .meta a { font-size: 18px; }
     }
     .cta-corner {
       position: absolute;
@@ -672,14 +698,13 @@
     <section class="cta">
       <div class="cta-corner"></div>
       <div class="layout">
-        <div>
+        <div class="cta-text">
           <span class="eyebrow" data-edit="cta.eyebrow">Обсудить проект</span>
           <h2><span data-edit="cta.h2_line1">Бриф, дедлайн, референсы —</span><br/><span data-edit="cta.h2_line2">дальше уже наша работа.</span></h2>
           <p class="blurb" data-edit="cta.blurb">AI-видео, key visuals, экранный контент, статика, инсталляции. Отвечаем в течение рабочего дня. Берём в работу проекты с чётким брифом и сроком от 2 дней.</p>
         </div>
 
-        <div class="cta-right">
-          <form class="form" id="contact-form">
+        <form class="form" id="contact-form">
           <div class="row">
             <div class="field">
               <label for="f-name" data-edit="cta.form.label_name">Имя / Бренд</label>
@@ -702,10 +727,9 @@
             </button>
           </div>
         </form>
-          <div class="meta">
-            <div class="row"><span class="k" data-edit="cta.meta.tg_k">Telegram</span><span class="v"><a href="https://t.me/aiadepts" data-edit="cta.meta.tg_v">@aiadepts</a></span></div>
-            <div class="row"><span class="k" data-edit="cta.meta.email_k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio" data-edit="cta.meta.email_v">hi@adept.studio</a></span></div>
-          </div>
+        <div class="meta">
+          <div class="row"><span class="k" data-edit="cta.meta.tg_k">Telegram</span><span class="v"><a href="https://t.me/aiadepts" data-edit="cta.meta.tg_v">@aiadepts</a></span></div>
+          <div class="row"><span class="k" data-edit="cta.meta.email_k">E-mail</span><span class="v"><a href="mailto:hi@adept.studio" data-edit="cta.meta.email_v">hi@adept.studio</a></span></div>
         </div>
       </div>
     </section>

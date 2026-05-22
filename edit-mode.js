@@ -197,6 +197,19 @@
     });
   }
 
+  // ---- cta block layout ----
+  function applyCtaLayout() {
+    const variant = getPath(content, "ui.ctaLayout") || "strip";
+    if (variant === "strip") {
+      delete document.body.dataset.ctaLayout;
+    } else {
+      document.body.dataset.ctaLayout = variant;
+    }
+    document.querySelectorAll(".edit-ctalayout-picker button[data-cta-layout]").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.ctaLayout === variant ? "true" : "false");
+    });
+  }
+
   // ---- logo variant ----
   function applyLogoStyle() {
     const variant = getPath(content, "ui.logoStyle") || "lime-text";
@@ -319,6 +332,7 @@
     applyNavFont();
     applyBrandStyle();
     applyCtaStyle();
+    applyCtaLayout();
     applyLogoStyle();
     applyScrimSettings();
     wireBurger();
@@ -598,6 +612,12 @@
       applyLogoStyle();
       await saveContent();
     }
+    const ctaLayoutBtn = e.target.closest(".edit-ctalayout-picker button[data-cta-layout]");
+    if (ctaLayoutBtn) {
+      setPath(content, "ui.ctaLayout", ctaLayoutBtn.dataset.ctaLayout);
+      applyCtaLayout();
+      await saveContent();
+    }
   });
 
   // Scrim sliders: live-update CSS on `input`, save on `change`
@@ -626,6 +646,20 @@
 
   function injectCaseBuilderUI() {
     const bar = document.querySelector(".edit-bar");
+    // Inject CTA layout picker (3 variants) right before the spacer
+    if (bar && !bar.querySelector(".edit-ctalayout-picker")) {
+      const spacer = bar.querySelector(".spacer");
+      const wrap = document.createElement("span");
+      wrap.className = "edit-ctalayout-picker";
+      wrap.innerHTML = `
+        <span class="label">Контакты:</span>
+        <button data-cta-layout="strip"      title="A · полосой внизу (по-умолч.)">A</button>
+        <button data-cta-layout="under-form" title="B · под формой (справа)">B</button>
+        <button data-cta-layout="under-text" title="C · под описанием (слева)">C</button>
+      `;
+      if (spacer) bar.insertBefore(wrap, spacer);
+      else bar.appendChild(wrap);
+    }
     if (bar && !bar.querySelector("#edit-add-case")) {
       const spacer = bar.querySelector(".spacer");
       // "+ Кейс" — open the case constructor modal
