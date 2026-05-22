@@ -638,8 +638,19 @@
       color: var(--muted);
     }
     .foot .center { display: flex; gap: 6px; align-items: center; }
+    .foot-legal {
+      max-width: 340px;
+      font-family: "Onest", ui-sans-serif, sans-serif;
+      font-size: 10.5px;
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1.4;
+      color: var(--muted);
+      text-align: right;
+    }
     @media (max-width: 720px) {
       .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .foot-legal { text-align: left; max-width: 100%; }
     }
 
     /* side nav — fixed right, pulled closer to content on wide viewports */
@@ -765,6 +776,7 @@
         <span class="dot-sep"></span>
         <span>Systems</span>
       </div>
+      <span class="foot-legal" data-edit="footer.legal">Полная юридическая чистота AI-контента. Передача исключительных авторских прав по B2B-договорам.</span>
     </footer>
   </main>
 
