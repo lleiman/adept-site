@@ -353,6 +353,10 @@
       const v = getPath(content, el.dataset.edit);
       if (typeof v === "string" && el.textContent !== v) el.textContent = v;
     });
+    document.querySelectorAll("[data-edit-href]").forEach(el => {
+      const v = getPath(content, el.dataset.editHref);
+      if (typeof v === "string" && v) el.setAttribute("href", v);
+    });
     document.querySelectorAll("[data-edit-img]").forEach(el => {
       const prefix = el.dataset.editImg;
       const imgUrl = getPath(content, prefix + ".img");
@@ -530,10 +534,30 @@
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.target.blur(); }
   });
 
+  // ---- click on [data-edit-href] in edit-mode → prompt to change the URL ----
+  document.addEventListener("click", async e => {
+    if (!body.classList.contains("edit-mode")) return;
+    const el = e.target.closest("[data-edit-href]");
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const path = el.dataset.editHref;
+    const cur = getPath(content, path) || el.getAttribute("href") || "";
+    const next = prompt("Куда ведёт ссылка? (URL целиком)\nПусто = вернуть значение по умолчанию.", cur);
+    if (next === null) return;
+    if (next.trim() === "") {
+      unsetPath(content, path);
+    } else {
+      setPath(content, path, next.trim());
+    }
+    await saveContent();
+    applyOverrides();
+  }, true);
+
   // ---- suppress link navigation while editing ----
   document.addEventListener("click", e => {
     if (!body.classList.contains("edit-mode")) return;
-    if (e.target.closest(".edt-img-ctl, [data-edit], .edit-bar")) return;
+    if (e.target.closest(".edt-img-ctl, [data-edit], [data-edit-href], .edit-bar")) return;
     const link = e.target.closest("a[href]");
     if (link) e.preventDefault();
   }, true);

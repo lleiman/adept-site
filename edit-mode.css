@@ -18,6 +18,16 @@ body.edit-mode [data-edit]:focus {
   background: rgba(207, 228, 48, .18);
 }
 
+/* editable href targets (link URLs) get the same dashed outline + cursor */
+body.edit-mode [data-edit-href] {
+  outline: 1px dashed rgba(207, 228, 48, 0.55);
+  outline-offset: 4px;
+  border-radius: 12px;
+  cursor: pointer !important;
+  transition: outline-color .15s ease;
+}
+body.edit-mode [data-edit-href]:hover { outline-color: var(--lime, #cfe430); }
+
 /* image controls — visible in edit-mode only */
 .edt-img-ctl {
   position: absolute;
