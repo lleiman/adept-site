@@ -231,6 +231,93 @@
       border-left: 3px solid var(--lime);
       top: 44px; left: 44px;
     }
+    /* «Смотреть Шоурил 2026» — floating CTA bottom-right of hero */
+    .showreel-cta {
+      position: absolute;
+      bottom: 36px; right: 36px;
+      z-index: 5;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 22px 14px 14px;
+      background: var(--lime);
+      color: var(--ink);
+      border: 0;
+      border-radius: 999px;
+      font: 600 15px/1 "Onest", sans-serif;
+      cursor: pointer;
+      box-shadow: 0 16px 36px -10px rgba(207, 228, 48, .55), 0 0 0 1px rgba(11, 11, 8, .12);
+      transition: transform .18s ease, box-shadow .18s ease, background .15s;
+    }
+    .showreel-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 48px -10px rgba(207, 228, 48, .75), 0 0 0 1px rgba(11, 11, 8, .18);
+    }
+    .showreel-cta .play {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 26px; height: 26px;
+      background: var(--ink);
+      color: var(--lime);
+      border-radius: 50%;
+      font-size: 10px;
+      padding-left: 2px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 720px) {
+      .showreel-cta { bottom: 20px; right: 20px; padding: 11px 18px 11px 11px; font-size: 13px; gap: 10px; }
+      .showreel-cta .play { width: 22px; height: 22px; font-size: 8px; }
+    }
+    /* Showreel lightbox modal */
+    .showreel-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .showreel-modal[hidden] { display: none; }
+    .showreel-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(11, 11, 8, .92);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+    .showreel-frame {
+      position: relative;
+      width: min(96vw, 1280px);
+      max-height: 88vh;
+    }
+    .showreel-video {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .6);
+    }
+    .showreel-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .showreel-close {
+      position: absolute;
+      top: -48px;
+      right: 0;
+      width: 40px; height: 40px;
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 50%;
+      font: 400 22px/1 "Onest", sans-serif;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .showreel-close:hover { background: var(--lime); color: var(--ink); border-color: var(--lime); }
+    body.showreel-open { overflow: hidden; }
+    @media (max-width: 720px) {
+      .showreel-modal { padding: 12px; }
+      .showreel-close { top: -44px; width: 36px; height: 36px; font-size: 20px; }
+    }
     @media (max-width: 720px) {
       .hero .h-text { left: 22px; max-width: 90%; }
       .hero .h-corner { top: 18px; left: 18px; width: 22px; height: 22px; border-width: 2px; }
@@ -497,6 +584,8 @@
     }
 
     html { scroll-behavior: smooth; }
+    /* Admin toggle: hide the «Работаем с» strip until brand logos arrive */
+    body[data-brands-hidden="1"] .brands { display: none; }
   </style>
   <link rel="stylesheet" href="/cards.css" />
   <link rel="stylesheet" href="/edit-mode.css" />
@@ -531,6 +620,10 @@
         <button data-img-action="vimeo" data-img-target="hero">Vimeo</button>
         <button data-img-action="reset" data-img-target="hero" class="ghost">Сбросить</button>
       </div>
+      <button class="showreel-cta" type="button" id="open-showreel">
+        <span class="play" aria-hidden="true">▶</span>
+        <span data-edit="hero.cta">Смотреть Шоурил 2026</span>
+      </button>
     </section>
 
     <section class="tagline">
@@ -614,6 +707,17 @@
       <span class="foot-legal" data-edit="footer.legal">Полная юридическая чистота AI-контента. Передача исключительных авторских прав по B2B-договорам.</span>
     </footer>
   </main>
+
+  <!-- Showreel lightbox — appended to body so it can sit above everything -->
+  <div class="showreel-modal" id="showreel-modal" hidden role="dialog" aria-modal="true" aria-label="Шоурил 2026">
+    <div class="showreel-backdrop" data-showreel-close></div>
+    <div class="showreel-frame">
+      <button class="showreel-close" type="button" data-showreel-close aria-label="Закрыть">×</button>
+      <div class="showreel-video">
+        <iframe src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
   <div class="edit-bar" role="toolbar" aria-label="Режим редактирования">
     <span class="dot"></span>
@@ -813,6 +917,37 @@ window.adeptRenderCases = renderCases;
 renderCases();
 // Re-render once content.json arrives — custom cases live there.
 window.addEventListener("adept-content-loaded", renderCases);
+
+// ---- Showreel lightbox ----
+(function wireShowreel() {
+  const modal = document.getElementById("showreel-modal");
+  const openBtn = document.getElementById("open-showreel");
+  if (!modal || !openBtn) return;
+  const iframe = modal.querySelector("iframe");
+  function open() {
+    const vimeo = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().hero && window.AdeptEdit.content().hero.vimeo;
+    if (!vimeo || !vimeo.id) {
+      alert("Шоурил ещё не залит. Cmd+B → Vimeo на hero блоке.");
+      return;
+    }
+    const hash = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
+    iframe.src = `https://player.vimeo.com/video/${vimeo.id}?${hash}autoplay=1&title=0&byline=0&portrait=0&dnt=1`;
+    modal.hidden = false;
+    document.body.classList.add("showreel-open");
+  }
+  function close() {
+    iframe.src = "";
+    modal.hidden = true;
+    document.body.classList.remove("showreel-open");
+  }
+  openBtn.addEventListener("click", open);
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-showreel-close]")) close();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) close();
+  });
+})();
 
 // ---- form ----
 (function wireForm() {

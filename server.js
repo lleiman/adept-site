@@ -47,6 +47,7 @@ function applyServerTemplates(html, content) {
   if (ui.brandStyle && ui.brandStyle !== "tag-lime") attrs.push(`data-brand-style="${ui.brandStyle}"`);
   if (ui.ctaStyle && ui.ctaStyle !== "center") attrs.push(`data-cta-style="${ui.ctaStyle}"`);
   if (ui.ctaLayout && ui.ctaLayout !== "strip") attrs.push(`data-cta-layout="${ui.ctaLayout}"`);
+  if (ui.brandsHidden) attrs.push(`data-brands-hidden="1"`);
   if (ui.logoStyle && ui.logoStyle !== "lime-text") attrs.push(`data-logo="${ui.logoStyle}"`);
   if (attrs.length) {
     html = html.replace(/<body(\s|>)/, `<body ${attrs.join(" ")}$1`);

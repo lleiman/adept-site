@@ -210,6 +210,17 @@
     });
   }
 
+  // ---- brands strip visibility (admin toggle) ----
+  function applyBrandsVisibility() {
+    const hidden = !!getPath(content, "ui.brandsHidden");
+    if (hidden) document.body.dataset.brandsHidden = "1";
+    else delete document.body.dataset.brandsHidden;
+    document.querySelectorAll("#edit-toggle-brands").forEach(btn => {
+      btn.setAttribute("aria-pressed", hidden ? "true" : "false");
+      btn.textContent = hidden ? "Бренды: скрыты" : "Бренды: видны";
+    });
+  }
+
   // ---- logo variant ----
   function applyLogoStyle() {
     const variant = getPath(content, "ui.logoStyle") || "lime-text";
@@ -334,6 +345,7 @@
     applyCtaStyle();
     applyCtaLayout();
     applyLogoStyle();
+    applyBrandsVisibility();
     applyScrimSettings();
     wireBurger();
     wireCardHover();
@@ -693,6 +705,15 @@
       btnRefresh.title = "Перевыкачать первые кадры из Vimeo (если ты обновил постер в Vimeo)";
       if (spacer) bar.insertBefore(btnRefresh, spacer);
       else bar.appendChild(btnRefresh);
+      // "Бренды: видны/скрыты" — toggles the .brands strip on the homepage
+      const btnBrands = document.createElement("button");
+      btnBrands.id = "edit-toggle-brands";
+      btnBrands.type = "button";
+      btnBrands.className = "ghost";
+      btnBrands.textContent = "Бренды: видны";
+      btnBrands.title = "Скрыть или показать блок «Работаем с» на главной";
+      if (spacer) bar.insertBefore(btnBrands, spacer);
+      else bar.appendChild(btnBrands);
     }
     if (document.getElementById("case-builder")) return;
     const m = document.createElement("div");
@@ -1033,6 +1054,14 @@
 
   // Wire builder events (delegated)
   document.addEventListener("click", async e => {
+    if (e.target.closest("#edit-toggle-brands")) {
+      e.preventDefault();
+      const cur = !!getPath(content, "ui.brandsHidden");
+      setPath(content, "ui.brandsHidden", !cur);
+      applyBrandsVisibility();
+      await saveContent();
+      return;
+    }
     if (e.target.closest("#edit-add-case")) { e.preventDefault(); openBuilder(); return; }
     if (e.target.closest("#edit-refresh-thumbs")) { e.preventDefault(); await refreshVimeoThumbs(); return; }
     const tagsBtn = e.target.closest(".cd-tags-edit[data-edit-tags]");
