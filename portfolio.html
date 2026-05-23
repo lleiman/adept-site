@@ -169,13 +169,17 @@
     .showreel-cta .play {
       display: inline-flex;
       align-items: center; justify-content: center;
-      width: 24px; height: 24px;
+      width: 26px; height: 26px;
       background: var(--ink);
       color: var(--lime);
       border-radius: 50%;
-      font-size: 9px;
-      padding-left: 2px;
       flex-shrink: 0;
+    }
+    .showreel-cta .play svg {
+      width: 10px;
+      height: 10px;
+      margin-left: 1px;
+      display: block;
     }
     /* Showreel lightbox modal — shared with /case + index */
     .showreel-modal {
@@ -217,6 +221,7 @@
       .showreel-modal { padding: 12px; }
       .showreel-close { top: -44px; width: 36px; height: 36px; font-size: 20px; }
       .showreel-cta { padding: 11px 18px 11px 11px; font-size: 13px; gap: 10px; }
+      .showreel-cta .showreel-year { display: none; }
       /* play badge stays full-size on mobile per user request */
     }
     .pf-title h1 {
@@ -522,8 +527,10 @@
         <h1 data-edit="portfolio.title">Портфолио</h1>
       </div>
       <button class="showreel-cta" type="button" id="open-showreel">
-        <span class="play" aria-hidden="true">▶</span>
-        <span data-edit="hero.cta">Смотреть Шоурил 2026</span>
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5z"/></svg>
+        </span>
+        <span class="showreel-label"><span data-edit="hero.cta">Смотреть Шоурил</span><span class="showreel-year" data-edit="hero.cta_year"> 2026</span></span>
       </button>
     </header>
 
