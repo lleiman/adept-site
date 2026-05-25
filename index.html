@@ -868,10 +868,14 @@ const SIZE_PATTERN = [
 ];
 
 // Merge hardcoded CASES with content.customCases (built via the in-page
-// case constructor — Cmd+B → «+ Кейс»). Custom entries can override
-// existing keys but the typical use is brand-new ids.
+// case constructor — Cmd+B → «+ Кейс») AND the per-case overrides at
+// content.cases.<id> so we can compute a `thumb` URL right at render
+// time — eliminates the «one card stays black» race when applyOverrides
+// loses to the Vimeo SDK on a specific card.
 function getAllCases() {
-  const custom = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().customCases) || {};
+  const c = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
+  const custom = c.customCases || {};
+  const overrides = c.cases || {};
   const out = Object.assign({}, CASES);
   for (const id of Object.keys(custom)) {
     const cc = custom[id] || {};
@@ -882,6 +886,15 @@ function getAllCases() {
       hueShift: typeof cc.hueShift === "number" ? cc.hueShift : ((out[id] && out[id].hueShift) || 0),
       img:     cc.img     != null ? cc.img     : (out[id] && out[id].img)     || "",
     });
+  }
+  for (const id of Object.keys(out)) {
+    const ov = overrides[id] || {};
+    if (typeof ov.brand === "string") out[id].brand = ov.brand;
+    if (typeof ov.title === "string") out[id].title = ov.title;
+    if (typeof ov.eyebrow === "string") out[id].eyebrow = ov.eyebrow;
+    if (typeof ov.img === "string" && ov.img) out[id].img = ov.img;
+    const vt = ov.vimeo && ov.vimeo.thumb;
+    out[id].thumb = out[id].img || (typeof vt === "string" ? vt : "") || "";
   }
   return out;
 }
@@ -923,8 +936,9 @@ function renderCases() {
     const c = all[id]; if (!c) return "";
     const cls = SIZE_PATTERN[i] || "sp-4 h-m";
     const isHidden = hidden.has(id);
-    const picStyle = c.img
-      ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
+    const poster = c.thumb || c.img || "";
+    const picStyle = poster
+      ? ` style="background-image: url('${poster}'); background-size: cover; background-position: center; filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";
     return `
       <a class="case ${cls}${isHidden ? ' case--hidden' : ''}" href="case.html#${id}" data-id="${id}" draggable="false">

@@ -711,9 +711,15 @@ const DEFAULT_ORDER = [
   "asmr", "fashion", "avatars", "miratorg", "vtb"
 ];
 
-// Merge hardcoded CASES with content.customCases (from the case constructor).
+// Merge hardcoded CASES with content.customCases (from the case constructor)
+// AND the per-case overrides at content.cases.<id> (brand/title/img/vimeo).
+// We expose `thumb` (preferred poster URL) so renderGrid can paint it inline
+// without waiting for applyOverrides — avoids the «one card stays black»
+// race when Vimeo SDK + applyOverrides timing collide.
 function getAllCases() {
-  const custom = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().customCases) || {};
+  const c = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
+  const custom = c.customCases || {};
+  const overrides = c.cases || {};
   const out = Object.assign({}, CASES);
   for (const id of Object.keys(custom)) {
     const cc = custom[id] || {};
@@ -725,6 +731,16 @@ function getAllCases() {
       hueShift: typeof cc.hueShift === "number" ? cc.hueShift : ((out[id] && out[id].hueShift) || 0),
       img:      cc.img      != null ? cc.img      : (out[id] && out[id].img)      || "",
     });
+  }
+  // Fold in per-case overrides + derived thumb URL
+  for (const id of Object.keys(out)) {
+    const ov = overrides[id] || {};
+    if (typeof ov.brand === "string") out[id].brand = ov.brand;
+    if (typeof ov.title === "string") out[id].title = ov.title;
+    if (typeof ov.eyebrow === "string") out[id].eyebrow = ov.eyebrow;
+    if (typeof ov.img === "string" && ov.img) out[id].img = ov.img;
+    const vt = ov.vimeo && ov.vimeo.thumb;
+    out[id].thumb = out[id].img || (typeof vt === "string" ? vt : "") || "";
   }
   return out;
 }
@@ -784,8 +800,9 @@ function renderGrid() {
     const c = all[id]; if (!c) return "";
     const wide = WIDE_POSITIONS.has(i % 7) ? " span-wide" : "";
     const isHidden = hidden.has(id);
-    const picStyle = c.img
-      ? ` style="background-image: url('${c.img}'); filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
+    const poster = c.thumb || c.img || "";
+    const picStyle = poster
+      ? ` style="background-image: url('${poster}'); background-size: cover; background-position: center; filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";
     return `
       <a class="case${wide}${isHidden ? ' case--hidden' : ''}" href="/case#${id}" data-id="${id}" data-category="${c.category}">
