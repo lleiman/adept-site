@@ -408,6 +408,11 @@
       if (old) old.remove();
       setPoster();
     });
+    // If we're in edit-mode, re-apply contentEditable to any freshly-rendered
+    // [data-edit] elements that came in via re-render (case.html update(),
+    // adeptRenderCases on index/portfolio). Without this, the new spans
+    // accept cursor focus but reject typed input — they're not editable.
+    if (body.classList.contains("edit-mode")) applyContentEditable(true);
   }
 
   // ---- drag-and-drop case reordering (edit-mode only) ----
@@ -491,17 +496,22 @@
     sessionStorage.setItem("adept-auth", password);
     return true;
   }
-  async function setMode(on) {
-    if (on && !(await ensureAuth())) return;
-    body.classList.toggle("edit-mode", on);
+  function applyContentEditable(on) {
     document.querySelectorAll("[data-edit]").forEach(el => {
       el.contentEditable = on ? "true" : "false";
       el.spellcheck = false;
     });
+  }
+  async function setMode(on) {
+    if (on && !(await ensureAuth())) return;
+    body.classList.toggle("edit-mode", on);
     setCardsDraggable(on);
     // Re-render so hidden cases appear in edit-mode and disappear out of it.
     if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
     window.dispatchEvent(new Event("adept-content-loaded"));
+    // Apply contentEditable LAST so freshly-rendered [data-edit] elements
+    // (from adeptRenderCases / case.html update()) get the attribute too.
+    applyContentEditable(on);
   }
   function toggle() { return setMode(!body.classList.contains("edit-mode")); }
 
