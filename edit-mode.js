@@ -275,23 +275,13 @@
   }
 
   // ---- card hover → autoplay vimeo preview ----
-  // Pre-creates iframes immediately on page load so the Vimeo player
-  // is fully buffered by the time the user hovers. Uses Vimeo Player
-  // SDK (loaded via <script> in <head>) to pause/play instantly with
-  // no network round-trip on the hover event itself.
-  function vimeoSDK() {
-    return new Promise(resolve => {
-      if (window.Vimeo && window.Vimeo.Player) return resolve(window.Vimeo);
-      const check = setInterval(() => {
-        if (window.Vimeo && window.Vimeo.Player) {
-          clearInterval(check); resolve(window.Vimeo);
-        }
-      }, 100);
-    });
-  }
-
-  async function wireCardHover() {
-    const candidates = [];
+  // Strategy: each card's Vimeo iframe runs in `background` mode (muted +
+  // looping) continuously from page load. Hover only toggles opacity via
+  // the .is-playing class — no pause/play SDK calls, so there's never a
+  // re-buffer black frame on mouse-enter. Trade-off: slightly more network
+  // chatter, but the visual snap is instant which is what we want for a
+  // portfolio.
+  function wireCardHover() {
     document.querySelectorAll(".case[data-id]").forEach(card => {
       if (card.dataset.hoverWired === "1") return;
       const id = card.dataset.id;
@@ -301,9 +291,7 @@
       if (!pic) return;
       card.dataset.hoverWired = "1";
 
-      // Build the iframe NOW (background mode autoplays muted+loop; we
-      // pause it as soon as the SDK reports the player is loaded, so by
-      // hover-time the player + first video frames are already buffered)
+      // Background-mode iframe autoplays muted + looped forever.
       const hash = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
       const ifr = document.createElement("iframe");
       ifr.className = "hover-video";
@@ -312,32 +300,8 @@
       ifr.allowFullscreen = true;
       pic.appendChild(ifr);
 
-      candidates.push({ card, ifr });
-    });
-
-    if (!candidates.length) return;
-    const Vimeo = await vimeoSDK();
-
-    candidates.forEach(({ card, ifr }) => {
-      const player = new Vimeo.Player(ifr);
-      let preloaded = false;
-      let pendingPlay = false;
-      // Pause as soon as the player has loaded (autoplay had time to
-      // buffer the first frames, now keep it idle until hover)
-      player.on("loaded", () => {
-        preloaded = true;
-        if (!pendingPlay) player.pause().catch(() => {});
-      });
-      card.addEventListener("mouseenter", () => {
-        card.classList.add("is-playing");
-        if (preloaded) player.play().catch(() => {});
-        else pendingPlay = true; // play once loaded
-      });
-      card.addEventListener("mouseleave", () => {
-        card.classList.remove("is-playing");
-        pendingPlay = false;
-        player.pause().catch(() => {});
-      });
+      card.addEventListener("mouseenter", () => card.classList.add("is-playing"));
+      card.addEventListener("mouseleave", () => card.classList.remove("is-playing"));
     });
   }
 
