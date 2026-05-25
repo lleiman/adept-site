@@ -506,12 +506,13 @@
     if (on && !(await ensureAuth())) return;
     body.classList.toggle("edit-mode", on);
     setCardsDraggable(on);
-    // Re-render so hidden cases appear in edit-mode and disappear out of it.
-    if (typeof window.adeptRenderCases === "function") window.adeptRenderCases();
-    window.dispatchEvent(new Event("adept-content-loaded"));
-    // Apply contentEditable LAST so freshly-rendered [data-edit] elements
-    // (from adeptRenderCases / case.html update()) get the attribute too.
     applyContentEditable(on);
+    // Note: we DON'T trigger a full case re-render here anymore.
+    // Re-rendering would rebuild every card iframe and force a fresh
+    // Vimeo buffer cycle — hover previews would lag for ~1s.
+    // To manage hidden cases, the admin uses /portfolio (where the
+    // grid always shows all entries) and the hide/show action there
+    // triggers its own targeted re-render with fresh state.
   }
   function toggle() { return setMode(!body.classList.contains("edit-mode")); }
 
