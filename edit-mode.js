@@ -535,8 +535,13 @@
   });
 
   // ---- click on [data-edit-href] in edit-mode → prompt to change the URL ----
+  // Capture-phase, but ONLY fires when the click target itself is the
+  // [data-edit-href] anchor (or a non-editable descendant of it). If the
+  // target lives inside a nested [data-edit] text span, we leave the click
+  // alone so the inline-text editor can focus normally.
   document.addEventListener("click", async e => {
     if (!body.classList.contains("edit-mode")) return;
+    if (e.target.closest("[data-edit]")) return;
     const el = e.target.closest("[data-edit-href]");
     if (!el) return;
     e.preventDefault();
