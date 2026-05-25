@@ -873,7 +873,9 @@ const SIZE_PATTERN = [
 // time — eliminates the «one card stays black» race when applyOverrides
 // loses to the Vimeo SDK on a specific card.
 function getAllCases() {
-  const c = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || {};
+  // SSR inlines content into window.__ADEPT_CONTENT__ so this works on the
+  // very first sync call — before edit-mode.js fetches /api/content.
+  const c = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || window.__ADEPT_CONTENT__ || {};
   const custom = c.customCases || {};
   const overrides = c.cases || {};
   const out = Object.assign({}, CASES);
@@ -904,7 +906,8 @@ function getOrder() {
   const allIds = Object.keys(all);
   const customExtras = allIds.filter(id => !DEFAULT_ORDER.includes(id));
   const fullDefault = [...DEFAULT_ORDER, ...customExtras];
-  const saved = window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.order;
+  const c = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || window.__ADEPT_CONTENT__ || {};
+  const saved = c.ui && c.ui.order;
   if (Array.isArray(saved) && saved.length) {
     const valid = saved.filter(id => all[id]);
     const missing = fullDefault.filter(id => !valid.includes(id));
@@ -927,7 +930,8 @@ function renderCases() {
   const root = $("#cases");
   const order = getOrder();
   const all = getAllCases();
-  const hidden = new Set(((window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content().ui && window.AdeptEdit.content().ui.hiddenCases)) || []);
+  const _c = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || window.__ADEPT_CONTENT__ || {};
+  const hidden = new Set((_c.ui && _c.ui.hiddenCases) || []);
   const isEdit = document.body.classList.contains("edit-mode");
   // In edit-mode keep hidden cases in the slice so the admin can flip them back.
   // In view mode they're filtered out so the public sees 7 visible cards.

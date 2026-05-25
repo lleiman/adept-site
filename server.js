@@ -74,6 +74,16 @@ function applyServerTemplates(html, content) {
       `<style>:root { ${cssVars.join("; ")}; }</style></head>`
     );
   }
+  // Inline content.json as window.__ADEPT_CONTENT__ before any script runs.
+  // This lets getAllCases() / renderGrid() / renderCases() see the real data
+  // on their VERY FIRST sync run — no «black cards for 1s while we fetch».
+  if (content && Object.keys(content).length) {
+    const safe = JSON.stringify(content).replace(/</g, "\\u003c");
+    html = html.replace(
+      /<\/head>/,
+      `<script>window.__ADEPT_CONTENT__=${safe};</script></head>`
+    );
+  }
   // SSR text + href overrides — eliminates the «old → new» flash that
   // happened when the client fetched /api/content and swapped text after
   // first paint. Now the browser receives the final copy directly.

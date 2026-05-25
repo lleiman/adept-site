@@ -21,7 +21,10 @@
 (function () {
   const body = document.body;
   const isMac = /Mac|iPhone|iPad/i.test(navigator.platform);
-  let content = {};
+  // Server inlines content into window.__ADEPT_CONTENT__ so we have data on
+  // the very first sync render — no flash of empty/black cards while we wait
+  // for /api/content to come back.
+  let content = (typeof window !== "undefined" && window.__ADEPT_CONTENT__) || {};
   let password = sessionStorage.getItem("adept-auth") || "";
   let saveTimer = 0;
   let savingEl = null;
