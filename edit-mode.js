@@ -853,14 +853,21 @@
     }).join("");
   }
 
+  // form.NAME is unreliable: `form.id` collides with HTMLElement.id (string),
+  // and `form.description` is undefined in some engines. Use form.elements
+  // for guaranteed named-input access.
+  function fEl(form, name) { return form.elements.namedItem(name); }
+  function fSet(form, name, value) { const el = fEl(form, name); if (el) el.value = value; }
+  function fVal(form, name) { const el = fEl(form, name); return el ? el.value : ""; }
+
   function cbClearForm() {
     const form = document.querySelector(".cb-view-form");
     if (!form) return;
     form.reset();
-    form.editingId.value = "";
-    form.id.readOnly = false;
-    form.hueShift.value = "0";
-    form.category.value = "video";
+    fSet(form, "editingId", "");
+    const idEl = fEl(form, "id"); if (idEl) idEl.readOnly = false;
+    fSet(form, "hueShift", "0");
+    fSet(form, "category", "video");
     const statsRoot = document.querySelector(".cb-stats");
     const teamRoot = document.querySelector(".cb-team");
     if (statsRoot) statsRoot.innerHTML = "";
@@ -876,20 +883,20 @@
     const form = document.querySelector(".cb-view-form");
     if (!form) return;
     cbClearForm();
-    form.id.value = id;
-    form.id.readOnly = true;
-    form.brand.value = cc.brand || "";
-    form.title.value = cc.title || "";
-    form.eyebrow.value = cc.eyebrow || "";
-    form.category.value = cc.category || "video";
-    form.hueShift.value = typeof cc.hueShift === "number" ? cc.hueShift : 0;
-    form.client.value = d.client || "";
-    form.year.value = d.year || "";
-    form.format.value = (d.format || []).join(", ");
-    form.tags.value = (d.tags || []).join(", ");
-    form.lead.value = d.lead || "";
-    form.description.value = (d.description || []).join("\n\n");
-    form.editingId.value = id;
+    fSet(form, "id", id);
+    const idEl = fEl(form, "id"); if (idEl) idEl.readOnly = true;
+    fSet(form, "brand", cc.brand || "");
+    fSet(form, "title", cc.title || "");
+    fSet(form, "eyebrow", cc.eyebrow || "");
+    fSet(form, "category", cc.category || "video");
+    fSet(form, "hueShift", typeof cc.hueShift === "number" ? String(cc.hueShift) : "0");
+    fSet(form, "client", d.client || "");
+    fSet(form, "year", d.year || "");
+    fSet(form, "format", (d.format || []).join(", "));
+    fSet(form, "tags", (d.tags || []).join(", "));
+    fSet(form, "lead", d.lead || "");
+    fSet(form, "description", (d.description || []).join("\n\n"));
+    fSet(form, "editingId", id);
     const statsRoot = document.querySelector(".cb-stats");
     const teamRoot = document.querySelector(".cb-team");
     if (statsRoot) statsRoot.innerHTML = "";
@@ -941,7 +948,7 @@
 
   async function cbSaveCaseFromForm(form) {
     if (!password) return;
-    const idRaw = (form.id.value || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const idRaw = (fVal(form, "id") || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
     if (!idRaw) { alert("Укажи ID (латиница / цифры / дефис)"); return; }
     const stats = Array.from(form.querySelectorAll(".cb-row-stat")).map(r => ({
       n: r.querySelector('[data-stat="n"]').value.trim(),
@@ -951,19 +958,20 @@
       group: r.querySelector('[data-team="group"]').value.trim(),
       lines: r.querySelector('[data-team="lines"]').value.split(/\n+/).map(l => l.trim()).filter(Boolean),
     })).filter(t => t.group || t.lines.length);
+    const brand = fVal(form, "brand").trim();
     const cc = {
-      eyebrow: form.eyebrow.value.trim(),
-      title: form.title.value.trim(),
-      brand: form.brand.value.trim(),
-      category: form.category.value || "video",
-      hueShift: parseInt(form.hueShift.value, 10) || 0,
+      eyebrow: fVal(form, "eyebrow").trim(),
+      title: fVal(form, "title").trim(),
+      brand: brand,
+      category: fVal(form, "category") || "video",
+      hueShift: parseInt(fVal(form, "hueShift"), 10) || 0,
       details: {
-        client: form.client.value.trim() || form.brand.value.trim(),
-        year: form.year.value.trim() || "2025",
-        format: form.format.value.split(",").map(s => s.trim()).filter(Boolean),
-        tags: form.tags.value.split(",").map(s => s.trim()).filter(Boolean),
-        lead: form.lead.value.trim(),
-        description: form.description.value.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean),
+        client: fVal(form, "client").trim() || brand,
+        year: fVal(form, "year").trim() || "2025",
+        format: fVal(form, "format").split(",").map(s => s.trim()).filter(Boolean),
+        tags: fVal(form, "tags").split(",").map(s => s.trim()).filter(Boolean),
+        lead: fVal(form, "lead").trim(),
+        description: fVal(form, "description").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean),
         stats: stats,
         gallery: [{ img: "" }, { img: "" }, { img: "" }],
         team: team,
