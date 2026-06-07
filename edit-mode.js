@@ -545,6 +545,54 @@
     if (link) e.preventDefault();
   }, true);
 
+  // ---- case play button → lightbox ----
+  // Injects a shared lightbox on first use, then opens the Vimeo for
+  // the clicked case. Works on both index and portfolio pages.
+  document.addEventListener("click", (e) => {
+    const playBtn = e.target.closest(".case-play[data-play-case]");
+    if (!playBtn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const id = playBtn.dataset.playCase;
+    const vimeo = getPath(content, `cases.${id}.vimeo`);
+    if (!vimeo || !vimeo.id) return;
+    // Reuse the showreel lightbox if it exists, otherwise build one
+    let modal = document.getElementById("video-lightbox");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "video-lightbox";
+      modal.className = "showreel-modal";
+      modal.hidden = true;
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.innerHTML = `
+        <div class="showreel-backdrop" data-vl-close></div>
+        <div class="showreel-frame">
+          <button class="showreel-close" type="button" data-vl-close aria-label="Закрыть">×</button>
+          <div class="showreel-video"><iframe src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+        </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener("click", (ev) => {
+        if (ev.target.closest("[data-vl-close]")) {
+          modal.querySelector("iframe").src = "";
+          modal.hidden = true;
+          document.body.classList.remove("showreel-open");
+        }
+      });
+      window.addEventListener("keydown", (ev) => {
+        if (ev.key === "Escape" && !modal.hidden) {
+          modal.querySelector("iframe").src = "";
+          modal.hidden = true;
+          document.body.classList.remove("showreel-open");
+        }
+      });
+    }
+    const hash = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
+    modal.querySelector("iframe").src = `https://player.vimeo.com/video/${vimeo.id}?${hash}autoplay=1&title=0&byline=0&portrait=0&dnt=1`;
+    modal.hidden = false;
+    document.body.classList.add("showreel-open");
+  }, true);
+
   // ---- image replace / reset ----
   document.addEventListener("click", async e => {
     const btn = e.target.closest(".edt-img-ctl button");

@@ -808,6 +808,8 @@ function renderGrid() {
     const picStyle = poster
       ? ` style="background-image: url('${poster}'); background-size: cover; background-position: center; filter: saturate(0.55) contrast(1.05) hue-rotate(${c.hueShift}deg);"`
       : "";
+    const _cc = (window.AdeptEdit && window.AdeptEdit.content && window.AdeptEdit.content()) || window.__ADEPT_CONTENT__ || {};
+    const hasVimeo = _cc.cases && _cc.cases[id] && _cc.cases[id].vimeo && _cc.cases[id].vimeo.id;
     return `
       <a class="case${wide}${isHidden ? ' case--hidden' : ''}" href="/case#${id}" data-id="${id}" data-category="${c.category}">
         <div class="pic" data-edit-img="cases.${id}"${picStyle}></div>
@@ -818,6 +820,7 @@ function renderGrid() {
             <path d="M5 19 L19 5 M9 5 H19 V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
           </svg>
         </div>
+        ${hasVimeo ? `<button class="case-play" type="button" data-play-case="${id}" title="Смотреть видео"><svg viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5z"/></svg></button>` : ''}
         <span class="case-brand" data-edit="cases.${id}.brand">${escapeHtml(c.brand)}</span>
         <div class="label">
           <span class="eyebrow" data-edit="cases.${id}.eyebrow">${escapeHtml(c.eyebrow)}</span>
