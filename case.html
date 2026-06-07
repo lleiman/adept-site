@@ -298,6 +298,20 @@
     }
     .cd-prose p { margin: 0 0 18px; }
     .cd-prose p:last-child { margin-bottom: 0; }
+    /* Empty description placeholder — visible in edit-mode only */
+    .cd-prose-empty { display: none; }
+    body.edit-mode .cd-prose-empty {
+      display: block;
+      min-height: 48px;
+      border: 1px dashed rgba(207, 228, 48, 0.45);
+      border-radius: 8px;
+      padding: 14px;
+      color: rgba(11, 11, 8, 0.35);
+      font-style: italic;
+    }
+    body.edit-mode .cd-prose-empty:empty::before {
+      content: "Кликни сюда, чтобы добавить текст…";
+    }
     .cd-meta {
       display: flex; flex-direction: column;
       gap: 14px;
@@ -1310,10 +1324,13 @@ function renderCase(data) {
     </div>`;
   }).join("");
 
-  const descHtml = (data.description || []).map((p, i) => {
-    if (p == null || p === "") return "";
-    return `<p data-edit="details.${data.id}.description.${i}">${escapeHtml(p)}</p>`;
-  }).join("");
+  const descArr = (data.description || []).filter(p => p != null && p !== "");
+  // Always render at least one <p> so admin has something to click on
+  // in edit-mode when the description is empty.
+  if (!descArr.length) descArr.push("");
+  const descHtml = descArr.map((p, i) =>
+    `<p data-edit="details.${data.id}.description.${i}"${!p ? ' class="cd-prose-empty"' : ''}>${p ? escapeHtml(p) : ''}</p>`
+  ).join("");
 
   // Next cases — deterministic subset of 6, excluding current and hidden ones.
   // Uses the full order (hardcoded ORDER + custom case ids appended).
@@ -1355,7 +1372,7 @@ function renderCase(data) {
         <button type="button" class="cd-tags-edit" data-edit-tags="${data.id}" title="Изменить теги">Теги ✎</button>
       </div>
       <h1 class="cd-h1" data-edit="cases.${data.id}.title">${escapeHtml(data.title)}</h1>
-      ${data.lead ? `<p class="cd-lead" data-edit="details.${data.id}.lead">${escapeHtml(data.lead)}</p>` : ""}
+      <p class="cd-lead${data.lead ? '' : ' cd-prose-empty'}" data-edit="details.${data.id}.lead">${data.lead ? escapeHtml(data.lead) : ''}</p>
     </header>
 
     <section class="cd-poster">
