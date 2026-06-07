@@ -298,9 +298,11 @@
     }
     .cd-prose p { margin: 0 0 18px; }
     .cd-prose p:last-child { margin-bottom: 0; }
-    /* Empty description placeholder — visible in edit-mode only */
-    .cd-prose-empty { display: none; }
-    body.edit-mode .cd-prose-empty {
+    /* Empty description/lead placeholder — hidden when empty in view-mode,
+       visible with hint in edit-mode. Once user types text, :empty no longer
+       matches and the element displays normally in both modes. */
+    .cd-prose-empty:empty { display: none; }
+    body.edit-mode .cd-prose-empty:empty {
       display: block;
       min-height: 48px;
       border: 1px dashed rgba(207, 228, 48, 0.45);
