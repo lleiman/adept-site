@@ -1315,9 +1315,11 @@ function renderCase(data) {
   const galleryClass = galleryItems.length >= 3 ? "g-3" : galleryItems.length === 2 ? "g-2" : "g-1";
   const galleryHtml = galleryItems.map((g, i) => {
     const gStyle = g.img ? ` style="background-image: url('${g.img}'); ${filterCss(data)}"` : "";
+    const gVimeo = g.vimeo && g.vimeo.id;
     return `
     <div class="cd-shot">
       <div class="pic" data-edit-img="details.${data.id}.gallery.${i}" data-video-mode="background"${gStyle}></div>
+      ${gVimeo ? `<button class="case-play" type="button" data-play-vimeo="${g.vimeo.id}" data-play-hash="${g.vimeo.hash || ''}" title="Смотреть видео"><svg viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5z"/></svg></button>` : ''}
       <div class="edt-img-ctl">
         <button data-img-action="replace" data-img-target="details.${data.id}.gallery.${i}">Картинка</button>
         <button data-img-action="vimeo" data-img-target="details.${data.id}.gallery.${i}">Vimeo</button>
@@ -1381,6 +1383,7 @@ function renderCase(data) {
       <div class="pic" data-edit-img="cases.${data.id}" data-video-mode="background"${data.img ? ` style="background-image: url('${data.img}'); ${filterCss(data)}"` : ""}></div>
       <div class="scrim"></div>
       <div class="cd-poster-corner"></div>
+      ${data.vimeo && data.vimeo.id ? `<button class="case-play cd-poster-play" type="button" data-play-vimeo="${data.vimeo.id}" data-play-hash="${data.vimeo.hash || ''}" title="Смотреть видео"><svg viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5z"/></svg></button>` : ''}
       <div class="cd-poster-meta">
         <span class="k" data-edit="details.${data.id}.year">${escapeHtml(data.year || "2025")}</span>
         <span class="dot-sep"></span>

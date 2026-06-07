@@ -545,18 +545,26 @@
     if (link) e.preventDefault();
   }, true);
 
-  // ---- case play button → lightbox ----
-  // Injects a shared lightbox on first use, then opens the Vimeo for
-  // the clicked case. Works on both index and portfolio pages.
+  // ---- play button → lightbox ----
+  // Works across all pages: cards (data-play-case), poster + gallery
+  // (data-play-vimeo). Builds a shared lightbox on first use.
   document.addEventListener("click", (e) => {
-    const playBtn = e.target.closest(".case-play[data-play-case]");
+    const playBtn = e.target.closest(".case-play[data-play-case], .case-play[data-play-vimeo]");
     if (!playBtn) return;
     e.preventDefault();
     e.stopPropagation();
-    const id = playBtn.dataset.playCase;
-    const vimeo = getPath(content, `cases.${id}.vimeo`);
-    if (!vimeo || !vimeo.id) return;
-    // Reuse the showreel lightbox if it exists, otherwise build one
+    let vimeoId, vimeoHash;
+    if (playBtn.dataset.playCase) {
+      const id = playBtn.dataset.playCase;
+      const vimeo = getPath(content, `cases.${id}.vimeo`);
+      if (!vimeo || !vimeo.id) return;
+      vimeoId = vimeo.id;
+      vimeoHash = vimeo.hash || "";
+    } else {
+      vimeoId = playBtn.dataset.playVimeo;
+      vimeoHash = playBtn.dataset.playHash || "";
+      if (!vimeoId) return;
+    }
     let modal = document.getElementById("video-lightbox");
     if (!modal) {
       modal = document.createElement("div");
@@ -587,8 +595,8 @@
         }
       });
     }
-    const hash = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
-    modal.querySelector("iframe").src = `https://player.vimeo.com/video/${vimeo.id}?${hash}autoplay=1&title=0&byline=0&portrait=0&dnt=1`;
+    const hash = vimeoHash ? `h=${encodeURIComponent(vimeoHash)}&` : "";
+    modal.querySelector("iframe").src = `https://player.vimeo.com/video/${vimeoId}?${hash}autoplay=1&title=0&byline=0&portrait=0&dnt=1`;
     modal.hidden = false;
     document.body.classList.add("showreel-open");
   }, true);

@@ -550,3 +550,28 @@ body[data-cta-style="arrow"] .case:hover .case-cta {
   .case-play { width: 38px; height: 38px; bottom: 14px; right: 14px; }
   .case-play svg { width: 12px; height: 12px; }
 }
+/* On case detail poster + gallery: always visible, larger, centered */
+.cd-poster .case-play.cd-poster-play,
+.cd-shot .case-play {
+  opacity: 1;
+  transform: scale(1);
+  bottom: auto; right: auto;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px; height: 64px;
+  border-width: 2px;
+}
+.cd-poster .case-play.cd-poster-play svg,
+.cd-shot .case-play svg {
+  width: 20px; height: 20px;
+}
+@media (max-width: 720px) {
+  .cd-poster .case-play.cd-poster-play,
+  .cd-shot .case-play {
+    width: 52px; height: 52px;
+  }
+  .cd-poster .case-play.cd-poster-play svg,
+  .cd-shot .case-play svg {
+    width: 16px; height: 16px;
+  }
+}
