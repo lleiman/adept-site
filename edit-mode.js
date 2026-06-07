@@ -537,22 +537,17 @@
     applyOverrides();
   }, true);
 
-  // ---- suppress link navigation while editing ----
-  document.addEventListener("click", e => {
-    if (!body.classList.contains("edit-mode")) return;
-    if (e.target.closest(".edt-img-ctl, [data-edit], [data-edit-href], .edit-bar")) return;
-    const link = e.target.closest("a[href]");
-    if (link) e.preventDefault();
-  }, true);
-
   // ---- play button → lightbox ----
   // Works across all pages: cards (data-play-case), poster + gallery
   // (data-play-vimeo). Builds a shared lightbox on first use.
+  // Registered BEFORE the link-suppressor so it gets first crack at
+  // the click event in capture phase.
   document.addEventListener("click", (e) => {
     const playBtn = e.target.closest(".case-play[data-play-case], .case-play[data-play-vimeo]");
     if (!playBtn) return;
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     let vimeoId, vimeoHash;
     if (playBtn.dataset.playCase) {
       const id = playBtn.dataset.playCase;
@@ -599,6 +594,14 @@
     modal.querySelector("iframe").src = `https://player.vimeo.com/video/${vimeoId}?${hash}autoplay=1&title=0&byline=0&portrait=0&dnt=1`;
     modal.hidden = false;
     document.body.classList.add("showreel-open");
+  }, true);
+
+  // ---- suppress link navigation while editing ----
+  document.addEventListener("click", e => {
+    if (!body.classList.contains("edit-mode")) return;
+    if (e.target.closest(".edt-img-ctl, [data-edit], [data-edit-href], .edit-bar, .case-play")) return;
+    const link = e.target.closest("a[href]");
+    if (link) e.preventDefault();
   }, true);
 
   // ---- image replace / reset ----
