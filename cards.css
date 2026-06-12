@@ -558,3 +558,69 @@ body[data-cta-style="arrow"] .case:hover .case-cta {
   bottom: 18px;
   right: 18px;
 }
+
+/* ===== video lightbox (JS-built #video-lightbox, shared all pages) =====
+   Self-contained so it centers correctly even on pages without the
+   inline .showreel-modal styles (e.g. case.html). */
+#video-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#video-lightbox[hidden] { display: none; }
+#video-lightbox .showreel-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 11, 8, .92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+#video-lightbox .showreel-frame {
+  position: relative;
+  width: min(96vw, 1280px);
+  max-height: 88vh;
+}
+#video-lightbox .showreel-video {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .6);
+}
+#video-lightbox .showreel-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+#video-lightbox .showreel-close {
+  position: absolute;
+  top: -48px;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 50%;
+  font: 400 22px/1 "Onest", sans-serif;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+#video-lightbox .showreel-close:hover {
+  background: var(--lime, #cfe430);
+  color: var(--ink, #0b0b08);
+  border-color: var(--lime, #cfe430);
+}
+@media (max-width: 720px) {
+  #video-lightbox { padding: 12px; }
+  #video-lightbox .showreel-close { top: -44px; width: 36px; height: 36px; font-size: 20px; }
+}
