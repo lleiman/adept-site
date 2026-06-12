@@ -496,20 +496,38 @@
     }
   });
 
+  // ---- extract text with line-breaks preserved ----
+  // contentEditable produces <br>, <div>, <p> for line breaks depending
+  // on browser. We normalise innerHTML → plain text with \n preserved.
+  function readEditable(el) {
+    let html = el.innerHTML || "";
+    // <br> → \n
+    html = html.replace(/<br\s*\/?>/gi, "\n");
+    // Block-level wrappers (<div>, <p>) → \n + content
+    html = html.replace(/<\/(div|p)>/gi, "\n");
+    html = html.replace(/<(div|p)[^>]*>/gi, "");
+    // Strip remaining tags
+    html = html.replace(/<[^>]+>/g, "");
+    // Decode basic entities
+    html = html.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+    // Collapse runs of 3+ newlines to 2 max, trim
+    return html.replace(/\n{3,}/g, "\n\n").trim();
+  }
   // ---- text save on blur ----
   document.addEventListener("blur", e => {
     if (!e.target.matches || !e.target.matches("[data-edit]")) return;
     if (!body.classList.contains("edit-mode")) return;
     const path = e.target.dataset.edit;
-    const text = e.target.textContent.trim();
+    const text = readEditable(e.target);
     if (text) setPath(content, path, text);
     else { unsetPath(content, path); applyOverrides(); }
     queueSave();
   }, true);
+  // Enter = line break (Shift not required). ESC = blur out.
   document.addEventListener("keydown", e => {
     if (!e.target.matches || !e.target.matches("[data-edit]")) return;
     if (!body.classList.contains("edit-mode")) return;
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.target.blur(); }
+    if (e.key === "Escape") { e.preventDefault(); e.target.blur(); }
   });
 
   // ---- click on [data-edit-href] in edit-mode → prompt to change the URL ----

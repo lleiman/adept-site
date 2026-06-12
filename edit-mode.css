@@ -3,6 +3,11 @@
    Shared by index.html / case.html / portfolio.html.
    ============================================================ */
 
+/* Preserve line breaks (\n) typed into editable fields — both while
+   editing and for the public view. Without this, Enter-inserted breaks
+   collapse into a single run of text on render. */
+[data-edit] { white-space: pre-wrap; }
+
 /* dashed outline on editable text only when edit-mode is on */
 body.edit-mode [data-edit] {
   outline: 1px dashed rgba(207, 228, 48, 0.55);
