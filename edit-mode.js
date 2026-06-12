@@ -317,8 +317,11 @@
     wireBurger();
     wireCardHover();
     document.querySelectorAll("[data-edit]").forEach(el => {
+      if (el === document.activeElement) return; // don't clobber while editing
       const v = getPath(content, el.dataset.edit);
-      if (typeof v === "string" && el.textContent !== v) el.textContent = v;
+      if (typeof v !== "string") return;
+      const html = renderRich(v);
+      if (el.innerHTML !== html) el.innerHTML = html;
     });
     document.querySelectorAll("[data-edit-href]").forEach(el => {
       const v = getPath(content, el.dataset.editHref);
@@ -496,23 +499,56 @@
     }
   });
 
-  // ---- extract text with line-breaks preserved ----
-  // contentEditable produces <br>, <div>, <p> for line breaks depending
-  // on browser. We normalise innerHTML → plain text with \n preserved.
-  function readEditable(el) {
-    let html = el.innerHTML || "";
-    // <br> → \n
-    html = html.replace(/<br\s*\/?>/gi, "\n");
-    // Block-level wrappers (<div>, <p>) → \n + content
-    html = html.replace(/<\/(div|p)>/gi, "\n");
-    html = html.replace(/<(div|p)[^>]*>/gi, "");
-    // Strip remaining tags
-    html = html.replace(/<[^>]+>/g, "");
-    // Decode basic entities
-    html = html.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
-    // Collapse runs of 3+ newlines to 2 max, trim
-    return html.replace(/\n{3,}/g, "\n\n").trim();
+  // ---- rich-text serialize / render ----
+  // Walk the contentEditable DOM and emit a SAFE subset: bold/italic/
+  // underline tags + \n line breaks. Text nodes are kept RAW (not escaped)
+  // so renderRich can escape-then-restore on the way out without double
+  // encoding. Anything outside the allowlist is unwrapped (its text kept).
+  function serializeRich(root) {
+    let out = "";
+    root.childNodes.forEach(node => {
+      if (node.nodeType === 3) { out += node.nodeValue; return; }   // text
+      if (node.nodeType !== 1) return;                               // skip comments etc
+      const tag = node.tagName;
+      if (tag === "BR") { out += "\n"; return; }
+      const inner = serializeRich(node);
+      if (tag === "DIV" || tag === "P") {
+        if (out && !out.endsWith("\n")) out += "\n";
+        out += inner;
+        if (!out.endsWith("\n")) out += "\n";
+        return;
+      }
+      let wrap = null;
+      if (tag === "B" || tag === "STRONG") wrap = "b";
+      else if (tag === "I" || tag === "EM") wrap = "i";
+      else if (tag === "U") wrap = "u";
+      else {
+        const st = (node.getAttribute && node.getAttribute("style")) || "";
+        if (/font-weight\s*:\s*(bold|[6-9]00)/i.test(st)) wrap = "b";
+        else if (/font-style\s*:\s*italic/i.test(st)) wrap = "i";
+        else if (/text-decoration[^;]*underline/i.test(st)) wrap = "u";
+      }
+      out += wrap ? `<${wrap}>${inner}</${wrap}>` : inner;
+    });
+    return out;
   }
+  function readEditable(el) {
+    return serializeRich(el)
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+  // Escape everything, then restore the allowlisted formatting tags. Safe to
+  // feed straight into innerHTML — any <script> etc stays escaped.
+  // (escapeHtml is declared later in this IIFE; it's hoisted as a const so we
+  //  reference it via a local helper to avoid TDZ — define inline instead.)
+  function renderRich(s) {
+    const esc = String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+    return esc.replace(/&lt;(\/?)(b|i|u|strong|em)&gt;/gi, "<$1$2>");
+  }
+  window.AdeptRenderRich = renderRich; // shared with page render functions
+
   // ---- text save on blur ----
   document.addEventListener("blur", e => {
     if (!e.target.matches || !e.target.matches("[data-edit]")) return;
@@ -529,6 +565,53 @@
     if (!body.classList.contains("edit-mode")) return;
     if (e.key === "Escape") { e.preventDefault(); e.target.blur(); }
   });
+
+  // ---- floating B/I/U toolbar on text selection ----
+  // Native ⌘B/⌘I/⌘U already work in contentEditable; this just gives a
+  // visible clickable affordance. execCommand is deprecated but still the
+  // only cross-browser way to toggle inline formatting in contentEditable.
+  let richToolbar = null;
+  function ensureRichToolbar() {
+    if (richToolbar) return richToolbar;
+    richToolbar = document.createElement("div");
+    richToolbar.className = "rich-toolbar";
+    richToolbar.hidden = true;
+    richToolbar.innerHTML = `
+      <button type="button" data-rt="bold" title="Жирный (⌘B)"><b>Ж</b></button>
+      <button type="button" data-rt="italic" title="Курсив (⌘I)"><i>К</i></button>
+      <button type="button" data-rt="underline" title="Подчёркнутый (⌘U)"><u>П</u></button>`;
+    document.body.appendChild(richToolbar);
+    richToolbar.addEventListener("mousedown", (e) => {
+      const btn = e.target.closest("button[data-rt]");
+      if (!btn) return;
+      e.preventDefault(); // keep the text selection alive
+      document.execCommand(btn.dataset.rt, false, null);
+    });
+    return richToolbar;
+  }
+  function updateRichToolbar() {
+    if (!body.classList.contains("edit-mode")) { if (richToolbar) richToolbar.hidden = true; return; }
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) { if (richToolbar) richToolbar.hidden = true; return; }
+    // selection must be inside an editable [data-edit] element
+    let node = sel.anchorNode;
+    if (node && node.nodeType === 3) node = node.parentElement;
+    const editable = node && node.closest && node.closest('[data-edit][contenteditable="true"]');
+    if (!editable) { if (richToolbar) richToolbar.hidden = true; return; }
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) { if (richToolbar) richToolbar.hidden = true; return; }
+    const tb = ensureRichToolbar();
+    tb.hidden = false;
+    const tbRect = tb.getBoundingClientRect();
+    let top = rect.top - tbRect.height - 8 + window.scrollY;
+    if (top < window.scrollY + 4) top = rect.bottom + 8 + window.scrollY; // flip below if no room
+    let left = rect.left + rect.width / 2 - tbRect.width / 2 + window.scrollX;
+    left = Math.max(8, Math.min(left, window.innerWidth - tbRect.width - 8));
+    tb.style.top = top + "px";
+    tb.style.left = left + "px";
+  }
+  document.addEventListener("selectionchange", updateRichToolbar);
+  window.addEventListener("scroll", () => { if (richToolbar && !richToolbar.hidden) updateRichToolbar(); }, true);
 
   // ---- click on [data-edit-href] in edit-mode → prompt to change the URL ----
   // Capture-phase, but ONLY fires when the click target itself is the

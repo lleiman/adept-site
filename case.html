@@ -1193,6 +1193,9 @@ const DETAILS = {
 // ------- utils ----------------------------------------------------------
 const $ = (sel, root = document) => root.querySelector(sel);
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+// Rich text: escape, then restore allowlisted formatting tags (bold/italic/
+// underline). Safe for innerHTML — anything else stays escaped.
+const renderRich = (s) => escapeHtml(s).replace(/&lt;(\/?)(b|i|u|strong|em)&gt;/gi, "<$1$2>");
 
 function getCaseId() {
   const h = (location.hash || "").replace(/^#/, "");
@@ -1306,8 +1309,8 @@ function renderCase(data) {
     if (!s || (s.n == null && s.l == null)) return "";
     return `
     <div class="cd-stat">
-      <div class="n" data-edit="details.${data.id}.stats.${i}.n">${escapeHtml(s.n)}</div>
-      <div class="l" data-edit="details.${data.id}.stats.${i}.l">${escapeHtml(s.l)}</div>
+      <div class="n" data-edit="details.${data.id}.stats.${i}.n">${renderRich(s.n)}</div>
+      <div class="l" data-edit="details.${data.id}.stats.${i}.l">${renderRich(s.l)}</div>
     </div>`;
   }).join("");
 
@@ -1333,7 +1336,7 @@ function renderCase(data) {
   // in edit-mode when the description is empty.
   if (!descArr.length) descArr.push("");
   const descHtml = descArr.map((p, i) =>
-    `<p data-edit="details.${data.id}.description.${i}"${!p ? ' class="cd-prose-empty"' : ''}>${p ? escapeHtml(p) : ''}</p>`
+    `<p data-edit="details.${data.id}.description.${i}"${!p ? ' class="cd-prose-empty"' : ''}>${p ? renderRich(p) : ''}</p>`
   ).join("");
 
   // Next cases — deterministic subset of 6, excluding current and hidden ones.
@@ -1371,12 +1374,12 @@ function renderCase(data) {
   return `
     <header class="cd-title">
       <div class="cd-meta-row">
-        <span class="eyebrow" data-edit="details.${data.id}.client">${escapeHtml(data.client || data.eyebrow)}</span>
+        <span class="eyebrow" data-edit="details.${data.id}.client">${renderRich(data.client || data.eyebrow)}</span>
         ${tagsHtml}
         <button type="button" class="cd-tags-edit" data-edit-tags="${data.id}" title="Изменить теги">Теги ✎</button>
       </div>
-      <h1 class="cd-h1" data-edit="cases.${data.id}.title">${escapeHtml(data.title)}</h1>
-      <p class="cd-lead${data.lead ? '' : ' cd-prose-empty'}" data-edit="details.${data.id}.lead">${data.lead ? escapeHtml(data.lead) : ''}</p>
+      <h1 class="cd-h1" data-edit="cases.${data.id}.title">${renderRich(data.title)}</h1>
+      <p class="cd-lead${data.lead ? '' : ' cd-prose-empty'}" data-edit="details.${data.id}.lead">${data.lead ? renderRich(data.lead) : ''}</p>
     </header>
 
     <section class="cd-poster">
@@ -1385,7 +1388,7 @@ function renderCase(data) {
       <div class="cd-poster-corner"></div>
       ${data.vimeo && data.vimeo.id ? `<button class="case-play cd-poster-play" type="button" data-play-vimeo="${data.vimeo.id}" data-play-hash="${data.vimeo.hash || ''}" title="Смотреть видео"><svg viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5z"/></svg></button>` : ''}
       <div class="cd-poster-meta">
-        <span class="k" data-edit="details.${data.id}.year">${escapeHtml(data.year || "2025")}</span>
+        <span class="k" data-edit="details.${data.id}.year">${renderRich(data.year || "2025")}</span>
         <span class="dot-sep"></span>
         <span class="k">${escapeHtml(formatStr)}</span>
       </div>
@@ -1404,8 +1407,8 @@ function renderCase(data) {
       <div class="cd-about-body">
         <div class="cd-prose">${descHtml}</div>
         <aside class="cd-meta">
-          <div class="row"><span class="k">Клиент</span><span class="v" data-edit="details.${data.id}.client">${escapeHtml(data.client || "—")}</span></div>
-          <div class="row"><span class="k">Год</span><span class="v" data-edit="details.${data.id}.year">${escapeHtml(data.year || "2025")}</span></div>
+          <div class="row"><span class="k">Клиент</span><span class="v" data-edit="details.${data.id}.client">${renderRich(data.client || "—")}</span></div>
+          <div class="row"><span class="k">Год</span><span class="v" data-edit="details.${data.id}.year">${renderRich(data.year || "2025")}</span></div>
           <div class="row"><span class="k">Формат</span><span class="v">${escapeHtml(formatComma || "—")}</span></div>
           <div class="row"><span class="k">Теги</span><span class="v">${escapeHtml(tagsComma || "—")}</span></div>
         </aside>

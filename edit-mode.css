@@ -8,6 +8,35 @@
    collapse into a single run of text on render. */
 [data-edit] { white-space: pre-wrap; }
 
+/* floating B/I/U toolbar shown on text selection in edit-mode */
+.rich-toolbar {
+  position: absolute;
+  z-index: 250;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--ink, #0b0b08);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -6px rgba(11, 11, 8, .5);
+}
+.rich-toolbar[hidden] { display: none; }
+.rich-toolbar button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: 600 14px/1 "Onest", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+}
+.rich-toolbar button:hover { background: var(--lime, #cfe430); color: var(--ink, #0b0b08); }
+.rich-toolbar button u { text-decoration: underline; }
+
 /* dashed outline on editable text only when edit-mode is on */
 body.edit-mode [data-edit] {
   outline: 1px dashed rgba(207, 228, 48, 0.55);

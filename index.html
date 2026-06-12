@@ -919,6 +919,7 @@ window.adeptGetOrder = getOrder;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const renderRich = (s) => escapeHtml(s).replace(/&lt;(\/?)(b|i|u|strong|em)&gt;/gi, "<$1$2>");
 
 // ---- brands strip ----
 (function renderBrands() {
@@ -958,10 +959,10 @@ function renderCases() {
           </svg>
         </div>
         ${hasVimeo ? `<button class="case-play" type="button" data-play-case="${id}" title="Смотреть видео"><svg viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5z"/></svg></button>` : ''}
-        <span class="case-brand" data-edit="cases.${id}.brand">${escapeHtml(c.brand)}</span>
+        <span class="case-brand" data-edit="cases.${id}.brand">${renderRich(c.brand)}</span>
         <div class="label">
-          <span class="eyebrow" data-edit="cases.${id}.eyebrow">${escapeHtml(c.eyebrow)}</span>
-          <div class="title" data-edit="cases.${id}.title">${escapeHtml(c.title)}</div>
+          <span class="eyebrow" data-edit="cases.${id}.eyebrow">${renderRich(c.eyebrow)}</span>
+          <div class="title" data-edit="cases.${id}.title">${renderRich(c.title)}</div>
         </div>
         <div class="edt-img-ctl">
           <button data-img-action="replace" data-img-target="cases.${id}">Картинка</button>

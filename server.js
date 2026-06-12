@@ -41,6 +41,15 @@ function vimeoBackgroundSrc(vimeo) {
   const h = vimeo.hash ? `h=${encodeURIComponent(vimeo.hash)}&` : "";
   return `https://player.vimeo.com/video/${vimeo.id}?${h}background=1&autoplay=1&loop=1&muted=1&autopause=0`;
 }
+// Rich text: escape everything, then restore allowlisted formatting tags
+// (bold/italic/underline). Safe to inject as HTML — anything else stays escaped.
+function escapeHtmlServer(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+}
+function renderRich(s) {
+  return escapeHtmlServer(s).replace(/&lt;(\/?)(b|i|u|strong|em)&gt;/gi, "<$1$2>");
+}
 // dotted-path getter, matches edit-mode.js's getPath()
 function getPath(obj, dotted) {
   if (!obj || typeof obj !== "object" || typeof dotted !== "string") return undefined;
@@ -93,7 +102,7 @@ function applyServerTemplates(html, content) {
       $("[data-edit]").each((_, el) => {
         const $el = $(el);
         const v = getPath(content, $el.attr("data-edit"));
-        if (typeof v === "string") $el.text(v);
+        if (typeof v === "string") $el.html(renderRich(v));
       });
       $("[data-edit-href]").each((_, el) => {
         const $el = $(el);
