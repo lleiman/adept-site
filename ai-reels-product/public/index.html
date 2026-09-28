@@ -169,10 +169,37 @@ body[data-theme="cinema"] .proof,body[data-theme="cinema"] .module,body[data-the
 body[data-theme="cinema"] .proof:nth-child(2){background:#2b120c;color:#fff}
 body[data-theme="cinema"] .button{background:#f7f5ef;color:#111}
 body[data-theme="cinema"] section{padding-top:130px;padding-bottom:130px}
+
+/* INSTAGRAM — dedicated full interface */
+.ig-page{display:none}
+body[data-theme="instagram"]{background:#fff;color:#000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body[data-theme="instagram"] > nav,
+body[data-theme="instagram"] > main,
+body[data-theme="instagram"] > footer,
+body[data-theme="instagram"] > .toast{display:none!important}
+body[data-theme="instagram"] .ig-page{display:block}
+body[data-theme="instagram"] .design-switcher{top:auto;bottom:16px;background:rgba(255,255,255,.94);border-color:#ddd;box-shadow:0 4px 22px rgba(0,0,0,.12)}
+body[data-theme="instagram"] .design-switcher button{color:#666}
+body[data-theme="instagram"] .design-switcher button.active{background:#000;color:#fff}
+.ig-shell{min-height:100vh;background:#fff;color:#000}
+.ig-sidebar{position:fixed;left:0;top:0;bottom:0;width:245px;border-right:1px solid #dbdbdb;padding:28px 18px 18px;background:#fff;z-index:100}
+.ig-wordmark{font-family:Georgia,serif;font-size:26px;font-style:italic;margin:4px 10px 34px}
+.ig-nav{display:flex;flex-direction:column;gap:8px}.ig-nav a{display:flex;align-items:center;gap:16px;padding:12px;border-radius:8px;font-size:16px;color:#111;text-decoration:none}.ig-nav a:hover{background:#f5f5f5}.ig-ico{width:24px;height:24px;border:2px solid #111;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}.ig-ico.circle{border-radius:50%}.ig-more{position:absolute;bottom:22px;left:18px;right:18px}
+.ig-main{margin-left:245px}.ig-profile{max-width:935px;margin:0 auto;padding:80px 20px 0}
+.ig-profile-head{display:grid;grid-template-columns:280px 1fr;align-items:center;margin-bottom:44px}.ig-avatar-wrap{display:flex;justify-content:center}.ig-avatar{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffdc80 0,#fcaf45 22%,#f77737 40%,#f56040 58%,#c13584 77%,#833ab4 100%);padding:4px}.ig-avatar-inner{width:100%;height:100%;border-radius:50%;border:4px solid white;background:linear-gradient(135deg,#111,#555);display:flex;align-items:center;justify-content:center;color:#fff;font-size:46px;font-weight:800}
+.ig-name-row{display:flex;align-items:center;gap:10px;margin-bottom:22px}.ig-username{font-size:20px;font-weight:400}.ig-bluecheck{display:inline-flex;width:18px;height:18px;border-radius:50%;background:#0095f6;color:#fff;align-items:center;justify-content:center;font-size:11px;font-weight:900}
+.ig-follow,.ig-message,.ig-morebtn{border:0;border-radius:8px;font-weight:600;padding:8px 16px;font-size:14px;cursor:pointer}.ig-follow{background:#0095f6;color:#fff}.ig-follow:hover{background:#1877f2}.ig-message,.ig-morebtn{background:#efefef;color:#000}.ig-stats{display:flex;gap:38px;margin-bottom:20px;font-size:16px}.ig-stats b{font-weight:600}.ig-bio{font-size:14px;line-height:1.45}.ig-bio b{display:block}.ig-link{color:#00376b;font-weight:600;margin-top:4px}
+.ig-highlights{display:flex;gap:34px;padding:10px 12px 38px;overflow-x:auto}.ig-highlight{width:86px;text-align:center;flex:0 0 auto}.ig-h-ring{width:78px;height:78px;border-radius:50%;border:1px solid #dbdbdb;padding:4px;margin:auto}.ig-h-inner{height:100%;border-radius:50%;background:#f3f3f3;display:flex;align-items:center;justify-content:center;font-size:23px}.ig-highlight span{display:block;font-size:12px;font-weight:600;margin-top:8px}
+.ig-tabs{height:53px;border-top:1px solid #dbdbdb;display:flex;justify-content:center;gap:62px}.ig-tab{height:53px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.08em;color:#737373;text-transform:uppercase;border-top:1px solid transparent;margin-top:-1px;cursor:pointer}.ig-tab.active{color:#000;border-top-color:#000}
+.ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding-bottom:130px}.ig-post{aspect-ratio:1/1;position:relative;overflow:hidden;background:#ddd;cursor:pointer}.ig-post:nth-child(1){background:linear-gradient(135deg,#191919,#6945f4)}.ig-post:nth-child(2){background:radial-gradient(circle at 40% 30%,#f99,#743)}.ig-post:nth-child(3){background:linear-gradient(145deg,#121212,#555)}.ig-post:nth-child(4){background:linear-gradient(140deg,#d5d0c8,#7f776c)}.ig-post:nth-child(5){background:linear-gradient(135deg,#101010,#154)}.ig-post:nth-child(6){background:linear-gradient(145deg,#7a214f,#161616)}.ig-post:nth-child(7){background:linear-gradient(135deg,#bbb,#222)}.ig-post:nth-child(8){background:linear-gradient(150deg,#0f0f0f,#963)}.ig-post:nth-child(9){background:linear-gradient(135deg,#171717,#336)}
+.ig-post-inner{position:absolute;inset:0;padding:16px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(transparent 55%,rgba(0,0,0,.6));text-shadow:0 1px 8px rgba(0,0,0,.35)}.ig-reelmark{align-self:flex-end;font-size:18px}.ig-post strong{font-size:clamp(18px,2vw,29px);line-height:1;letter-spacing:-.04em}.ig-post small{font-size:11px}.ig-hover{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;gap:28px;color:white;font-weight:700;opacity:0;transition:.15s}.ig-post:hover .ig-hover{opacity:1}
+.ig-modal{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:500;display:none;align-items:center;justify-content:center;padding:28px}.ig-modal.show{display:flex}.ig-modal-card{width:min(1180px,94vw);height:min(760px,90vh);background:#fff;display:grid;grid-template-columns:minmax(380px,1.1fr) minmax(340px,.9fr);overflow:hidden}.ig-media{background:radial-gradient(circle at 45% 32%,#7547ff 0,#171717 45%,#050505 75%);display:flex;align-items:flex-end;padding:30px;color:white}.ig-media h2{font-size:54px;line-height:.9;letter-spacing:-.05em;margin:0;text-transform:none}.ig-detail{display:flex;flex-direction:column;min-width:0}.ig-detail-head{padding:14px 16px;border-bottom:1px solid #dbdbdb;display:flex;align-items:center;gap:10px}.ig-mini-avatar{width:34px;height:34px;border-radius:50%;background:#111}.ig-detail-head b{font-size:14px}.ig-comments{flex:1;overflow:auto;padding:16px}.ig-comment{display:grid;grid-template-columns:34px 1fr;gap:10px;margin-bottom:22px;font-size:14px;line-height:1.4}.ig-comment .ig-mini-avatar{width:34px;height:34px;background:#ddd}.ig-comment b{margin-right:5px}.ig-actions{border-top:1px solid #dbdbdb;padding:12px 16px}.ig-action-row{display:flex;gap:18px;font-size:24px;margin-bottom:9px}.ig-action-row span:last-child{margin-left:auto}.ig-likes{font-size:14px;font-weight:600}.ig-caption{font-size:14px;margin-top:10px;line-height:1.4}.ig-buybox{margin-top:14px;border:1px solid #dbdbdb;border-radius:8px;padding:13px;background:#fafafa}.ig-buybox strong{display:block;font-size:16px}.ig-buybox p{font-size:12px;color:#737373;margin:4px 0 12px}.ig-buybtn{width:100%;border:0;border-radius:8px;background:#0095f6;color:#fff;padding:10px;font-weight:700;cursor:pointer}.ig-close{position:fixed;right:20px;top:18px;color:#fff;font-size:34px;z-index:550;cursor:pointer;display:none}.ig-close.show{display:block}
+.ig-mobile-top,.ig-mobile-bottom{display:none}
+@media(max-width:900px){body[data-theme="instagram"] .design-switcher{bottom:72px}.ig-sidebar{display:none}.ig-main{margin-left:0}.ig-mobile-top{display:flex;position:sticky;top:0;z-index:90;height:52px;background:#fff;border-bottom:1px solid #dbdbdb;align-items:center;justify-content:space-between;padding:0 14px}.ig-mobile-top b{font-family:Georgia,serif;font-style:italic;font-size:21px}.ig-profile{padding:24px 0 0}.ig-profile-head{grid-template-columns:110px 1fr;padding:0 14px;margin-bottom:26px}.ig-avatar{width:84px;height:84px}.ig-avatar-inner{font-size:28px}.ig-name-row{flex-wrap:wrap;margin-bottom:11px}.ig-username{font-size:18px}.ig-stats{position:absolute;left:0;right:0;margin-top:156px;border-top:1px solid #dbdbdb;border-bottom:1px solid #dbdbdb;height:62px;justify-content:space-around;align-items:center;text-align:center;gap:0;font-size:13px}.ig-stats span{display:flex;flex-direction:column}.ig-bio{grid-column:1 / -1;margin-top:18px}.ig-highlights{padding:78px 12px 18px;gap:18px}.ig-highlight{width:68px}.ig-h-ring{width:64px;height:64px}.ig-tabs{gap:0}.ig-tab{flex:1;justify-content:center;font-size:0}.ig-tab:before{font-size:18px}.ig-tab:nth-child(1):before{content:"▦"}.ig-tab:nth-child(2):before{content:"▣"}.ig-tab:nth-child(3):before{content:"♙"}.ig-grid{gap:2px;padding-bottom:150px}.ig-post-inner{padding:7px}.ig-post strong{font-size:13px}.ig-post small{font-size:8px}.ig-hover{display:none}.ig-mobile-bottom{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;height:50px;background:#fff;border-top:1px solid #dbdbdb;z-index:120;align-items:center;text-align:center;font-size:20px}.ig-modal{padding:0}.ig-modal-card{width:100%;height:100%;grid-template-columns:1fr;grid-template-rows:55vh 45vh}.ig-detail-head{display:none}.ig-comments{display:none}.ig-media h2{font-size:40px}.ig-close{top:8px;right:12px}}
 </style>
 </head>
 <body data-theme="original"><div id="designSwitcher" class="design-switcher">
-  <span class="ds-count">1/9</span>
+  <span class="ds-count">1/10</span>
   <button data-theme="original" class="active">Original</button>
   <button data-theme="editorial">Editorial</button>
   <button data-theme="case">Case</button>
@@ -181,7 +208,7 @@ body[data-theme="cinema"] section{padding-top:130px;padding-bottom:130px}
   <button data-theme="manual">Manual</button>
   <button data-theme="social">Social</button>
   <button data-theme="swiss">Swiss</button>
-  <button data-theme="cinema">Cinema</button>
+  <button data-theme="cinema">Cinema</button><button data-theme="instagram">Instagram</button>
 </div>
 <nav><div class="wrap" style="display:flex;align-items:center;justify-content:space-between"><div class="brand">AI REELS <b>ENGINE</b></div><div class="navright"><a href="#proof">Proof</a><a href="#system">System</a><a href="#inside">Inside</a><a href="#buy" class="navcta">GET IT — $19</a></div></div></nav>
 
@@ -270,9 +297,82 @@ document.querySelectorAll('.buy').forEach(b=>b.addEventListener('click',()=>{
   const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);
 }));
 </script>
+
+<div class="ig-page">
+  <div class="ig-shell">
+    <aside class="ig-sidebar">
+      <div class="ig-wordmark">Instagram</div>
+      <nav class="ig-nav">
+        <a><span class="ig-ico">⌂</span>Home</a>
+        <a><span class="ig-ico">⌕</span>Search</a>
+        <a><span class="ig-ico">⌁</span>Explore</a>
+        <a><span class="ig-ico">▶</span>Reels</a>
+        <a><span class="ig-ico">✉</span>Messages</a>
+        <a><span class="ig-ico circle">♡</span>Notifications</a>
+        <a><span class="ig-ico">＋</span>Create</a>
+        <a><span class="ig-ico circle">AI</span>Profile</a>
+      </nav>
+      <div class="ig-nav ig-more"><a><span class="ig-ico">☰</span>More</a></div>
+    </aside>
+    <div class="ig-main">
+      <div class="ig-mobile-top"><b>Instagram</b><span>♡ &nbsp; ✉</span></div>
+      <div class="ig-profile">
+        <section class="ig-profile-head">
+          <div class="ig-avatar-wrap"><div class="ig-avatar"><div class="ig-avatar-inner">AI</div></div></div>
+          <div>
+            <div class="ig-name-row"><span class="ig-username">ai.reels.engine</span><span class="ig-bluecheck">✓</span><button class="ig-follow common-cta">Get guide</button><button class="ig-message">Message</button><button class="ig-morebtn">•••</button></div>
+            <div class="ig-stats"><span><b>47</b> posts</span><span><b>126K</b> followers*</span><span><b>218</b> following</span></div>
+            <div class="ig-bio"><b>AI Reels Engine</b>We reverse-engineer AI Reels that people actually watch.<br/>Case account: repeated 3–5M-view breakouts.<div class="ig-link">↓ The full production system — $19</div></div>
+          </div>
+        </section>
+        <div class="ig-highlights">
+          <div class="ig-highlight"><div class="ig-h-ring"><div class="ig-h-inner">3M+</div></div><span>Proof</span></div>
+          <div class="ig-highlight"><div class="ig-h-ring"><div class="ig-h-inner">01</div></div><span>Hooks</span></div>
+          <div class="ig-highlight"><div class="ig-h-ring"><div class="ig-h-inner">▶</div></div><span>Workflow</span></div>
+          <div class="ig-highlight"><div class="ig-h-ring"><div class="ig-h-inner">AI</div></div><span>Prompts</span></div>
+          <div class="ig-highlight"><div class="ig-h-ring"><div class="ig-h-inner">$19</div></div><span>Guide</span></div>
+        </div>
+        <div class="ig-tabs"><div class="ig-tab active">▦ Posts</div><div class="ig-tab">▣ Reels</div><div class="ig-tab">♙ Tagged</div></div>
+        <div class="ig-grid">
+          <div class="ig-post" data-title="3–5M views. Repeated."><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>3–5M<br/>views.</strong><small>THE CASE</small></div></div><div class="ig-hover">♡ 284K &nbsp; ◯ 4.2K</div></div>
+          <div class="ig-post" data-title="The first 1.4 seconds"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>THE<br/>HOOK</strong><small>0–1.4 SEC</small></div></div><div class="ig-hover">♡ 98K &nbsp; ◯ 1.8K</div></div>
+          <div class="ig-post" data-title="Virality is not a prompt"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>NOT A<br/>PROMPT.</strong><small>THE SYSTEM</small></div></div><div class="ig-hover">♡ 172K &nbsp; ◯ 2.1K</div></div>
+          <div class="ig-post" data-title="Pattern mining"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>01<br/>PATTERN</strong><small>IDEA SELECTION</small></div></div><div class="ig-hover">♡ 63K &nbsp; ◯ 940</div></div>
+          <div class="ig-post" data-title="AI visual pipeline"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>VISUAL<br/>PIPELINE</strong><small>FRAME → MOTION</small></div></div><div class="ig-hover">♡ 84K &nbsp; ◯ 1.1K</div></div>
+          <div class="ig-post" data-title="Edit for retention"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>KEEP<br/>THE EYE.</strong><small>RETENTION</small></div></div><div class="ig-hover">♡ 119K &nbsp; ◯ 1.7K</div></div>
+          <div class="ig-post" data-title="Publish as research"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>POST →<br/>LEARN</strong><small>ITERATION</small></div></div><div class="ig-hover">♡ 52K &nbsp; ◯ 760</div></div>
+          <div class="ig-post" data-title="What you get"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>WHAT'S<br/>INSIDE</strong><small>4 MODULES</small></div></div><div class="ig-hover">♡ 31K &nbsp; ◯ 520</div></div>
+          <div class="ig-post" data-title="The full system — $19"><div class="ig-post-inner"><span class="ig-reelmark">▣</span><div><strong>THE<br/>GUIDE</strong><small>$19 / INSTANT</small></div></div><div class="ig-hover">♡ 44K &nbsp; ◯ 812</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ig-mobile-bottom"><span>⌂</span><span>⌕</span><span>＋</span><span>▣</span><span>●</span></div>
+  </div>
+  <div class="ig-modal" id="igModal">
+    <div class="ig-modal-card">
+      <div class="ig-media"><h2 id="igModalTitle">3–5M views.<br/>Repeated.</h2></div>
+      <div class="ig-detail">
+        <div class="ig-detail-head"><div class="ig-mini-avatar"></div><b>ai.reels.engine</b><span class="ig-bluecheck">✓</span><span style="margin-left:auto">•••</span></div>
+        <div class="ig-comments">
+          <div class="ig-comment"><div class="ig-mini-avatar"></div><div><b>ai.reels.engine</b> We studied the creative decisions behind a live account repeatedly reaching multi-million views — then turned the repeatable parts into a compact system.</div></div>
+          <div class="ig-comment"><div class="ig-mini-avatar"></div><div><b>creator_01</b> Is this mostly prompting?</div></div>
+          <div class="ig-comment"><div class="ig-mini-avatar"></div><div><b>ai.reels.engine</b> No. Hook, premise, motion, edit and iteration matter more than collecting prompt tricks.</div></div>
+          <div class="ig-comment"><div class="ig-mini-avatar"></div><div><b>visualartist</b> Finally someone talking about retention instead of tools.</div></div>
+        </div>
+        <div class="ig-actions">
+          <div class="ig-action-row"><span>♡</span><span>◯</span><span>⌁</span><span>▱</span></div>
+          <div class="ig-likes">284,391 likes*</div>
+          <div class="ig-caption"><b>ai.reels.engine</b> A practical system for producing, publishing and iterating AI Reels.</div>
+          <div class="ig-buybox"><strong>AI REELS ENGINE</strong><p>Playbook + prompt structures + production checklist + iteration scorecard.</p><button class="ig-buybtn common-cta">Get the guide — $19</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ig-close" id="igClose">×</div>
+</div>
 <script>
 (function(){
- const names=['original','editorial','case','zine','fashion','manual','social','swiss','cinema'];
+ const names=['original','editorial','case','zine','fashion','manual','social','swiss','cinema','instagram'];
  const buttons=[...document.querySelectorAll('#designSwitcher button')];
  const count=document.querySelector('.ds-count');
  function apply(theme){
@@ -292,6 +392,13 @@ document.querySelectorAll('.buy').forEach(b=>b.addEventListener('click',()=>{
  });
  const m=location.hash.match(/design-(\d+)/);
  if(m&&names[+m[1]-1]) apply(names[+m[1]-1]);
+})();
+</script><script>
+(function(){
+ const modal=document.getElementById('igModal'), close=document.getElementById('igClose'), title=document.getElementById('igModalTitle');
+ document.querySelectorAll('.ig-post').forEach(p=>p.addEventListener('click',()=>{title.textContent=p.dataset.title||'AI Reels Engine';modal.classList.add('show');close.classList.add('show');document.body.style.overflow='hidden'}));
+ function shut(){modal.classList.remove('show');close.classList.remove('show');document.body.style.overflow=''}
+ close.addEventListener('click',shut);modal.addEventListener('click',e=>{if(e.target===modal)shut()});document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});
 })();
 </script></body>
 </html>
