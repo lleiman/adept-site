@@ -373,26 +373,34 @@ document.querySelectorAll('.buy').forEach(b=>b.addEventListener('click',()=>{
 </div>
 <script>
 (function(){
- const names=['original','editorial','case','zine','fashion','manual','social','swiss','cinema','instagram'];
- const buttons=[...document.querySelectorAll('#designSwitcher button')];
- const count=document.querySelector('.ds-count');\n const preview=document.getElementById('pdfPreview');
- function apply(theme){
-   document.body.dataset.theme=theme;
-   const i=names.indexOf(theme);
-   buttons.forEach((b,j)=>b.classList.toggle('active',j===i));
-   if(count) count.textContent=(i+1)+'/'+names.length;\n   preview.href='/pdf/'+theme+'.pdf?preview=1';
-   history.replaceState(null,'','#design-'+(i+1));
-   window.scrollTo({top:0,behavior:'instant'});
- }
- buttons.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.theme)));
- document.addEventListener('keydown',e=>{
-   if(!['ArrowLeft','ArrowRight'].includes(e.key)) return;
-   let i=names.indexOf(document.body.dataset.theme);
-   i=e.key==='ArrowRight'?(i+1)%names.length:(i-1+names.length)%names.length;
-   apply(names[i]);
- });
- const m=location.hash.match(/design-(\d+)/);
- if(m&&names[+m[1]-1]) apply(names[+m[1]-1]);
+  const names=['original','editorial','case','zine','fashion','manual','social','swiss','cinema','instagram'];
+  const buttons=[...document.querySelectorAll('#designSwitcher button')];
+  const count=document.querySelector('.ds-count');
+  const preview=document.getElementById('pdfPreview');
+
+  function apply(theme){
+    if(!names.includes(theme)) theme='original';
+    document.body.dataset.theme=theme;
+    const i=names.indexOf(theme);
+    buttons.forEach((b,j)=>b.classList.toggle('active',j===i));
+    if(count) count.textContent=(i+1)+'/'+names.length;
+    if(preview) preview.href='/pdf/'+theme+'.pdf?preview=1';
+    history.replaceState(null,'','#design-'+(i+1));
+    window.scrollTo({top:0,behavior:'auto'});
+  }
+
+  buttons.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.theme)));
+
+  document.addEventListener('keydown',e=>{
+    if(!['ArrowLeft','ArrowRight'].includes(e.key)) return;
+    let i=names.indexOf(document.body.dataset.theme);
+    if(i<0) i=0;
+    i=e.key==='ArrowRight' ? (i+1)%names.length : (i-1+names.length)%names.length;
+    apply(names[i]);
+  });
+
+  const m=location.hash.match(/design-(\d+)/);
+  if(m && names[Number(m[1])-1]) apply(names[Number(m[1])-1]);
 })();
 </script><script>
 (function(){
