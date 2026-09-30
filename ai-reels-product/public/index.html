@@ -209,6 +209,7 @@ body[data-theme="instagram"] .design-switcher button.active{background:#000;colo
   <button data-theme="social">Social</button>
   <button data-theme="swiss">Swiss</button>
   <button data-theme="cinema">Cinema</button><button data-theme="instagram">Instagram</button>
+  <a id="pdfPreview" class="pdf-preview" href="/pdf/original.pdf?preview=1" target="_blank" rel="noopener">PDF PREVIEW ↓</a>
 </div>
 <nav><div class="wrap" style="display:flex;align-items:center;justify-content:space-between"><div class="brand">AI REELS <b>ENGINE</b></div><div class="navright"><a href="#proof">Proof</a><a href="#system">System</a><a href="#inside">Inside</a><a href="#buy" class="navcta">GET IT — $19</a></div></div></nav>
 
@@ -379,7 +380,7 @@ document.querySelectorAll('.buy').forEach(b=>b.addEventListener('click',()=>{
    document.body.dataset.theme=theme;
    const i=names.indexOf(theme);
    buttons.forEach((b,j)=>b.classList.toggle('active',j===i));
-   count.textContent=(i+1)+'/'+names.length;\n   preview.href='/pdf/'+theme+'.pdf?preview=1';
+   if(count) count.textContent=(i+1)+'/'+names.length;\n   preview.href='/pdf/'+theme+'.pdf?preview=1';
    history.replaceState(null,'','#design-'+(i+1));
    window.scrollTo({top:0,behavior:'instant'});
  }
