@@ -35,7 +35,7 @@ footer{padding:34px 0 50px;color:#77776f;font-size:11px}.footerrow{display:flex;
 /* DESIGN SWITCHER */
 .design-switcher{position:fixed;z-index:9999;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:6px;background:rgba(8,8,8,.9);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14);border-radius:999px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
 .design-switcher button{border:0;background:transparent;color:#aaa;padding:8px 10px;border-radius:999px;font-size:10px;cursor:pointer;white-space:nowrap}
-.design-switcher button.active{background:#fff;color:#111;font-weight:800}.ds-count{font-size:10px;color:#777;padding:0 5px}
+.design-switcher button.active{background:#fff;color:#111;font-weight:800}.ds-count{font-size:10px;color:#777;padding:0 5px}.pdf-preview{color:#fff;text-decoration:none;font-size:10px;font-weight:800;white-space:nowrap;border-left:1px solid rgba(255,255,255,.2);padding:8px 10px 8px 13px}.pdf-preview:hover{text-decoration:underline}
 @media(max-width:900px){.design-switcher{left:3vw;right:3vw;transform:none;overflow-x:auto;justify-content:flex-start}.design-switcher::-webkit-scrollbar{display:none}}
 
 /* ORIGINAL stays exactly as authored */
@@ -180,7 +180,7 @@ body[data-theme="instagram"] > .toast{display:none!important}
 body[data-theme="instagram"] .ig-page{display:block}
 body[data-theme="instagram"] .design-switcher{top:auto;bottom:16px;background:rgba(255,255,255,.94);border-color:#ddd;box-shadow:0 4px 22px rgba(0,0,0,.12)}
 body[data-theme="instagram"] .design-switcher button{color:#666}
-body[data-theme="instagram"] .design-switcher button.active{background:#000;color:#fff}
+body[data-theme="instagram"] .design-switcher button.active{background:#000;color:#fff}body[data-theme="instagram"] .pdf-preview{color:#111;border-left-color:#ddd}
 .ig-shell{min-height:100vh;background:#fff;color:#000}
 .ig-sidebar{position:fixed;left:0;top:0;bottom:0;width:245px;border-right:1px solid #dbdbdb;padding:28px 18px 18px;background:#fff;z-index:100}
 .ig-wordmark{font-family:Georgia,serif;font-size:26px;font-style:italic;margin:4px 10px 34px}
@@ -374,12 +374,12 @@ document.querySelectorAll('.buy').forEach(b=>b.addEventListener('click',()=>{
 (function(){
  const names=['original','editorial','case','zine','fashion','manual','social','swiss','cinema','instagram'];
  const buttons=[...document.querySelectorAll('#designSwitcher button')];
- const count=document.querySelector('.ds-count');
+ const count=document.querySelector('.ds-count');\n const preview=document.getElementById('pdfPreview');
  function apply(theme){
    document.body.dataset.theme=theme;
    const i=names.indexOf(theme);
    buttons.forEach((b,j)=>b.classList.toggle('active',j===i));
-   count.textContent=(i+1)+'/9';
+   count.textContent=(i+1)+'/'+names.length;\n   preview.href='/pdf/'+theme+'.pdf?preview=1';
    history.replaceState(null,'','#design-'+(i+1));
    window.scrollTo({top:0,behavior:'instant'});
  }
