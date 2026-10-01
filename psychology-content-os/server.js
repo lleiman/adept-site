@@ -836,7 +836,7 @@ async function oauthStart(platform,u,res) {
     u.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
     u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/instagram/callback');
     u.searchParams.set('response_type','code');
-    u.searchParams.set('scope','instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management');
+    u.searchParams.set('scope','instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement');
     u.searchParams.set('state',state);
     res.writeHead(302,{Location:u.toString(),'Cache-Control':'no-store'});return res.end();
   }
@@ -910,7 +910,7 @@ async function oauthCallback(platform,u,res) {
         accountId:ig.id,accountName:ig.username||page.name||'Instagram',
         accessToken:pageToken,
         expiresAt:long.expires_in?new Date(Date.now()+Number(long.expires_in)*1000).toISOString():null,
-        scope:'instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management',
+        scope:'instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
         meta:{pageId:page.id,pageName:page.name,facebookUserTokenStored:false}
       });
       syncInstagram().catch(e=>console.error('Instagram first sync:',e.message));
