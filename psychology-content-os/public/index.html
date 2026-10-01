@@ -288,7 +288,18 @@ async function loadAnalytics(){
     $('aSaves').textContent=compactNum(Number(t.saves||0)+Number(t.bookmarks||0));
     $('aSubs').textContent=compactNum(t.subscribers_gained||0);
     const sources=arr(j.sources);
-    $('analyticsSources').innerHTML=sources.map(s=>'<div class="card"><div class="row"><div><h4 style="font-size:15px">'+esc(s.name)+'</h4><div class="meta">'+esc(s.mode)+'</div></div><span class="tag">'+(s.configured?'CONNECTED':'AUTH NEEDED')+'</span></div></div>').join('');
+    $('analyticsSources').innerHTML=sources.map(s=>{
+      const status=s.connected?'CONNECTED':(s.credentialReady?'READY TO AUTHORIZE':'DEV APP NEEDED');
+      const action=s.connected
+        ? '<div class="actions"><span class="tag">'+esc(s.account||'connected')+'</span></div>'
+        : (s.credentialReady&&s.connectUrl
+          ? '<div class="actions"><a class="btn primary small" style="text-decoration:none" href="'+esc(s.connectUrl)+'">Connect '+esc(s.name)+'</a></div>'
+          : (s.callbackUrl
+            ? '<div class="actions"><button class="btn small" onclick=\'copy('+JSON.stringify(JSON.stringify(s.callbackUrl))+')\'>Copy callback URL</button></div>'
+            : ''));
+      const needs=arr(s.needs).length?'<p style="font-size:12px">'+arr(s.needs).map(x=>'· '+esc(x)).join('<br>')+'</p>':'';
+      return '<div class="card"><div class="row"><div><h4 style="font-size:15px">'+esc(s.name)+'</h4><div class="meta">'+esc(s.mode)+'</div></div><span class="tag">'+status+'</span></div>'+needs+action+'</div>';
+    }).join('');
     const assets=arr(j.assets);
     $('analyticsAssets').innerHTML=assets.length?assets.map(a=>{
       const saves=Number(a.saves||0)+Number(a.bookmarks||0);
