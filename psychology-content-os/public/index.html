@@ -2,102 +2,43 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Psychology Content OS</title>
 <style>
-:root{
-  --bg:#0a0b0d;--panel:#111318;--panel2:#171a20;--line:#262a32;--text:#f4f5f7;
-  --muted:#9298a3;--soft:#c9cdd4;--accent:#d8ff67;--accent2:#8ce1ff;--danger:#ff8c8c;
-  --radius:18px;--shadow:0 16px 40px rgba(0,0,0,.28)
-}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{min-height:100vh}
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.shell{max-width:1480px;margin:0 auto;padding:22px}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:8px 0 24px}
-.brand{display:flex;align-items:center;gap:12px}
-.mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,var(--accent),#5cff9d);box-shadow:0 0 36px rgba(216,255,103,.14)}
-.brand h1{font-size:17px;margin:0;letter-spacing:-.01em}
-.brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
-.status{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
-.dot{width:7px;height:7px;border-radius:50%;background:#70ff98;box-shadow:0 0 12px rgba(112,255,152,.6)}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.tab{border:1px solid var(--line);background:#0e1014;color:var(--muted);padding:10px 14px;border-radius:999px}
-.tab.active{background:var(--text);color:#111;border-color:var(--text)}
-.page{display:none}.page.active{display:block}
-.hero{display:grid;grid-template-columns:1.4fr .8fr;gap:16px;margin-bottom:18px}
-.hero-card,.panel{background:linear-gradient(180deg,var(--panel),#0e1014);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-.hero-card{padding:28px;min-height:190px}
-.hero-card h2{font-size:42px;line-height:1.02;letter-spacing:-.04em;margin:0 0 12px;max-width:760px}
-.hero-card p{margin:0;color:var(--muted);max-width:720px;line-height:1.55}
-.hero-card .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
-.score{padding:24px;display:flex;flex-direction:column;justify-content:space-between}
-.score .big{font-size:54px;line-height:1;letter-spacing:-.05em}
-.score .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-.score .small{color:var(--soft);font-size:13px;line-height:1.5}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-.col-8{grid-column:span 8}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-12{grid-column:span 12}
-.panel{padding:20px}
-.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-.panel h3{margin:0;font-size:15px}
-.kicker{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-.trend-list,.pack-list{display:grid;gap:12px}
-.trend{border:1px solid var(--line);background:var(--panel2);border-radius:16px;padding:18px}
-.trend-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
-.trend h4{margin:0;font-size:20px;line-height:1.2;letter-spacing:-.02em}
-.meta{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
-.signal{display:inline-flex;padding:6px 9px;border:1px solid #3a3e47;border-radius:999px;color:var(--soft);font-size:11px;white-space:nowrap}
-.trend p{color:#c8ccd3;line-height:1.55;font-size:14px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.btn{border:1px solid var(--line);background:#11141a;color:var(--text);padding:9px 12px;border-radius:10px}
-.btn.primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:700}
-.btn.ghost{background:transparent;color:var(--muted)}
-.btn.small{font-size:12px;padding:7px 10px}
-.pipeline{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow:auto;padding-bottom:4px}
-.stage{min-width:230px;background:#0d0f13;border:1px solid var(--line);border-radius:16px;padding:12px}
-.stage h4{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:4px 4px 12px}
-.mini{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:9px}
-.mini strong{display:block;font-size:13px;line-height:1.35}
-.mini span{display:block;color:var(--muted);font-size:11px;margin-top:8px}
-.empty{color:var(--muted);padding:28px;text-align:center;border:1px dashed var(--line);border-radius:14px}
-.pack{border:1px solid var(--line);background:#11141a;border-radius:16px;overflow:hidden}
-.pack-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:18px;border-bottom:1px solid var(--line)}
-.pack-head h4{margin:0;font-size:21px}
-.pack-body{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.block{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:14px}
-.block.wide{grid-column:1/-1}
-.block h5{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
-.block pre{white-space:pre-wrap;font-family:inherit;color:#d9dde4;line-height:1.55;margin:0;font-size:13px}
-.editbox{width:100%;min-height:130px;background:#0b0d10;border:1px solid var(--line);color:var(--text);padding:12px;border-radius:10px;resize:vertical}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.metric{background:#0d0f13;border:1px solid var(--line);border-radius:14px;padding:16px}
-.metric b{font-size:28px;display:block;letter-spacing:-.03em}
-.metric span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.system-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.flow{display:grid;gap:10px}
-.flow-step{display:grid;grid-template-columns:38px 1fr;gap:12px;align-items:start}
-.flow-num{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;color:var(--accent)}
-.flow-step b{display:block;font-size:14px;margin:2px 0 4px}
-.flow-step p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
-.cadence{width:100%;border-collapse:collapse}
-.cadence td{padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.cadence td:last-child{text-align:right;color:var(--muted)}
-.toast{position:fixed;right:20px;bottom:20px;background:#f2f4f6;color:#101114;padding:11px 14px;border-radius:11px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;box-shadow:var(--shadow)}
-.toast.show{opacity:1;transform:translateY(0)}
-@media(max-width:900px){.hero{grid-template-columns:1fr}.grid{display:block}.panel{margin-bottom:14px}.pack-body{grid-template-columns:1fr}.system-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr 1fr}.hero-card h2{font-size:34px}}
+:root{--bg:#090a0c;--p:#111319;--p2:#171a20;--line:#282c34;--text:#f4f5f7;--muted:#9399a4;--soft:#d2d5db;--accent:#d9ff69;--blue:#8bdfff;--red:#ff8b8b;--r:18px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{min-height:100vh}
+button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:4px 0 22px}
+.brand{display:flex;gap:12px;align-items:center}.mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,var(--accent),#59ffa0)}h1{font-size:17px;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.health{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;background:#65ff93}.dot.off{background:var(--red)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tab{border:1px solid var(--line);background:#0d0f13;color:var(--muted);padding:10px 14px;border-radius:999px;cursor:pointer}.tab.active{background:#f2f4f6;color:#111;border-color:#f2f4f6}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.c8{grid-column:span 8}.c4{grid-column:span 4}.c12{grid-column:span 12}.c6{grid-column:span 6}
+.panel,.hero{background:linear-gradient(180deg,var(--p),#0e1014);border:1px solid var(--line);border-radius:var(--r);padding:20px}.hero{padding:28px;margin-bottom:14px}.hero h2{font-size:40px;line-height:1.04;letter-spacing:-.04em;margin:0 0 10px;max-width:840px}.hero p{color:var(--muted);line-height:1.55;margin:0;max-width:850px}
+.eyebrow,.kicker{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.14em}.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.panel h3{margin:3px 0 0;font-size:16px}
+.btn{border:1px solid var(--line);background:#12151a;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer}.btn.primary{background:var(--accent);color:#101214;border-color:var(--accent);font-weight:700}.btn.ghost{background:transparent;color:var(--muted)}.btn.red{border-color:#653d43;color:#ffafb4}.btn.small{font-size:12px;padding:7px 10px}.btn:disabled{opacity:.45;cursor:not-allowed}
+.list{display:grid;gap:12px}.card{background:var(--p2);border:1px solid var(--line);border-radius:15px;padding:17px}.card h4{font-size:20px;line-height:1.22;margin:0}.meta{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:7px}.tag{font-size:11px;border:1px solid #3c414b;border-radius:999px;padding:5px 8px;color:var(--soft)}
+.row{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.card p{font-size:14px;line-height:1.55;color:#cbd0d7}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pipeline{display:grid;grid-template-columns:repeat(4,minmax(230px,1fr));gap:12px;overflow:auto}.stage{background:#0d0f13;border:1px solid var(--line);border-radius:15px;padding:12px;min-width:230px}.stage>h4{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:3px 3px 11px}.mini{background:var(--p2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:9px}.mini b{font-size:13px;line-height:1.35;display:block}.mini span{font-size:11px;color:var(--muted);display:block;margin-top:8px}
+.empty{padding:30px 14px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+.voice-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.recorder{min-height:350px;display:flex;flex-direction:column;justify-content:space-between}.record-orb{width:134px;height:134px;border-radius:50%;margin:28px auto;display:grid;place-items:center;border:1px solid #383e48;background:radial-gradient(circle at 35% 30%,#242831,#111318);box-shadow:0 20px 60px rgba(0,0,0,.35);cursor:pointer}.record-orb.recording{background:radial-gradient(circle at 35% 30%,#762c38,#2a1015);border-color:#a74b58}.record-dot{width:30px;height:30px;border-radius:50%;background:var(--red)}.recording .record-dot{border-radius:8px}.timer{text-align:center;font-size:34px;letter-spacing:-.04em}.hint{text-align:center;color:var(--muted);font-size:13px;line-height:1.5}
+.select{width:100%;background:#0d0f13;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}.textarea{width:100%;min-height:210px;background:#0c0e11;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:13px;resize:vertical;line-height:1.55}.notice{font-size:12px;color:var(--muted);line-height:1.5;padding:11px 12px;border:1px solid var(--line);background:#0e1014;border-radius:10px}.notice.good{color:#bdf6ca;border-color:#244b30}.notice.warn{color:#ffd9a0;border-color:#5b4524}
+.pack{border:1px solid var(--line);background:#11141a;border-radius:16px;overflow:hidden}.pack-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:18px;border-bottom:1px solid var(--line)}.pack-head h4{margin:0;font-size:21px}.pack-body{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.block{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:14px}.block.wide{grid-column:1/-1}.block h5{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}.block pre{white-space:pre-wrap;font-family:inherit;color:#d9dde4;line-height:1.55;margin:0;font-size:13px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:15px}.metric b{font-size:28px;display:block}.metric span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.flow{display:grid;gap:10px}.step{display:grid;grid-template-columns:36px 1fr;gap:11px}.n{width:33px;height:33px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;color:var(--accent);font-size:12px}.step b{font-size:13px}.step p{font-size:12px;color:var(--muted);line-height:1.45;margin:4px 0 0}
+.voice-note{border-top:1px solid var(--line);padding:14px 0}.voice-note:first-child{border-top:0}.voice-note p{white-space:pre-wrap;color:#d1d5db;line-height:1.5;font-size:13px;margin:8px 0}
+.toast{position:fixed;right:18px;bottom:18px;background:#f1f3f5;color:#111;padding:10px 13px;border-radius:10px;opacity:0;transform:translateY(10px);transition:.18s;pointer-events:none}.toast.show{opacity:1;transform:none}
+@media(max-width:900px){.grid{display:block}.panel{margin-bottom:13px}.voice-grid{grid-template-columns:1fr}.pack-body{grid-template-columns:1fr}.hero h2{font-size:34px}.metrics{grid-template-columns:1fr 1fr}.top{align-items:flex-start}.health{display:none}}
 </style>
 </head>
 <body>
 <div class="shell">
-  <div class="topbar">
-    <div class="brand"><div class="mark"></div><div><h1>Psychology Content OS</h1><p>Trend → Thesis → Production → Distribution</p></div></div>
-    <div class="status"><span class="dot"></span><span id="statusText">loading</span></div>
+  <div class="top">
+    <div class="brand"><div class="mark"></div><div><h1>Psychology Content OS</h1><div class="sub">Trend → Voice → Thesis → Production → Distribution → Feedback</div></div></div>
+    <div class="health"><span class="dot" id="healthDot"></span><span id="healthText">checking</span></div>
   </div>
 
   <div class="tabs">
     <button class="tab active" data-page="today">Today</button>
+    <button class="tab" data-page="voice">Voice Inbox</button>
     <button class="tab" data-page="production">Production</button>
     <button class="tab" data-page="library">Library</button>
     <button class="tab" data-page="system">System</button>
@@ -105,222 +46,236 @@ button{cursor:pointer}
 
   <section class="page active" id="today">
     <div class="hero">
-      <div class="hero-card">
-        <div class="eyebrow">Editorial operating system</div>
-        <h2>One strong idea per day. Everything else is distribution.</h2>
-        <p>The system uses English-language psychology signals as raw material, then forces each topic through your own interpretation before it becomes content.</p>
-      </div>
-      <div class="hero-card score">
-        <div><div class="label">Today’s radar</div><div class="big" id="trendCount">—</div></div>
-        <div class="small">Only topics with real acceleration should enter production. The goal is not to comment faster; it is to create a stronger frame.</div>
-      </div>
+      <div class="eyebrow">Editorial operating system</div>
+      <h2>Не производить больше контента. Производить больше собственных идей.</h2>
+      <p>Trend Radar показывает, где уже есть внимание. Твоя работа — дать 2–5 минут собственной реакции. После этого система превращает её в платформенные форматы, сохраняя тезис, а не копируя чужую повестку.</p>
     </div>
-
     <div class="grid">
-      <div class="panel col-8">
-        <div class="panel-head"><div><div class="kicker">Input</div><h3>Trend Radar</h3></div><button class="btn small" id="refreshTrends">Refresh</button></div>
-        <div id="trendList" class="trend-list"><div class="empty">Loading trends…</div></div>
+      <div class="panel c8">
+        <div class="panel-head"><div><div class="kicker">Input</div><h3>Trend Radar</h3></div><button class="btn small" onclick="loadTrends()">Refresh</button></div>
+        <div class="list" id="trendList"><div class="empty">Loading…</div></div>
       </div>
-      <div class="panel col-4">
-        <div class="panel-head"><div><div class="kicker">Rule</div><h3>Editorial filter</h3></div></div>
+      <div class="panel c4">
+        <div class="panel-head"><div><div class="kicker">Daily rule</div><h3>Что от тебя требуется</h3></div></div>
         <div class="flow">
-          <div class="flow-step"><div class="flow-num">1</div><div><b>Signal</b><p>Is there actual acceleration, not just an evergreen topic?</p></div></div>
-          <div class="flow-step"><div class="flow-num">2</div><div><b>Interpretation</b><p>Can you say something more precise than the source material?</p></div></div>
-          <div class="flow-step"><div class="flow-num">3</div><div><b>Framework</b><p>Can the idea become a reusable concept, model, or vocabulary?</p></div></div>
-          <div class="flow-step"><div class="flow-num">4</div><div><b>Distribution</b><p>Only then convert it into Telegram, Reel, X, YouTube, Reddit.</p></div></div>
+          <div class="step"><div class="n">1</div><div><b>Выбрать один сигнал</b><p>Не самый большой. Тот, где ты видишь более сильную интерпретацию.</p></div></div>
+          <div class="step"><div class="n">2</div><div><b>Наговорить 2–5 минут</b><p>Свободно, без сценария. Это первичный материал твоего голоса.</p></div></div>
+          <div class="step"><div class="n">3</div><div><b>Проверить тезис</b><p>AI редактирует структуру, но не должен придумывать твою позицию.</p></div></div>
+          <div class="step"><div class="n">4</div><div><b>Записать вертикалку</b><p>Один тезис становится TG, Reel/Short, X, YouTube и Reddit.</p></div></div>
         </div>
       </div>
-      <div class="panel col-12">
-        <div class="panel-head"><div><div class="kicker">Flow</div><h3>Today’s pipeline</h3></div></div>
-        <div class="pipeline" id="pipeline"></div>
+      <div class="panel c12">
+        <div class="panel-head"><div><div class="kicker">Persistent DB</div><h3>Pipeline</h3></div></div>
+        <div class="pipeline" id="pipeline"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="voice">
+    <div class="hero">
+      <div class="eyebrow">Source of truth</div>
+      <h2>Voice Inbox</h2>
+      <p>Здесь рождается авторский материал. Аудио не хранится: после распознавания сохраняется только транскрипт и созданный из него контент-пакет.</p>
+    </div>
+    <div class="voice-grid">
+      <div class="panel recorder">
+        <div>
+          <div class="panel-head"><div><div class="kicker">Record</div><h3>Наговорить мысль</h3></div></div>
+          <select id="voiceTrend" class="select"><option value="">Без привязки к тренду</option></select>
+          <div class="record-orb" id="recordOrb"><div class="record-dot"></div></div>
+          <div class="timer" id="timer">00:00</div>
+          <div class="hint" id="recordHint">Нажми и говори свободно. Лучше 2–5 минут, чем пытаться сразу записать «идеальный» текст.</div>
+        </div>
+        <div id="transcriptionState" class="notice">Checking transcription…</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><div class="kicker">Alternative input</div><h3>Вставить транскрипт / заметку</h3></div></div>
+        <textarea class="textarea" id="textInbox" placeholder="Можно вставить сюда голосовой транскрипт, заметку или сырую мысль. Система не требует литературного текста."></textarea>
+        <div class="actions">
+          <button class="btn primary" id="processTextBtn">Process into content pack</button>
+          <button class="btn ghost" onclick="document.getElementById('textInbox').value=''">Clear</button>
+        </div>
+        <div style="height:16px"></div>
+        <div class="kicker">Recent voice notes</div>
+        <div id="voiceNotes"><div class="empty">Loading…</div></div>
       </div>
     </div>
   </section>
 
   <section class="page" id="production">
     <div class="panel">
-      <div class="panel-head"><div><div class="kicker">Output</div><h3>Production packs</h3></div><button class="btn small" id="refreshPacks">Refresh</button></div>
-      <div id="packList" class="pack-list"><div class="empty">Loading content packs…</div></div>
+      <div class="panel-head"><div><div class="kicker">Output</div><h3>Production packs</h3></div><button class="btn small" onclick="loadPacks()">Refresh</button></div>
+      <div class="list" id="packList"><div class="empty">Loading…</div></div>
     </div>
   </section>
 
   <section class="page" id="library">
     <div class="panel">
-      <div class="panel-head"><div><div class="kicker">Feedback loop</div><h3>Performance memory</h3></div></div>
-      <div class="metric-grid">
-        <div class="metric"><b id="metricIdeas">0</b><span>ideas saved locally</span></div>
-        <div class="metric"><b id="metricApproved">0</b><span>approved</span></div>
-        <div class="metric"><b id="metricPublished">0</b><span>published</span></div>
-        <div class="metric"><b id="metricPatterns">0</b><span>winning patterns</span></div>
+      <div class="panel-head"><div><div class="kicker">Long-term memory</div><h3>Idea & pattern library</h3></div></div>
+      <div class="metrics">
+        <div class="metric"><b id="mAll">0</b><span>saved ideas</span></div>
+        <div class="metric"><b id="mProd">0</b><span>in production</span></div>
+        <div class="metric"><b id="mPub">0</b><span>published</span></div>
+        <div class="metric"><b id="mWin">0</b><span>winning patterns</span></div>
       </div>
-      <div style="height:16px"></div>
-      <div id="libraryList" class="trend-list"></div>
+      <div style="height:14px"></div>
+      <div class="list" id="libraryList"><div class="empty">Loading…</div></div>
     </div>
   </section>
 
   <section class="page" id="system">
-    <div class="system-grid">
-      <div class="panel">
-        <div class="panel-head"><div><div class="kicker">Architecture</div><h3>How the machine works</h3></div></div>
+    <div class="grid">
+      <div class="panel c6">
+        <div class="panel-head"><div><div class="kicker">Architecture</div><h3>Контент-машина</h3></div></div>
         <div class="flow">
-          <div class="flow-step"><div class="flow-num">01</div><div><b>English Internet</b><p>Reddit, X, YouTube and public Telegram are scanned for psychology topics with real velocity.</p></div></div>
-          <div class="flow-step"><div class="flow-num">02</div><div><b>Trend Radar</b><p>Signals are reduced to 5–7 themes with evidence, mechanics, and replication notes.</p></div></div>
-          <div class="flow-step"><div class="flow-num">03</div><div><b>Core thesis</b><p>The strongest themes are translated into your own point of view: not summary, but interpretation.</p></div></div>
-          <div class="flow-step"><div class="flow-num">04</div><div><b>Content pack</b><p>One thesis becomes Telegram, Reel/Short, X, YouTube long-form outline and a Reddit discussion angle.</p></div></div>
-          <div class="flow-step"><div class="flow-num">05</div><div><b>Human approval</b><p>You edit the thesis, record a voice/video take, and approve. Full autopublishing comes only after the voice is stable.</p></div></div>
-          <div class="flow-step"><div class="flow-num">06</div><div><b>Feedback</b><p>Performance data is used to learn which hooks and conceptual frames actually compound.</p></div></div>
+          <div class="step"><div class="n">01</div><div><b>English Internet</b><p>Reddit, X, YouTube, public Telegram.</p></div></div>
+          <div class="step"><div class="n">02</div><div><b>Trend Radar</b><p>Только сигналы с реальным ускорением.</p></div></div>
+          <div class="step"><div class="n">03</div><div><b>Voice Inbox</b><p>Твоя реакция становится авторитетным source-of-truth.</p></div></div>
+          <div class="step"><div class="n">04</div><div><b>Editorial model</b><p>Из речи извлекается тезис, формула, конфликт и платформенные версии.</p></div></div>
+          <div class="step"><div class="n">05</div><div><b>Human approval</b><p>До стабилизации голоса система не публикует сама.</p></div></div>
+          <div class="step"><div class="n">06</div><div><b>Performance memory</b><p>Метрики связываются не только с темой, но и с hook / frame / format.</p></div></div>
         </div>
       </div>
-      <div class="panel">
-        <div class="panel-head"><div><div class="kicker">Cadence</div><h3>Platform roles</h3></div></div>
-        <table class="cadence">
-          <tr><td>Telegram</td><td>1 strong RU post/day</td></tr>
-          <tr><td>Instagram</td><td>1 RU Reel/day</td></tr>
-          <tr><td>YouTube Shorts</td><td>same vertical asset</td></tr>
-          <tr><td>YouTube long</td><td>1 thesis video/week</td></tr>
-          <tr><td>X / Twitter</td><td>2–4 EN thoughts/day</td></tr>
-          <tr><td>Reddit</td><td>2–3 real discussions/week</td></tr>
-        </table>
+      <div class="panel c6">
+        <div class="panel-head"><div><div class="kicker">Infrastructure</div><h3>Status</h3></div></div>
+        <div id="systemStatus" class="list"></div>
         <div style="height:18px"></div>
-        <div class="kicker">Operating constraint</div>
-        <p style="color:var(--soft);line-height:1.55">Do not publish every trend. A trend is only raw demand. Your durable asset is the framework you attach to it.</p>
+        <div class="kicker">Platform roles</div>
+        <p class="sub" style="font-size:13px;line-height:1.7">Telegram — RU intellectual home.<br>Instagram + Shorts — recognition engine.<br>YouTube long — authority archive.<br>X — EN intellectual graph.<br>Reddit — research/discussion lab, not broadcast.</p>
       </div>
     </div>
   </section>
 </div>
-<div class="toast" id="toast">Copied</div>
+<div class="toast" id="toast"></div>
+
 <script>
-const LS='psychology-content-os-v1';
-let trends=[], packs=[];
-const state=loadState();
+let trends=[], items=[], packs=[], config={};
+let mediaRecorder=null, chunks=[], timerInt=null, startedAt=0, selectedVoiceTrend='';
 
-function loadState(){try{return JSON.parse(localStorage.getItem(LS))||{items:{}}}catch{return {items:{}}}}
-function saveState(){localStorage.setItem(LS,JSON.stringify(state));renderPipeline();renderLibrary()}
-function keyFor(title){return btoa(unescape(encodeURIComponent(title||'untitled'))).slice(0,32)}
-function ensureItem(trend){
-  const id=keyFor(trend.topic||trend.title);
-  if(!state.items[id]) state.items[id]={id,title:trend.topic||trend.title,status:'radar',notes:'',savedAt:new Date().toISOString(),trend};
-  return state.items[id];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const arr=v=>Array.isArray(v)?v:[];
+const textFrom=v=>Array.isArray(v)?v.map((x,i)=>(i+1)+'. '+(typeof x==='string'?x:JSON.stringify(x))).join('\n'):v&&typeof v==='object'?Object.entries(v).map(([k,val])=>k+': '+(Array.isArray(val)?val.join('\n'):val)).join('\n'):String(v||'');
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1300)}
+async function api(url,opts={}){const r=await fetch(url,{cache:'no-store',...opts});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+async function copy(v){await navigator.clipboard.writeText(textFrom(v));toast('Copied')}
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+function showPage(id){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.page===id));
+  document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));
+  if(id==='voice') loadVoiceNotes();
+  if(id==='production') loadPacks();
+  if(id==='library') loadItems();
 }
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1200)}
-async function copyText(txt){await navigator.clipboard.writeText(txt||'');toast('Copied')}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function arr(v){return Array.isArray(v)?v:[]}
 
-document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');document.getElementById(btn.dataset.page).classList.add('active');
-}));
+async function loadConfig(){
+  try{
+    config=await api('/api/config');
+    $('healthText').textContent=config.database?'DB online':'DB unavailable';
+    $('healthDot').classList.toggle('off',!config.database);
+    $('transcriptionState').className='notice '+(config.transcription?'good':'warn');
+    $('transcriptionState').textContent=config.transcription
+      ? 'Direct transcription connected · '+config.transcriptionModel+' · raw audio is discarded after transcription.'
+      : 'Direct transcription is not connected yet. Text Inbox already works; microphone transcription requires one API connection.';
+    $('recordOrb').style.opacity=config.transcription?'1':'.45';
+    $('systemStatus').innerHTML=
+      statusCard('PostgreSQL',config.database,'Persistent ideas, transcripts, packs, performance events')+
+      statusCard('Voice transcription',config.transcription,config.transcription?config.transcriptionModel:'API key connection required')+
+      statusCard('Editorial generation',config.transcription,config.editorialModel);
+  }catch(e){$('healthText').textContent='offline';$('healthDot').classList.add('off')}
+}
+function statusCard(name,on,detail){return '<div class="card"><div class="row"><div><h4 style="font-size:15px">'+esc(name)+'</h4><div class="meta">'+esc(detail)+'</div></div><span class="tag">'+(on?'ONLINE':'PENDING')+'</span></div></div>'}
 
 async function loadTrends(){
-  document.getElementById('statusText').textContent='syncing radar';
+  $('trendList').innerHTML='<div class="empty">Loading radar…</div>';
   try{
-    const r=await fetch('/api/trends',{cache:'no-store'}), j=await r.json();
-    trends=arr(j.trends);
-    document.getElementById('trendCount').textContent=trends.length;
-    document.getElementById('statusText').textContent='radar live';
-    renderTrends();renderPipeline();
-  }catch(e){
-    document.getElementById('statusText').textContent='radar unavailable';
-    document.getElementById('trendList').innerHTML='<div class="empty">Trend source unavailable.</div>';
-  }
+    const j=await api('/api/trends');trends=arr(j.trends);
+    $('voiceTrend').innerHTML='<option value="">Без привязки к тренду</option>'+trends.map((t,i)=>'<option value="'+i+'">'+esc(t.topic||t.title)+'</option>').join('');
+    renderTrends();
+  }catch(e){$('trendList').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
-
 function renderTrends(){
-  const root=document.getElementById('trendList');
-  if(!trends.length){root.innerHTML='<div class="empty">No trends in the current batch.</div>';return}
-  root.innerHTML=trends.map((t,i)=>`
-    <article class="trend">
-      <div class="trend-top">
-        <div><h4>${esc(t.topic||t.title)}</h4><div class="meta">${esc(arr(t.platforms).join(' · '))}</div></div>
-        <span class="signal">${esc(t.confidence||'pending')}</span>
-      </div>
-      <p><b>Why now:</b> ${esc(t.why_viral||'—')}</p>
-      <p><b>Mechanic:</b> ${esc(t.content_mechanic||'—')}</p>
-      <p><b>Your angle:</b> ${esc(t.psychology_angle||'—')}</p>
-      <div class="actions">
-        <button class="btn primary small" onclick="promote(${i})">Move to thesis</button>
-        <button class="btn small" onclick="copyBrief(${i})">Copy brief</button>
-        ${arr(t.source_links).length?'<a class="btn ghost small" target="_blank" rel="noopener" href="'+esc(t.source_links[0])+'">Source</a>':''}
-      </div>
-    </article>`).join('');
+  if(!trends.length){$('trendList').innerHTML='<div class="empty">No current signals.</div>';return}
+  $('trendList').innerHTML=trends.map((t,i)=>'<article class="card"><div class="row"><div><h4>'+esc(t.topic||t.title)+'</h4><div class="meta">'+esc(arr(t.platforms).join(' · '))+'</div></div><span class="tag">'+esc(t.confidence||'pending')+'</span></div><p><b>Why now:</b> '+esc(t.why_viral||'—')+'</p><p><b>Mechanic:</b> '+esc(t.content_mechanic||'—')+'</p><p><b>Potential angle:</b> '+esc(t.psychology_angle||'—')+'</p><div class="actions"><button class="btn primary small" onclick="recordReaction('+i+')">Record reaction</button><button class="btn small" onclick="promoteTrend('+i+')">Save as thesis</button><button class="btn ghost small" onclick="copyTrend('+i+')">Copy brief</button></div></article>').join('');
 }
+function recordReaction(i){$('voiceTrend').value=String(i);selectedVoiceTrend=trends[i]?.topic||trends[i]?.title||'';showPage('voice');toast('Trend attached')}
+async function promoteTrend(i){
+  const t=trends[i];await api('/api/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t.topic||t.title,status:'thesis',trend:t})});toast('Saved to thesis');loadItems();
+}
+function copyTrend(i){const t=trends[i];copy('TREND: '+(t.topic||t.title)+'\nWHY NOW: '+(t.why_viral||'')+'\nMECHANIC: '+(t.content_mechanic||'')+'\nANGLE: '+(t.psychology_angle||''))}
 
-function promote(i){
-  const item=ensureItem(trends[i]);item.status='thesis';item.savedAt=new Date().toISOString();saveState();toast('Moved to thesis');
+async function loadItems(){
+  try{const j=await api('/api/items');items=arr(j.items);renderPipeline();renderLibrary()}catch(e){items=[];renderPipeline();renderLibrary()}
 }
-function copyBrief(i){
-  const t=trends[i];
-  copyText(`TREND: ${t.topic||t.title}\nWHY NOW: ${t.why_viral||''}\nMECHANIC: ${t.content_mechanic||''}\nANGLE: ${t.psychology_angle||''}\nHOOKS: ${arr(t.suggested_hooks).join(' | ')}`);
-}
-function moveStatus(id,status){state.items[id].status=status;saveState()}
 function renderPipeline(){
-  const statuses=[
-    ['radar','Radar'],['thesis','Core thesis'],['production','Production'],['published','Published']
-  ];
-  const items=Object.values(state.items||{});
-  document.getElementById('pipeline').innerHTML=statuses.map(([status,label])=>{
-    const list=items.filter(x=>x.status===status);
-    return `<div class="stage"><h4>${label}</h4>${list.length?list.map(x=>`
-      <div class="mini"><strong>${esc(x.title)}</strong><span>${new Date(x.savedAt).toLocaleDateString()}</span>
-      <div class="actions">${status==='thesis'?'<button class="btn small primary" onclick="moveStatus(\''+x.id+'\',\'production\')">Approve</button>':''}
-      ${status==='production'?'<button class="btn small primary" onclick="moveStatus(\''+x.id+'\',\'published\')">Published</button>':''}</div></div>`).join(''):'<div class="empty">—</div>'}</div>`;
+  const stages=[['radar','Radar'],['thesis','Core thesis'],['production','Production'],['published','Published']];
+  $('pipeline').innerHTML=stages.map(([s,label])=>{
+    const xs=items.filter(x=>x.status===s);
+    return '<div class="stage"><h4>'+label+'</h4>'+(xs.length?xs.map(x=>'<div class="mini"><b>'+esc(x.title)+'</b><span>'+new Date(x.updated_at||x.created_at).toLocaleDateString()+'</span><div class="actions">'+(s==='thesis'?'<button class="btn primary small" onclick="patchItem(\''+x.id+'\',{status:\'production\'})">Approve</button>':'')+(s==='production'?'<button class="btn primary small" onclick="patchItem(\''+x.id+'\',{status:\'published\'})">Published</button>':'')+'</div></div>').join(''):'<div class="empty">—</div>')+'</div>';
   }).join('');
 }
+function renderLibrary(){
+  $('mAll').textContent=items.length;
+  $('mProd').textContent=items.filter(x=>x.status==='production').length;
+  $('mPub').textContent=items.filter(x=>x.status==='published').length;
+  $('mWin').textContent=items.filter(x=>x.winner).length;
+  $('libraryList').innerHTML=items.length?items.map(x=>'<div class="card"><div class="row"><div><h4>'+esc(x.title)+'</h4><div class="meta">'+esc(x.status)+'</div></div><button class="btn small '+(x.winner?'primary':'')+'" onclick="patchItem(\''+x.id+'\',{winner:'+(x.winner?'false':'true')+'})">'+(x.winner?'Winning pattern':'Mark winner')+'</button></div></div>').join(''):'<div class="empty">No saved ideas.</div>';
+}
+async function patchItem(id,patch){await api('/api/items/'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});loadItems()}
 
 async function loadPacks(){
-  try{
-    const r=await fetch('/api/packs',{cache:'no-store'}), j=await r.json();packs=arr(j.packs);renderPacks();
-  }catch{document.getElementById('packList').innerHTML='<div class="empty">No production feed available.</div>'}
+  $('packList').innerHTML='<div class="empty">Loading packs…</div>';
+  try{const j=await api('/api/packs');packs=arr(j.packs);renderPacks()}catch(e){$('packList').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
-function textFrom(v){
-  if(Array.isArray(v)) return v.map((x,i)=>`${i+1}. ${typeof x==='string'?x:JSON.stringify(x)}`).join('\n');
-  if(v&&typeof v==='object') return Object.entries(v).map(([k,val])=>`${k}: ${Array.isArray(val)?val.join('\n'):val}`).join('\n');
-  return v||'';
-}
+function block(label,v,wide=false){return '<div class="block '+(wide?'wide':'')+'"><h5>'+esc(label)+'</h5><pre>'+esc(textFrom(v)||'—')+'</pre><div class="actions"><button class="btn small" onclick=\'copy('+JSON.stringify(JSON.stringify(v))+')\'>Copy</button></div></div>'}
 function renderPacks(){
-  const root=document.getElementById('packList');
-  if(!packs.length){root.innerHTML='<div class="empty">The daily generator has not written a production pack yet.</div>';return}
-  root.innerHTML=packs.map((p,i)=>`
-    <article class="pack">
-      <div class="pack-head"><div><div class="kicker">${esc(p.date||'Today')} · priority ${esc(p.priority||'—')}</div><h4>${esc(p.sourceTrendTitle||p.title||'Content pack')}</h4></div><span class="signal">${esc(p.status||'draft')}</span></div>
-      <div class="pack-body">
-        ${block('Core thesis RU',p.thesis_ru,'thesis_ru',i,true)}
-        ${block('Core thesis EN',p.thesis_en,'thesis_en',i,true)}
-        ${block('Telegram',p.telegram,'telegram',i,false)}
-        ${block('Reel RU',p.reel_ru,'reel_ru',i,false)}
-        ${block('X / Twitter EN',p.x_en,'x_en',i,false)}
-        ${block('YouTube long',p.youtube,'youtube',i,false)}
-        ${block('Reddit discussion',p.reddit,'reddit',i,false)}
-        ${block('Notes / why this matters',p.notes||p.rationale,'notes',i,false)}
-      </div>
-    </article>`).join('');
+  if(!packs.length){$('packList').innerHTML='<div class="empty">No packs yet.</div>';return}
+  $('packList').innerHTML=packs.map((p,i)=>'<article class="pack"><div class="pack-head"><div><div class="kicker">'+esc(p.date||'')+' · '+esc(p.priority||'')+'</div><h4>'+esc(p.sourceTrendTitle||p.title||'Content pack')+'</h4></div><span class="tag">'+esc(p.status||'draft')+'</span></div><div class="pack-body">'+block('Core thesis RU',p.thesis_ru,true)+block('Core thesis EN',p.thesis_en,true)+block('Telegram',p.telegram)+block('Reel RU',p.reel_ru)+block('X / Twitter EN',p.x_en)+block('YouTube long',p.youtube)+block('Reddit discussion',p.reddit)+block('Rationale',p.rationale)+'</div></article>').join('');
 }
-function block(label,value,key,i,wide){
-  const txt=textFrom(value);
-  return `<div class="block ${wide?'wide':''}"><h5>${esc(label)}</h5><pre>${esc(txt||'—')}</pre><div class="controls"><button class="btn small" onclick="copyPack(${i},'${key}')">Copy</button></div></div>`;
-}
-function copyPack(i,key){copyText(textFrom(packs[i]?.[key]))}
 
-function renderLibrary(){
-  const items=Object.values(state.items||{});
-  document.getElementById('metricIdeas').textContent=items.length;
-  document.getElementById('metricApproved').textContent=items.filter(x=>['production','published'].includes(x.status)).length;
-  document.getElementById('metricPublished').textContent=items.filter(x=>x.status==='published').length;
-  document.getElementById('metricPatterns').textContent=items.filter(x=>x.winner).length;
-  const root=document.getElementById('libraryList');
-  if(!items.length){root.innerHTML='<div class="empty">No saved ideas yet. Promote a trend from Today.</div>';return}
-  root.innerHTML=items.slice().reverse().map(x=>`
-    <article class="trend"><div class="trend-top"><div><h4>${esc(x.title)}</h4><div class="meta">${esc(x.status)}</div></div>
-    <button class="btn small ${x.winner?'primary':''}" onclick="toggleWinner('${x.id}')">${x.winner?'Winning pattern':'Mark winner'}</button></div>
-    <p>${esc(x.trend?.psychology_angle||'')}</p></article>`).join('');
+async function loadVoiceNotes(){
+  try{
+    const j=await api('/api/voice');const ns=arr(j.notes);
+    $('voiceNotes').innerHTML=ns.length?ns.map(n=>'<div class="voice-note"><div class="meta">'+new Date(n.created_at).toLocaleString()+(n.source_trend_title?' · '+esc(n.source_trend_title):'')+'</div><p>'+esc(n.transcript)+'</p><button class="btn small" onclick=\'copy('+JSON.stringify(JSON.stringify(n.transcript))+')\'>Copy transcript</button></div>').join(''):'<div class="empty">No voice notes yet.</div>';
+  }catch(e){$('voiceNotes').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
-function toggleWinner(id){state.items[id].winner=!state.items[id].winner;saveState()}
 
-document.getElementById('refreshTrends').addEventListener('click',loadTrends);
-document.getElementById('refreshPacks').addEventListener('click',loadPacks);
-loadTrends();loadPacks();renderPipeline();renderLibrary();
+function updateTimer(){const sec=Math.floor((Date.now()-startedAt)/1000);$('timer').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+async function startRecording(){
+  if(!config.transcription){toast('Connect transcription first');return}
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const preferred=['audio/webm;codecs=opus','audio/mp4','audio/webm'];
+  const mime=preferred.find(x=>window.MediaRecorder&&MediaRecorder.isTypeSupported(x));
+  mediaRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);chunks=[];
+  mediaRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  mediaRecorder.onstop=async()=>{
+    clearInterval(timerInt);stream.getTracks().forEach(t=>t.stop());$('recordOrb').classList.remove('recording');$('recordHint').textContent='Transcribing and building your pack…';
+    try{
+      const blob=new Blob(chunks,{type:mediaRecorder.mimeType||'audio/webm'});
+      const idx=$('voiceTrend').value;const title=idx!==''?(trends[Number(idx)]?.topic||trends[Number(idx)]?.title||''):selectedVoiceTrend;
+      const r=await fetch('/api/voice',{method:'POST',headers:{'Content-Type':blob.type||'audio/webm','X-Language':'ru','X-Source-Trend':encodeURIComponent(title||'')},body:blob});
+      const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Transcription failed');
+      $('recordHint').textContent='Processed. Transcript saved; raw audio discarded.';
+      $('textInbox').value=j.transcript||'';toast(j.pack?'Content pack created':'Transcript saved');await Promise.all([loadVoiceNotes(),loadPacks(),loadItems()]);
+    }catch(e){$('recordHint').textContent=e.message;toast('Processing failed')}
+    mediaRecorder=null;$('timer').textContent='00:00';
+  };
+  mediaRecorder.start(1000);startedAt=Date.now();timerInt=setInterval(updateTimer,250);$('recordOrb').classList.add('recording');$('recordHint').textContent='Recording… tap again to stop';
+}
+$('recordOrb').addEventListener('click',async()=>{try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();else await startRecording()}catch(e){toast(e.message)}});
+
+$('processTextBtn').addEventListener('click',async()=>{
+  const transcript=$('textInbox').value.trim();if(!transcript){toast('Add a note first');return}
+  const idx=$('voiceTrend').value;const title=idx!==''?(trends[Number(idx)]?.topic||trends[Number(idx)]?.title||''):selectedVoiceTrend;
+  $('processTextBtn').disabled=true;$('processTextBtn').textContent='Processing…';
+  try{
+    const j=await api('/api/voice-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({transcript,language:'ru',sourceTrendTitle:title||null})});
+    toast(j.pack?'Content pack created':'Transcript saved');await Promise.all([loadVoiceNotes(),loadPacks(),loadItems()]);
+  }catch(e){toast(e.message)}finally{$('processTextBtn').disabled=false;$('processTextBtn').textContent='Process into content pack'}
+});
+
+Promise.all([loadConfig(),loadTrends(),loadItems(),loadPacks()]);
 </script>
 </body>
 </html>
