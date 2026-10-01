@@ -40,6 +40,7 @@ button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:2
     <button class="tab active" data-page="today">Today</button>
     <button class="tab" data-page="voice">Voice Inbox</button>
     <button class="tab" data-page="production">Production</button>
+    <button class="tab" data-page="analytics">Analytics</button>
     <button class="tab" data-page="library">Library</button>
     <button class="tab" data-page="system">System</button>
   </div>
@@ -109,6 +110,50 @@ button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:2
     </div>
   </section>
 
+  <section class="page" id="analytics">
+    <div class="hero">
+      <div class="eyebrow">Feedback loop</div>
+      <h2>Analytics</h2>
+      <p>Система хранит не просто просмотры, а связь между идеей, платформой и результатом. Источники синхронизируются сервером, а опубликованные URL связывают внешний пост с конкретной идеей в Library.</p>
+    </div>
+    <div class="grid">
+      <div class="panel c12">
+        <div class="panel-head"><div><div class="kicker">Normalized performance</div><h3>Current totals</h3></div><button class="btn small" onclick="loadAnalytics()">Refresh</button></div>
+        <div class="metrics">
+          <div class="metric"><b id="aViews">0</b><span>views / impressions</span></div>
+          <div class="metric"><b id="aShares">0</b><span>shares</span></div>
+          <div class="metric"><b id="aSaves">0</b><span>saves + bookmarks</span></div>
+          <div class="metric"><b id="aSubs">0</b><span>subs gained</span></div>
+        </div>
+      </div>
+      <div class="panel c4">
+        <div class="panel-head"><div><div class="kicker">Sources</div><h3>Connections</h3></div></div>
+        <div class="list" id="analyticsSources"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="panel c8">
+        <div class="panel-head"><div><div class="kicker">Identity map</div><h3>Link a published post</h3></div></div>
+        <div class="notice">После публикации достаточно один раз связать URL с идеей. Дальше метрики этой публикации будут собираться автоматически, если источник авторизован.</div>
+        <div style="height:12px"></div>
+        <select id="linkIdea" class="select"><option value="">Choose idea</option></select>
+        <div style="height:8px"></div>
+        <select id="linkPlatform" class="select">
+          <option value="instagram">Instagram</option>
+          <option value="youtube">YouTube</option>
+          <option value="x">X</option>
+          <option value="telegram">Telegram</option>
+          <option value="reddit">Reddit</option>
+        </select>
+        <div style="height:8px"></div>
+        <input id="linkUrl" class="select" placeholder="Paste published post URL">
+        <div class="actions"><button class="btn primary" id="linkPostBtn">Link post</button></div>
+      </div>
+      <div class="panel c12">
+        <div class="panel-head"><div><div class="kicker">Per-content performance</div><h3>Published assets</h3></div></div>
+        <div class="list" id="analyticsAssets"><div class="empty">No linked publications yet.</div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="page" id="library">
     <div class="panel">
       <div class="panel-head"><div><div class="kicker">Long-term memory</div><h3>Idea & pattern library</h3></div></div>
@@ -169,6 +214,7 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));
   if(id==='voice') loadVoiceNotes();
   if(id==='production') loadPacks();
+  if(id==='analytics') { loadItems().then(loadAnalytics); }
   if(id==='library') loadItems();
 }
 
@@ -227,6 +273,43 @@ function renderLibrary(){
 }
 async function patchItem(id,patch){await api('/api/items/'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});loadItems()}
 
+function compactNum(v){
+  const n=Number(v||0);
+  if(n>=1000000)return (n/1000000).toFixed(n>=10000000?0:1)+'M';
+  if(n>=1000)return (n/1000).toFixed(n>=10000?0:1)+'K';
+  return String(n);
+}
+async function loadAnalytics(){
+  try{
+    const j=await api('/api/analytics/summary');
+    const t=j.totals||{};
+    $('aViews').textContent=compactNum(t.views||0);
+    $('aShares').textContent=compactNum(t.shares||0);
+    $('aSaves').textContent=compactNum(Number(t.saves||0)+Number(t.bookmarks||0));
+    $('aSubs').textContent=compactNum(t.subscribers_gained||0);
+    const sources=arr(j.sources);
+    $('analyticsSources').innerHTML=sources.map(s=>'<div class="card"><div class="row"><div><h4 style="font-size:15px">'+esc(s.name)+'</h4><div class="meta">'+esc(s.mode)+'</div></div><span class="tag">'+(s.configured?'CONNECTED':'AUTH NEEDED')+'</span></div></div>').join('');
+    const assets=arr(j.assets);
+    $('analyticsAssets').innerHTML=assets.length?assets.map(a=>{
+      const saves=Number(a.saves||0)+Number(a.bookmarks||0);
+      const title=a.idea_title||a.title||a.external_id;
+      return '<div class="card"><div class="row"><div><h4 style="font-size:16px">'+esc(title)+'</h4><div class="meta">'+esc(a.platform)+' · '+(a.published_at?new Date(a.published_at).toLocaleDateString():'date unknown')+'</div></div><span class="tag">'+compactNum(a.views||a.impressions||0)+' views</span></div><div class="actions"><span class="tag">'+compactNum(a.likes||0)+' likes</span><span class="tag">'+compactNum(a.comments||0)+' comments</span><span class="tag">'+compactNum(a.shares||0)+' shares</span><span class="tag">'+compactNum(saves)+' saves</span></div>'+(a.url?'<div class="actions"><a class="btn small" style="text-decoration:none" target="_blank" href="'+esc(a.url)+'">Open post</a></div>':'')+'</div>';
+    }).join(''):'<div class="empty">No linked or synchronized publications yet.</div>';
+    $('linkIdea').innerHTML='<option value="">Choose idea</option>'+items.map(i=>'<option value="'+esc(i.id)+'">'+esc(i.title)+'</option>').join('');
+  }catch(e){
+    $('analyticsAssets').innerHTML='<div class="empty">'+esc(e.message)+'</div>';
+  }
+}
+$('linkPostBtn').addEventListener('click',async()=>{
+  const itemId=$('linkIdea').value,url=$('linkUrl').value.trim(),platform=$('linkPlatform').value;
+  if(!itemId||!url){toast('Choose idea and paste URL');return}
+  $('linkPostBtn').disabled=true;
+  try{
+    await api('/api/analytics/link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({itemId,platform,url})});
+    $('linkUrl').value='';toast('Publication linked');await loadAnalytics();
+  }catch(e){toast(e.message)}finally{$('linkPostBtn').disabled=false}
+});
+
 async function loadPacks(){
   $('packList').innerHTML='<div class="empty">Loading packs…</div>';
   try{const j=await api('/api/packs');packs=arr(j.packs);renderPacks()}catch(e){$('packList').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
@@ -278,7 +361,7 @@ $('processTextBtn').addEventListener('click',async()=>{
   }catch(e){toast(e.message)}finally{$('processTextBtn').disabled=false;$('processTextBtn').textContent='Process into content pack'}
 });
 
-Promise.all([loadConfig(),loadTrends(),loadItems(),loadPacks()]);
+Promise.all([loadConfig(),loadTrends(),loadItems(),loadPacks(),loadAnalytics()]);
 </script>
 </body>
 </html>
