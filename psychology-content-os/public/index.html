@@ -141,7 +141,10 @@ button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:2
         <div id="systemStatus" class="list"></div>
         <div style="height:18px"></div>
         <div class="kicker">Platform roles</div>
-        <p class="sub" style="font-size:13px;line-height:1.7">Telegram — RU intellectual home.<br>Instagram + Shorts — recognition engine.<br>YouTube long — authority archive.<br>X — EN intellectual graph.<br>Reddit — research/discussion lab, not broadcast.</p>
+        <p class="sub" style="font-size:13px;line-height:1.7">Telegram — RU intellectual home.<br>Instagram Reels — recognition engine.<br>Instagram Carousels — save/share engine for frameworks.<br>Animated GIFs — compact visual metaphor / loopable explainer.<br>YouTube long — authority archive.<br>X — EN intellectual graph.<br>Reddit — research/discussion lab, not broadcast.</p>
+        <div style="height:18px"></div>
+        <div class="kicker">Visual DNA</div>
+        <p class="sub" style="font-size:13px;line-height:1.7">Dark editorial · high contrast · large typography · negative space · cinematic restraint · acid-lime accent. No pastel wellness design, stock therapy imagery or generic self-help infographics.</p>
       </div>
     </div>
   </section>
@@ -231,7 +234,7 @@ async function loadPacks(){
 function block(label,v,wide=false){return '<div class="block '+(wide?'wide':'')+'"><h5>'+esc(label)+'</h5><pre>'+esc(textFrom(v)||'—')+'</pre><div class="actions"><button class="btn small" onclick=\'copy('+JSON.stringify(JSON.stringify(v))+')\'>Copy</button></div></div>'}
 function renderPacks(){
   if(!packs.length){$('packList').innerHTML='<div class="empty">No packs yet.</div>';return}
-  $('packList').innerHTML=packs.map((p,i)=>'<article class="pack"><div class="pack-head"><div><div class="kicker">'+esc(p.date||'')+' · '+esc(p.priority||'')+'</div><h4>'+esc(p.sourceTrendTitle||p.title||'Content pack')+'</h4></div><span class="tag">'+esc(p.status||'draft')+'</span></div><div class="pack-body">'+block('Core thesis RU',p.thesis_ru,true)+block('Core thesis EN',p.thesis_en,true)+block('Telegram',p.telegram)+block('Reel RU',p.reel_ru)+block('X / Twitter EN',p.x_en)+block('YouTube long',p.youtube)+block('Reddit discussion',p.reddit)+block('Rationale',p.rationale)+'</div></article>').join('');
+  $('packList').innerHTML=packs.map((p,i)=>'<article class="pack"><div class="pack-head"><div><div class="kicker">'+esc(p.date||'')+' · '+esc(p.priority||'')+'</div><h4>'+esc(p.sourceTrendTitle||p.title||'Content pack')+'</h4></div><span class="tag">'+esc(p.status||'draft')+'</span></div><div class="pack-body">'+block('Core thesis RU',p.thesis_ru,true)+block('Core thesis EN',p.thesis_en,true)+block('Telegram',p.telegram)+block('Reel RU',p.reel_ru)+block('X / Twitter EN',p.x_en)+block('YouTube long',p.youtube)+block('Reddit discussion',p.reddit)+block('Visual strategy',p.visual_strategy)+block('Instagram carousel RU',p.carousel_ru,true)+block('Animated GIF',p.gif,true)+block('Rationale',p.rationale)+'</div></article>').join('');
 }
 
 async function loadVoiceNotes(){
