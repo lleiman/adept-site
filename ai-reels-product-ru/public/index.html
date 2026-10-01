@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#050505"/>
+<title>AI REELS ENGINE — Система создания AI-роликов</title>
+<meta name="description" content="Открытый PDF-плейбук: от идеи и насмотренности до готового AI-ролика, публикации и итерации."/>
+<style>
+:root{--bg:#050505;--fg:#f4f4ef;--muted:#9e9e96;--line:#282824;--acid:#d7ff38;--panel:#0c0c0b}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:auto}
+nav{height:70px;display:flex;align-items:center;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;background:rgba(5,5,5,.82);backdrop-filter:blur(14px)}
+.navin{display:flex;align-items:center;justify-content:space-between;width:100%}.brand{font-size:13px;font-weight:800;letter-spacing:.15em}.brand b{color:var(--acid)}
+.navright{display:flex;gap:18px;align-items:center;font-size:12px;color:var(--muted)}.navcta{border:1px solid var(--fg);padding:10px 14px;color:var(--fg);font-weight:700}
+.hero{min-height:88vh;display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center;padding:72px 0 54px}
+.kicker{display:inline-flex;gap:9px;align-items:center;font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin-bottom:24px}.dot{width:8px;height:8px;border-radius:50%;background:var(--acid);box-shadow:0 0 18px var(--acid)}
+h1{font-size:clamp(56px,8.7vw,124px);line-height:.86;letter-spacing:-.065em;margin:0 0 30px;font-weight:900;text-transform:uppercase}.acid{color:var(--acid)}
+.lead{font-size:clamp(18px,2vw,25px);line-height:1.35;max-width:720px;color:#d6d6cf}.ctarow{display:flex;gap:14px;align-items:center;margin-top:34px;flex-wrap:wrap}
+.button{display:inline-flex;align-items:center;gap:14px;padding:17px 20px;background:var(--acid);color:#080808;font-weight:900;border:0;cursor:pointer;font-size:14px}.button:hover{transform:translateY(-1px)}
+.secondary{font-size:12px;color:var(--muted)}.heroVisual{height:590px;position:relative;display:flex;align-items:center;justify-content:center}
+.phone{width:300px;height:540px;border:1px solid #393934;border-radius:30px;padding:10px;background:#0d0d0c;box-shadow:0 30px 80px rgba(0,0,0,.55);transform:rotate(2deg);position:relative}
+.screen{height:100%;border-radius:22px;overflow:hidden;position:relative;background:radial-gradient(circle at 50% 30%,#51565d 0,#222 37%,#0b0b0b 72%)}
+.orb{position:absolute;width:154px;height:154px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#9ca4aa 18%,#2c3237 60%,#08090a 75%);top:100px;left:63px;box-shadow:0 0 60px rgba(215,255,56,.12)}
+.gridnoise{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:26px 26px}
+.reelcopy{position:absolute;left:20px;right:20px;bottom:28px}.reelcopy b{display:block;font-size:34px;letter-spacing:-.05em;line-height:.92}.reelcopy small{display:block;color:#b8b8b0;margin-top:10px}
+.stat{position:absolute;background:#f1f1eb;color:#080808;padding:14px 16px;border-radius:10px;box-shadow:0 14px 28px rgba(0,0,0,.35);font-size:11px}.stat strong{display:block;font-size:24px;letter-spacing:-.05em}.s1{left:0;top:92px}.s2{right:0;bottom:96px;background:var(--acid)}
+.marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;padding:13px 0;color:#b9b9b1;font-size:11px;letter-spacing:.15em;text-transform:uppercase}
+.marquee span{display:inline-block;padding-right:48px}
+section{padding:108px 0;border-bottom:1px solid var(--line)}.eyebrow{font-size:11px;color:var(--acid);font-weight:800;letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px}
+h2{font-size:clamp(38px,6vw,80px);line-height:.95;letter-spacing:-.055em;margin:0 0 28px;text-transform:uppercase}.copy{font-size:18px;line-height:1.55;color:#c9c9c2;max-width:790px}
+.proofgrid,.modulegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:45px}.proof,.module{border:1px solid var(--line);background:var(--panel);padding:26px;min-height:220px}
+.proof b,.module b{font-size:13px;color:var(--acid);text-transform:uppercase;letter-spacing:.08em}.proof h3,.module h3{font-size:24px;line-height:1.05;letter-spacing:-.04em;margin:18px 0 12px}.proof p,.module p{font-size:14px;color:#aaa99f;line-height:1.55}
+.split{display:grid;grid-template-columns:.9fr 1.1fr;gap:80px;align-items:start}.steps{border-top:1px solid var(--line)}.step{display:grid;grid-template-columns:60px 1fr;gap:12px;padding:24px 0;border-bottom:1px solid var(--line)}.n{color:var(--acid);font-weight:800}.step h3{margin:0 0 8px;font-size:20px}.step p{margin:0;color:#aaa99f;line-height:1.5;font-size:14px}
+.modulegrid{grid-template-columns:repeat(2,1fr)}.openbox{border:1px solid #41413c;background:linear-gradient(145deg,#0c0c0b,#11130b);padding:38px;margin-top:42px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}.openbox h3{font-size:30px;margin:0 0 10px;letter-spacing:-.04em}.openbox p{margin:0;color:#aaa99f;max-width:700px;line-height:1.55}.openactions{display:flex;flex-direction:column;gap:10px}.outline{display:inline-flex;justify-content:center;padding:14px 18px;border:1px solid #555;color:#fff;font-size:13px;font-weight:700}
+.faq{max-width:860px}.faqitem{padding:22px 0;border-bottom:1px solid var(--line)}.faqitem b{display:block;font-size:17px;margin-bottom:8px}.faqitem p{margin:0;color:#aaa99f;line-height:1.55}
+footer{padding:34px 0 52px;color:#77776f;font-size:11px}.footerrow{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}.legal{display:flex;gap:14px;flex-wrap:wrap}.legal a:hover{color:#fff}
+.reveal{opacity:0;transform:translateY(14px);transition:.5s ease}.reveal.visible{opacity:1;transform:none}
+@media(max-width:820px){.navright>a:not(.navcta){display:none}.hero{grid-template-columns:1fr;padding-top:46px}.heroVisual{height:480px}.phone{height:470px;width:275px}.proofgrid,.split,.modulegrid,.openbox{grid-template-columns:1fr}.split{gap:36px}section{padding:76px 0}.stat.s1{left:3px}.stat.s2{right:0}h1{font-size:16.2vw}.openactions{flex-direction:row;flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<nav><div class="wrap navin"><div class="brand">AI REELS <b>ENGINE</b></div><div class="navright"><a href="#system">Система</a><a href="#inside">Что внутри</a><a href="#product">Продукт</a><a class="navcta" href="/product.pdf" target="_blank">ОТКРЫТЬ PDF</a></div></div></nav>
+
+<main>
+<div class="wrap hero">
+  <div>
+    <div class="kicker"><i class="dot"></i> открытый плейбук для AI-креатора</div>
+    <h1>Делай AI-видео,<br/><span class="acid">которые смотрят.</span></h1>
+    <p class="lead">Практический пайплайн: от насмотренности и идеи до генерации, монтажа, публикации и следующей итерации. Основан на реальном творческом процессе AI-креатора.</p>
+    <div class="ctarow"><a class="button" href="/product.pdf" target="_blank">ОТКРЫТЬ ПОЛНЫЙ PDF <span>→</span></a><div class="secondary">Открытый доступ · без регистрации · на русском</div></div>
+  </div>
+  <div class="heroVisual">
+    <div class="phone"><div class="screen"><div class="gridnoise"></div><div class="orb"></div><div class="reelcopy"><b>ИДЕЯ →<br/>AI → РОЛИК</b><small>16 шагов творческого процесса</small></div></div></div>
+    <div class="stat s1"><span>Кейс</span><strong>3–5M</strong><span>просмотров у сильных Reels</span></div>
+    <div class="stat s2"><span>Формат</span><strong>PDF</strong><span>полная версия открыта</span></div>
+  </div>
+</div>
+
+<div class="marquee"><span>ИДЕЯ · НАСМОТРЕННОСТЬ · ПРОТИВОРЕЧИЕ · ЭМОЦИЯ · CHATGPT · РЕФЕРЕНСЫ · ТАЙМИНГ · ГЕНЕРАЦИЯ · МОНТАЖ · ИТЕРАЦИЯ ·</span><span>ИДЕЯ · НАСМОТРЕННОСТЬ · ПРОТИВОРЕЧИЕ · ЭМОЦИЯ · CHATGPT · РЕФЕРЕНСЫ · ТАЙМИНГ · ГЕНЕРАЦИЯ · МОНТАЖ · ИТЕРАЦИЯ ·</span></div>
+
+<section><div class="wrap reveal"><div class="eyebrow">01 / Подход</div><h2>Это не курс<br/>про инструменты.</h2><p class="copy">Главный вопрос — не «какую нейросеть открыть», а какие решения повторяются в сильном AI-контенте. Плейбук разбирает мышление автора: что замечать, как находить противоречие, где искать эмоцию, как превращать образ в действие и как проверять результат после публикации.</p>
+<div class="proofgrid">
+  <div class="proof"><b>До идеи</b><h3>Настрой среду</h3><p>Насмотренность, старая реклама, странные человеческие ситуации, культурные поводы и визуальные механизмы становятся сырьём для будущих роликов.</p></div>
+  <div class="proof"><b>Внутри идеи</b><h3>Найди напряжение</h3><p>Сильный ролик строится вокруг узнаваемого ожидания, которое можно перевернуть: абсурдом, сарказмом, буквальной метафорой или нарушением статуса.</p></div>
+  <div class="proof"><b>После публикации</b><h3>Смотри на реакцию</h3><p>Комментарии, пересмотры, споры и непонимание — не шум, а данные для следующего творческого решения.</p></div>
+</div></div></section>
+
+<section id="system"><div class="wrap split reveal"><div><div class="eyebrow">02 / Система</div><h2>Виральность —<br/>не промпт.</h2><p class="copy">Полезнее не коллекционировать инструменты, а построить цикл, в котором каждый опубликованный ролик делает следующий точнее.</p></div>
+<div class="steps">
+  <div class="step"><div class="n">01</div><div><h3>Наблюдение и повод</h3><p>Собрать материал из ленты, культуры, рекламы, продукта, поведения людей и свежих инфоповодов.</p></div></div>
+  <div class="step"><div class="n">02</div><div><h3>Ядро идеи</h3><p>Найти свойство, культурный смысл, противоречие и эмоцию, ради которой ролик вообще стоит делать.</p></div></div>
+  <div class="step"><div class="n">03</div><div><h3>Диалог и отбор</h3><p>Использовать ChatGPT не как генератор «идей списком», а как партнёра по вариантам, возражениям и уточнению механики.</p></div></div>
+  <div class="step"><div class="n">04</div><div><h3>Производство</h3><p>Назначить ролям референсы, выстроить причинную цепочку, камеру, тайминг и визуальные опоры до генерации.</p></div></div>
+  <div class="step"><div class="n">05</div><div><h3>Монтаж и итерация</h3><p>Проверить ролик без знания исходного замысла, опубликовать, разобрать реакцию и перенести работающие принципы дальше.</p></div></div>
+</div></div></section>
+
+<section id="inside"><div class="wrap reveal"><div class="eyebrow">03 / Что внутри</div><h2>16 шагов<br/>одного пайплайна.</h2><div class="modulegrid">
+  <div class="module"><b>01–04</b><h3>Среда и материал</h3><p>Насмотренность, реклама 90-х и нулевых, инфоповоды, функция продукта и культурный смысл.</p></div>
+  <div class="module"><b>05–08</b><h3>Конфликт и идея</h3><p>Абсурд, «осквернение», эмоция, ядро истории и разработка вариантов в диалоге с AI.</p></div>
+  <div class="module"><b>09–12</b><h3>Отбор и постановка</h3><p>Что реально стоит производить, как назначать роли референсам, собирать причинность и выбирать визуальную интонацию.</p></div>
+  <div class="module"><b>13–16</b><h3>Генерация и обратная связь</h3><p>Визуальные опоры, исправление причины ошибки, финальный монтаж и анализ реакции после публикации.</p></div>
+</div></div></section>
+
+<section id="product"><div class="wrap reveal"><div class="eyebrow">04 / Открытый продукт</div><h2>Весь материал<br/>уже открыт.</h2><p class="copy">Никакого paywall. Можно открыть PDF в браузере или скачать полную версию. Текст сохраняет исходную авторскую логику Андрея — от формирования среды внимания до анализа реакции аудитории.</p>
+<div class="openbox"><div><h3>«Творческий пайплайн»</h3><p>Андрей · От насмотренности до готового AI-ролика. Полная версия, 16 этапов, на русском языке.</p></div><div class="openactions"><a class="button" href="/product.pdf" target="_blank">ОТКРЫТЬ PDF →</a><a class="outline" href="/download.pdf">СКАЧАТЬ PDF</a></div></div></div></section>
+
+<section><div class="wrap reveal"><div class="eyebrow">05 / Кому полезно</div><h2>Тем, кто хочет<br/>делать, а не читать<br/>про AI.</h2><div class="proofgrid">
+<div class="proof"><b>Креаторы</b><h3>Есть вкус, нет системы</h3><p>Если уже умеешь находить красивые изображения, но идеи, драматургия и ролики собираются слишком случайно.</p></div>
+<div class="proof"><b>Продакшн</b><h3>Нужен повторяемый процесс</h3><p>Если хочется сократить перебор инструментов и заранее разделить творческие решения, референсы, генерацию и монтаж.</p></div>
+<div class="proof"><b>Авторы и бренды</b><h3>Нужна реакция</h3><p>Если задача — не просто «выглядеть AI», а вызывать эмоцию, удерживать внимание и строить собственный визуальный язык.</p></div>
+</div></div></section>
+
+<section><div class="wrap faq reveal"><div class="eyebrow">06 / Вопросы</div><h2>Перед тем,<br/>как открыть.</h2>
+<div class="faqitem"><b>Это только для профессионалов?</b><p>Нет. В тексте важнее логика творческих решений, чем знание конкретной нейросети.</p></div>
+<div class="faqitem"><b>Какие AI-инструменты нужны?</b><p>Пайплайн не привязан к одному сервису. Инструмент выбирается под задачу, длительность, формат и степень контроля.</p></div>
+<div class="faqitem"><b>Это гарантирует вирусный ролик?</b><p>Нет. Один успешный ролик не доказывает точную причину успеха, а никакая методика не гарантирует просмотры. Цель — сделать процесс осознаннее и быстрее учиться на публикациях.</p></div>
+<div class="faqitem"><b>Нужно оставлять почту или Telegram?</b><p>Нет, чтобы прочитать продукт — не нужно. Если позже появятся формы подписки или рассылки, их использование будет добровольным и будет регулироваться документами ниже.</p></div>
+</div></section>
+</main>
+
+<footer><div class="wrap footerrow"><div>© 2026 AI REELS ENGINE</div><div class="legal"><a href="/terms.html">Условия</a><a href="/privacy.html">Конфиденциальность</a><a href="/refund.html">Возвраты</a><a href="/marketing-consent.html">Рассылки</a></div><div>ИП Гусаров Алексей Юрьевич</div></div></footer>
+<script>
+const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('visible')),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(x=>io.observe(x));
+</script>
+</body></html>
