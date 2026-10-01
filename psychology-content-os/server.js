@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { randomUUID, createHash } = require('crypto');
+const { randomUUID, createHash, randomBytes, createCipheriv, createDecipheriv } = require('crypto');
 const { Pool } = require('pg');
 
 const port = Number(process.env.PORT || 3000);
@@ -131,6 +131,25 @@ async function initDb() {
     ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS subscribers_gained bigint;
     ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS average_view_duration numeric;
     ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS completion_rate numeric;
+    CREATE TABLE IF NOT EXISTS analytics_connections (
+      platform text PRIMARY KEY,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      account_id text,
+      account_name text,
+      access_token_enc text,
+      refresh_token_enc text,
+      expires_at timestamptz,
+      scope text,
+      meta jsonb NOT NULL DEFAULT '{}'::jsonb
+    );
+    CREATE TABLE IF NOT EXISTS oauth_states (
+      state text PRIMARY KEY,
+      platform text NOT NULL,
+      code_verifier text,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    DELETE FROM oauth_states WHERE created_at < now() - interval '30 minutes';
   `);
   const seed = parseEnvJson('CONTENT_PIPELINE_JSON', []);
   for (const pack of Array.isArray(seed) ? seed : []) {
@@ -350,42 +369,147 @@ async function getItems() {
   return rows;
 }
 
-function analyticsSourceState() {
+function publicBaseUrl() {
+  return String(process.env.PUBLIC_BASE_URL || 'https://psychology-content-os-production.up.railway.app').replace(/\/$/,'');
+}
+
+function tokenKey() {
+  const secret=String(process.env.TOKEN_ENCRYPTION_KEY || '');
+  if (!secret) throw new Error('TOKEN_ENCRYPTION_KEY is not configured');
+  return createHash('sha256').update(secret).digest();
+}
+
+function encryptSecret(value) {
+  if (!value) return null;
+  const iv=randomBytes(12);
+  const cipher=createCipheriv('aes-256-gcm',tokenKey(),iv);
+  const encrypted=Buffer.concat([cipher.update(String(value),'utf8'),cipher.final()]);
+  const tag=cipher.getAuthTag();
+  return [iv,tag,encrypted].map(x=>x.toString('base64url')).join('.');
+}
+
+function decryptSecret(value) {
+  if (!value) return null;
+  const [ivB64,tagB64,dataB64]=String(value).split('.');
+  if(!ivB64||!tagB64||!dataB64) throw new Error('Invalid encrypted secret');
+  const decipher=createDecipheriv('aes-256-gcm',tokenKey(),Buffer.from(ivB64,'base64url'));
+  decipher.setAuthTag(Buffer.from(tagB64,'base64url'));
+  return Buffer.concat([decipher.update(Buffer.from(dataB64,'base64url')),decipher.final()]).toString('utf8');
+}
+
+async function getConnection(platform) {
+  if (!pool) return null;
+  const {rows}=await pool.query('SELECT * FROM analytics_connections WHERE platform=$1',[platform]);
+  return rows[0] || null;
+}
+
+async function saveConnection(platform,{accountId,accountName,accessToken,refreshToken,expiresAt,scope,meta}) {
+  if (!pool) throw new Error('Database unavailable');
+  await pool.query(`
+    INSERT INTO analytics_connections(platform,account_id,account_name,access_token_enc,refresh_token_enc,expires_at,scope,meta)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb)
+    ON CONFLICT(platform) DO UPDATE SET
+      updated_at=now(),
+      account_id=COALESCE(EXCLUDED.account_id,analytics_connections.account_id),
+      account_name=COALESCE(EXCLUDED.account_name,analytics_connections.account_name),
+      access_token_enc=COALESCE(EXCLUDED.access_token_enc,analytics_connections.access_token_enc),
+      refresh_token_enc=COALESCE(EXCLUDED.refresh_token_enc,analytics_connections.refresh_token_enc),
+      expires_at=COALESCE(EXCLUDED.expires_at,analytics_connections.expires_at),
+      scope=COALESCE(EXCLUDED.scope,analytics_connections.scope),
+      meta=analytics_connections.meta || EXCLUDED.meta
+  `,[
+    platform,accountId||null,accountName||null,
+    accessToken?encryptSecret(accessToken):null,
+    refreshToken?encryptSecret(refreshToken):null,
+    expiresAt||null,scope||null,JSON.stringify(meta||{})
+  ]);
+  return getConnection(platform);
+}
+
+async function createOauthState(platform,codeVerifier=null) {
+  const state=randomBytes(24).toString('base64url');
+  await pool.query('INSERT INTO oauth_states(state,platform,code_verifier) VALUES($1,$2,$3)',[state,platform,codeVerifier]);
+  return state;
+}
+
+async function consumeOauthState(state,platform) {
+  if(!pool||!state) return null;
+  const {rows}=await pool.query(`
+    DELETE FROM oauth_states
+    WHERE state=$1 AND platform=$2 AND created_at > now() - interval '20 minutes'
+    RETURNING *
+  `,[state,platform]);
+  return rows[0]||null;
+}
+
+function html(res,code,body) {
+  res.writeHead(code,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+  res.end(body);
+}
+
+function oauthResultPage(title,message,ok=true) {
+  const accent=ok?'#d9ff69':'#ff8b8b';
+  return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+    '<body style="margin:0;background:#090a0c;color:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:grid;place-items:center;min-height:100vh">'+
+    '<div style="max-width:620px;padding:32px;border:1px solid #282c34;border-radius:20px;background:#111319">'+
+    '<div style="color:'+accent+';font-size:12px;letter-spacing:.12em;text-transform:uppercase">'+(ok?'Connected':'Connection failed')+'</div>'+
+    '<h1 style="font-size:30px;margin:10px 0">'+String(title).replace(/[<>]/g,'')+'</h1>'+
+    '<p style="color:#a8adb6;line-height:1.6">'+String(message).replace(/[<>]/g,'')+'</p>'+
+    '<a href="/#analytics" style="display:inline-block;margin-top:14px;color:#111;background:#d9ff69;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700">Return to Analytics</a>'+
+    '</div></body>';
+}
+
+async function analyticsSourceState() {
+  const connections={};
+  if(pool){
+    const {rows}=await pool.query('SELECT platform,account_id,account_name,expires_at,updated_at,meta FROM analytics_connections');
+    for(const row of rows) connections[row.platform]=row;
+  }
   return [
     {
-      id: 'instagram',
-      name: 'Instagram',
-      configured: Boolean(process.env.INSTAGRAM_USER_ID && process.env.INSTAGRAM_ACCESS_TOKEN),
-      mode: 'Instagram Professional Insights',
-      needs: ['INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN']
+      id:'instagram',name:'Instagram',connected:Boolean(connections.instagram),
+      credentialReady:Boolean(process.env.INSTAGRAM_CLIENT_ID && process.env.INSTAGRAM_CLIENT_SECRET),
+      account:connections.instagram?.account_name || null,
+      mode:'Instagram Professional Insights',
+      connectUrl:'/oauth/instagram/start',
+      callbackUrl:publicBaseUrl()+'/oauth/instagram/callback',
+      needs:['Instagram Business/Creator account','Meta app: Instagram App ID + App Secret']
     },
     {
-      id: 'youtube',
-      name: 'YouTube',
-      configured: Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET && process.env.YOUTUBE_REFRESH_TOKEN),
-      mode: 'YouTube Analytics API',
-      needs: ['YOUTUBE_CLIENT_ID','YOUTUBE_CLIENT_SECRET','YOUTUBE_REFRESH_TOKEN']
+      id:'youtube',name:'YouTube',connected:Boolean(connections.youtube),
+      credentialReady:Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET),
+      account:connections.youtube?.account_name || null,
+      mode:'YouTube Analytics API',
+      connectUrl:'/oauth/youtube/start',
+      callbackUrl:publicBaseUrl()+'/oauth/youtube/callback',
+      needs:['Google Cloud OAuth Web client','YouTube Analytics API + YouTube Data API v3']
     },
     {
-      id: 'x',
-      name: 'X',
-      configured: Boolean(process.env.X_USER_ID && process.env.X_BEARER_TOKEN),
-      mode: 'X API v2 public metrics',
-      needs: ['X_USER_ID','X_BEARER_TOKEN']
+      id:'x',name:'X',connected:Boolean(connections.x),
+      credentialReady:Boolean(process.env.X_CLIENT_ID),
+      account:connections.x?.account_name || null,
+      mode:'X API v2 user metrics',
+      connectUrl:'/oauth/x/start',
+      callbackUrl:publicBaseUrl()+'/oauth/x/callback',
+      needs:['X Developer app with OAuth 2.0 PKCE']
     },
     {
-      id: 'telegram',
-      name: 'Telegram',
-      configured: false,
-      mode: 'MTProto channel statistics',
-      needs: ['admin MTProto authorization']
+      id:'telegram',name:'Telegram',connected:Boolean(connections.telegram),
+      credentialReady:Boolean(process.env.TELEGRAM_API_ID && process.env.TELEGRAM_API_HASH),
+      account:connections.telegram?.account_name || null,
+      mode:'MTProto channel statistics',
+      connectUrl:null,
+      callbackUrl:null,
+      needs:['Telegram api_id + api_hash','one-time user login','admin access to the channel']
     },
     {
-      id: 'reddit',
-      name: 'Reddit',
-      configured: Boolean(process.env.REDDIT_USERNAME),
-      mode: 'Public post metrics',
-      needs: ['REDDIT_USERNAME']
+      id:'reddit',name:'Reddit',connected:Boolean(process.env.REDDIT_USERNAME),
+      credentialReady:Boolean(process.env.REDDIT_USERNAME),
+      account:process.env.REDDIT_USERNAME || null,
+      mode:'Public post metrics',
+      connectUrl:null,
+      callbackUrl:null,
+      needs:['REDDIT_USERNAME']
     }
   ];
 }
@@ -454,69 +578,110 @@ async function saveSnapshot(asset, metrics, raw) {
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, { ...options, signal: options.signal || AbortSignal.timeout(20000) });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error((data.error && (data.error.message || data.error)) || ('HTTP ' + response.status));
+  if (!response.ok) throw new Error((data.error && (data.error.message || data.error)) || data.error_description || ('HTTP ' + response.status));
   return data;
 }
 
+async function refreshInstagramConnection(conn) {
+  if(!conn?.access_token_enc) return conn;
+  const expires=conn.expires_at ? new Date(conn.expires_at).getTime() : 0;
+  if(expires && expires-Date.now() > 7*86400000) return conn;
+  const token=decryptSecret(conn.access_token_enc);
+  const u=new URL('https://graph.instagram.com/refresh_access_token');
+  u.searchParams.set('grant_type','ig_refresh_token');
+  u.searchParams.set('access_token',token);
+  const d=await fetchJson(u);
+  return saveConnection('instagram',{
+    accountId:conn.account_id,accountName:conn.account_name,accessToken:d.access_token||token,
+    expiresAt:d.expires_in?new Date(Date.now()+Number(d.expires_in)*1000).toISOString():conn.expires_at,
+    scope:conn.scope,meta:{refreshedAt:new Date().toISOString()}
+  });
+}
+
+async function instagramToken() {
+  let conn=await getConnection('instagram');
+  if(conn) conn=await refreshInstagramConnection(conn);
+  if(conn?.access_token_enc) return {token:decryptSecret(conn.access_token_enc),userId:conn.account_id};
+  if(process.env.INSTAGRAM_USER_ID && process.env.INSTAGRAM_ACCESS_TOKEN) return {token:process.env.INSTAGRAM_ACCESS_TOKEN,userId:process.env.INSTAGRAM_USER_ID};
+  return null;
+}
+
 async function syncInstagram() {
-  if (!(process.env.INSTAGRAM_USER_ID && process.env.INSTAGRAM_ACCESS_TOKEN)) return { source:'instagram', skipped:true };
-  const userId = process.env.INSTAGRAM_USER_ID;
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
-  const base = process.env.INSTAGRAM_GRAPH_BASE || 'https://graph.instagram.com';
-  const apiVersion = process.env.INSTAGRAM_API_VERSION || 'v24.0';
-  const mediaUrl = new URL(base.replace(/\/$/,'') + '/' + apiVersion + '/' + encodeURIComponent(userId) + '/media');
+  const auth=await instagramToken();
+  if(!auth) return {source:'instagram',skipped:true};
+  const {token,userId}=auth;
+  const base=process.env.INSTAGRAM_GRAPH_BASE || 'https://graph.instagram.com';
+  const apiVersion=process.env.INSTAGRAM_API_VERSION || 'v26.0';
+  const mediaUrl=new URL(base.replace(/\/$/,'')+'/'+apiVersion+'/'+encodeURIComponent(userId)+'/media');
   mediaUrl.searchParams.set('fields','id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count');
   mediaUrl.searchParams.set('limit','50');
   mediaUrl.searchParams.set('access_token',token);
-  const media = await fetchJson(mediaUrl);
-  let synced = 0;
-  for (const m of Array.isArray(media.data) ? media.data : []) {
-    const metrics = { likes:m.like_count, comments:m.comments_count };
-    const insightRaw = {};
-    for (const metric of ['views','reach','saved','shares']) {
-      try {
-        const u = new URL(base.replace(/\/$/,'') + '/' + apiVersion + '/' + encodeURIComponent(m.id) + '/insights');
+  const media=await fetchJson(mediaUrl);
+  let synced=0;
+  for(const m of Array.isArray(media.data)?media.data:[]) {
+    const metrics={likes:m.like_count,comments:m.comments_count};
+    const insightRaw={};
+    for(const metric of ['views','reach','saved','shares']){
+      try{
+        const u=new URL(base.replace(/\/$/,'')+'/'+apiVersion+'/'+encodeURIComponent(m.id)+'/insights');
         u.searchParams.set('metric',metric);
         u.searchParams.set('access_token',token);
-        const d = await fetchJson(u);
-        const row = Array.isArray(d.data) ? d.data[0] : null;
-        const value = row && (row.values?.[0]?.value ?? row.total_value?.value ?? row.value);
-        insightRaw[metric] = d;
-        if (metric === 'saved') metrics.saves = value;
-        else metrics[metric] = value;
-      } catch (error) {
-        insightRaw[metric] = { error:error.message };
-      }
+        const d=await fetchJson(u);
+        const row=Array.isArray(d.data)?d.data[0]:null;
+        const value=row&&(row.values?.[0]?.value??row.total_value?.value??row.value);
+        insightRaw[metric]=d;
+        if(metric==='saved')metrics.saves=value;else metrics[metric]=value;
+      }catch(error){insightRaw[metric]={error:error.message}}
     }
-    const asset = await upsertAsset({
-      platform:'instagram', externalId:m.id, url:m.permalink, title:(m.caption || '').slice(0,180),
-      publishedAt:m.timestamp, raw:m
+    const asset=await upsertAsset({
+      platform:'instagram',externalId:m.id,url:m.permalink,title:(m.caption||'').slice(0,180),
+      publishedAt:m.timestamp,raw:m
     });
-    await saveSnapshot(asset, metrics, { media:m, insights:insightRaw });
+    await saveSnapshot(asset,metrics,{media:m,insights:insightRaw});
     synced++;
   }
-  return { source:'instagram', synced };
+  return {source:'instagram',synced};
 }
 
-async function youtubeAccessToken() {
-  const body = new URLSearchParams({
-    client_id:process.env.YOUTUBE_CLIENT_ID || '',
-    client_secret:process.env.YOUTUBE_CLIENT_SECRET || '',
-    refresh_token:process.env.YOUTUBE_REFRESH_TOKEN || '',
+async function refreshYouTubeConnection(conn) {
+  if(!conn?.refresh_token_enc) return conn;
+  const expires=conn.expires_at?new Date(conn.expires_at).getTime():0;
+  if(conn.access_token_enc && expires-Date.now()>5*60000) return conn;
+  const body=new URLSearchParams({
+    client_id:process.env.YOUTUBE_CLIENT_ID||'',
+    client_secret:process.env.YOUTUBE_CLIENT_SECRET||'',
+    refresh_token:decryptSecret(conn.refresh_token_enc),
     grant_type:'refresh_token'
   });
-  const data = await fetchJson('https://oauth2.googleapis.com/token', {
-    method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body
+  const d=await fetchJson('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+  return saveConnection('youtube',{
+    accountId:conn.account_id,accountName:conn.account_name,accessToken:d.access_token,
+    expiresAt:d.expires_in?new Date(Date.now()+Number(d.expires_in)*1000).toISOString():null,
+    scope:d.scope||conn.scope,meta:{refreshedAt:new Date().toISOString()}
   });
-  return data.access_token;
+}
+
+async function youtubeToken() {
+  let conn=await getConnection('youtube');
+  if(conn) conn=await refreshYouTubeConnection(conn);
+  if(conn?.access_token_enc) return decryptSecret(conn.access_token_enc);
+  if(process.env.YOUTUBE_CLIENT_ID&&process.env.YOUTUBE_CLIENT_SECRET&&process.env.YOUTUBE_REFRESH_TOKEN){
+    const body=new URLSearchParams({
+      client_id:process.env.YOUTUBE_CLIENT_ID,client_secret:process.env.YOUTUBE_CLIENT_SECRET,
+      refresh_token:process.env.YOUTUBE_REFRESH_TOKEN,grant_type:'refresh_token'
+    });
+    const d=await fetchJson('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    return d.access_token;
+  }
+  return null;
 }
 
 async function syncYouTube() {
-  if (!(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET && process.env.YOUTUBE_REFRESH_TOKEN)) return { source:'youtube', skipped:true };
-  const token = await youtubeAccessToken();
-  const end = new Date();
-  const start = new Date(end.getTime() - 90 * 86400000);
-  const q = new URL('https://youtubeanalytics.googleapis.com/v2/reports');
+  const token=await youtubeToken();
+  if(!token) return {source:'youtube',skipped:true};
+  const end=new Date();
+  const start=new Date(end.getTime()-90*86400000);
+  const q=new URL('https://youtubeanalytics.googleapis.com/v2/reports');
   q.searchParams.set('ids','channel==MINE');
   q.searchParams.set('startDate',start.toISOString().slice(0,10));
   q.searchParams.set('endDate',end.toISOString().slice(0,10));
@@ -524,99 +689,126 @@ async function syncYouTube() {
   q.searchParams.set('metrics','views,likes,comments,shares,subscribersGained,estimatedMinutesWatched,averageViewDuration');
   q.searchParams.set('sort','-views');
   q.searchParams.set('maxResults','200');
-  const report = await fetchJson(q, { headers:{Authorization:'Bearer ' + token} });
-  const headers = (report.columnHeaders || []).map(x => x.name);
-  const rows = Array.isArray(report.rows) ? report.rows : [];
-  const ids = rows.map(r => String(r[0])).filter(Boolean);
-  const snippets = {};
-  for (let i=0;i<ids.length;i+=50) {
-    const u = new URL('https://www.googleapis.com/youtube/v3/videos');
-    u.searchParams.set('part','snippet');
-    u.searchParams.set('id',ids.slice(i,i+50).join(','));
-    const d = await fetchJson(u, { headers:{Authorization:'Bearer ' + token} });
-    for (const item of Array.isArray(d.items)?d.items:[]) snippets[item.id]=item.snippet || {};
+  const report=await fetchJson(q,{headers:{Authorization:'Bearer '+token}});
+  const headers=(report.columnHeaders||[]).map(x=>x.name);
+  const rows=Array.isArray(report.rows)?report.rows:[];
+  const ids=rows.map(r=>String(r[0])).filter(Boolean);
+  const snippets={};
+  for(let i=0;i<ids.length;i+=50){
+    const u=new URL('https://www.googleapis.com/youtube/v3/videos');
+    u.searchParams.set('part','snippet');u.searchParams.set('id',ids.slice(i,i+50).join(','));
+    const d=await fetchJson(u,{headers:{Authorization:'Bearer '+token}});
+    for(const item of Array.isArray(d.items)?d.items:[])snippets[item.id]=item.snippet||{};
   }
   let synced=0;
-  for (const row of rows) {
+  for(const row of rows){
     const obj={};headers.forEach((h,i)=>obj[h]=row[i]);
-    const id=String(obj.video);
-    const sn=snippets[id] || {};
+    const id=String(obj.video);const sn=snippets[id]||{};
     const asset=await upsertAsset({
-      platform:'youtube', externalId:id, url:'https://www.youtube.com/watch?v='+id,
-      title:sn.title || id, publishedAt:sn.publishedAt || null, raw:{analytics:obj,snippet:sn}
+      platform:'youtube',externalId:id,url:'https://www.youtube.com/watch?v='+id,
+      title:sn.title||id,publishedAt:sn.publishedAt||null,raw:{analytics:obj,snippet:sn}
     });
-    await saveSnapshot(asset, {
-      views:obj.views, likes:obj.likes, comments:obj.comments, shares:obj.shares,
-      subscribersGained:obj.subscribersGained,
-      watchTimeSeconds:numeric(obj.estimatedMinutesWatched) === null ? null : Number(obj.estimatedMinutesWatched)*60,
+    await saveSnapshot(asset,{
+      views:obj.views,likes:obj.likes,comments:obj.comments,shares:obj.shares,subscribersGained:obj.subscribersGained,
+      watchTimeSeconds:numeric(obj.estimatedMinutesWatched)===null?null:Number(obj.estimatedMinutesWatched)*60,
       averageViewDuration:obj.averageViewDuration
-    }, obj);
+    },obj);
     synced++;
   }
-  return { source:'youtube', synced };
+  return {source:'youtube',synced};
+}
+
+async function refreshXConnection(conn) {
+  if(!conn?.refresh_token_enc) return conn;
+  const expires=conn.expires_at?new Date(conn.expires_at).getTime():0;
+  if(conn.access_token_enc && expires-Date.now()>5*60000) return conn;
+  const body=new URLSearchParams({
+    refresh_token:decryptSecret(conn.refresh_token_enc),grant_type:'refresh_token',client_id:process.env.X_CLIENT_ID||''
+  });
+  const headers={'Content-Type':'application/x-www-form-urlencoded'};
+  if(process.env.X_CLIENT_SECRET){
+    headers.Authorization='Basic '+Buffer.from(process.env.X_CLIENT_ID+':'+process.env.X_CLIENT_SECRET).toString('base64');
+  }
+  const d=await fetchJson('https://api.x.com/2/oauth2/token',{method:'POST',headers,body});
+  return saveConnection('x',{
+    accountId:conn.account_id,accountName:conn.account_name,accessToken:d.access_token,
+    refreshToken:d.refresh_token||decryptSecret(conn.refresh_token_enc),
+    expiresAt:d.expires_in?new Date(Date.now()+Number(d.expires_in)*1000).toISOString():null,
+    scope:d.scope||conn.scope,meta:{refreshedAt:new Date().toISOString()}
+  });
+}
+
+async function xAuth() {
+  let conn=await getConnection('x');
+  if(conn)conn=await refreshXConnection(conn);
+  if(conn?.access_token_enc)return {token:decryptSecret(conn.access_token_enc),userId:conn.account_id};
+  if(process.env.X_USER_ID&&process.env.X_BEARER_TOKEN)return {token:process.env.X_BEARER_TOKEN,userId:process.env.X_USER_ID};
+  return null;
 }
 
 async function syncX() {
-  if (!(process.env.X_USER_ID && process.env.X_BEARER_TOKEN)) return { source:'x', skipped:true };
-  const u = new URL('https://api.x.com/2/users/' + encodeURIComponent(process.env.X_USER_ID) + '/tweets');
+  const auth=await xAuth();
+  if(!auth)return {source:'x',skipped:true};
+  const u=new URL('https://api.x.com/2/users/'+encodeURIComponent(auth.userId)+'/tweets');
   u.searchParams.set('max_results','100');
   u.searchParams.set('exclude','retweets,replies');
-  u.searchParams.set('tweet.fields','created_at,public_metrics,attachments');
+  u.searchParams.set('tweet.fields','created_at,public_metrics,non_public_metrics,organic_metrics,attachments');
   u.searchParams.set('expansions','attachments.media_keys');
-  u.searchParams.set('media.fields','public_metrics,type');
-  const d = await fetchJson(u,{headers:{Authorization:'Bearer '+process.env.X_BEARER_TOKEN}});
+  u.searchParams.set('media.fields','public_metrics,non_public_metrics,organic_metrics,type');
+  const d=await fetchJson(u,{headers:{Authorization:'Bearer '+auth.token}});
   let synced=0;
-  for (const t of Array.isArray(d.data)?d.data:[]) {
-    const pm=t.public_metrics || {};
+  for(const t of Array.isArray(d.data)?d.data:[]){
+    const pm=t.public_metrics||{},om=t.organic_metrics||{},nm=t.non_public_metrics||{};
+    const impressions=om.impression_count??pm.impression_count??null;
     const asset=await upsertAsset({
-      platform:'x', externalId:t.id, url:'https://x.com/i/web/status/'+t.id,
-      title:(t.text||'').slice(0,180), publishedAt:t.created_at, raw:t
+      platform:'x',externalId:t.id,url:'https://x.com/i/web/status/'+t.id,
+      title:(t.text||'').slice(0,180),publishedAt:t.created_at,raw:t
     });
     await saveSnapshot(asset,{
-      views:pm.impression_count, impressions:pm.impression_count, likes:pm.like_count,
-      comments:pm.reply_count, shares:(pm.retweet_count||0)+(pm.quote_count||0), bookmarks:pm.bookmark_count
+      views:impressions,impressions,likes:pm.like_count,comments:pm.reply_count,
+      shares:(pm.retweet_count||0)+(pm.quote_count||0),bookmarks:pm.bookmark_count,
+      profileClicks:nm.user_profile_clicks??om.user_profile_clicks??null
     },t);
     synced++;
   }
-  return { source:'x', synced };
+  return {source:'x',synced};
 }
 
 async function syncReddit() {
   const username=String(process.env.REDDIT_USERNAME||'').trim();
-  if (!username) return { source:'reddit', skipped:true };
+  if(!username)return {source:'reddit',skipped:true};
   const u='https://www.reddit.com/user/'+encodeURIComponent(username)+'/submitted.json?limit=100&raw_json=1';
-  const d=await fetchJson(u,{headers:{'User-Agent':'PsychologyContentOS/2.1 analytics'}});
+  const d=await fetchJson(u,{headers:{'User-Agent':'PsychologyContentOS/2.2 analytics'}});
   let synced=0;
-  for(const child of d.data?.children || []) {
-    const p=child.data || {};
+  for(const child of d.data?.children||[]){
+    const p=child.data||{};
     const asset=await upsertAsset({
-      platform:'reddit', externalId:p.id, url:'https://www.reddit.com'+(p.permalink||''),
-      title:p.title||p.id, publishedAt:p.created_utc ? new Date(p.created_utc*1000).toISOString() : null, raw:p
+      platform:'reddit',externalId:p.id,url:'https://www.reddit.com'+(p.permalink||''),
+      title:p.title||p.id,publishedAt:p.created_utc?new Date(p.created_utc*1000).toISOString():null,raw:p
     });
     await saveSnapshot(asset,{likes:p.score,comments:p.num_comments},{score:p.score,upvote_ratio:p.upvote_ratio,num_comments:p.num_comments});
     synced++;
   }
-  return { source:'reddit', synced };
+  return {source:'reddit',synced};
 }
 
 let analyticsSyncRunning=false;
 async function syncAnalyticsSources() {
-  if (!pool || analyticsSyncRunning) return [];
+  if(!pool||analyticsSyncRunning)return [];
   analyticsSyncRunning=true;
   const results=[];
-  for (const fn of [syncInstagram,syncYouTube,syncX,syncReddit]) {
-    try { results.push(await fn()); }
-    catch (error) { results.push({ source:fn.name.replace(/^sync/,'').toLowerCase(), error:error.message }); }
+  for(const fn of [syncInstagram,syncYouTube,syncX,syncReddit]){
+    try{results.push(await fn())}catch(error){results.push({source:fn.name.replace(/^sync/,'').toLowerCase(),error:error.message})}
   }
   analyticsSyncRunning=false;
-  console.log('Analytics sync:', JSON.stringify(results));
+  console.log('Analytics sync:',JSON.stringify(results));
   return results;
 }
 
 async function analyticsSummary() {
-  if (!pool) return { sources:analyticsSourceState(), assets:[], totals:{} };
-  const { rows:assets }=await pool.query(`
-    SELECT a.*, p.views,p.reach,p.impressions,p.likes,p.comments,p.shares,p.saves,p.bookmarks,p.profile_clicks,
+  if(!pool)return {sources:await analyticsSourceState(),assets:[],totals:{}};
+  const {rows:assets}=await pool.query(`
+    SELECT a.*,p.views,p.reach,p.impressions,p.likes,p.comments,p.shares,p.saves,p.bookmarks,p.profile_clicks,
            p.subscribers_gained,p.watch_time_seconds,p.average_view_duration,p.completion_rate,p.created_at AS measured_at,
            i.title AS idea_title
     FROM published_assets a
@@ -627,7 +819,7 @@ async function analyticsSummary() {
     ORDER BY COALESCE(a.published_at,a.created_at) DESC
     LIMIT 250
   `);
-  const { rows:[totals] }=await pool.query(`
+  const {rows:[totals]}=await pool.query(`
     WITH latest AS (
       SELECT DISTINCT ON (asset_id) * FROM performance_events WHERE asset_id IS NOT NULL ORDER BY asset_id,created_at DESC
     )
@@ -641,11 +833,139 @@ async function analyticsSummary() {
       COALESCE(SUM(subscribers_gained),0)::bigint AS subscribers_gained
     FROM latest
   `);
-  return { sources:analyticsSourceState(), assets, totals:totals||{} };
+  return {sources:await analyticsSourceState(),assets,totals:totals||{}};
+}
+
+async function oauthStart(platform,res) {
+  if(!pool)return json(res,503,{error:'Database unavailable'});
+  if(platform==='instagram'){
+    if(!(process.env.INSTAGRAM_CLIENT_ID&&process.env.INSTAGRAM_CLIENT_SECRET))return json(res,503,{error:'Instagram developer credentials are not configured'});
+    const state=await createOauthState(platform);
+    const u=new URL('https://www.instagram.com/oauth/authorize');
+    u.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
+    u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/instagram/callback');
+    u.searchParams.set('response_type','code');
+    u.searchParams.set('scope','instagram_business_basic,instagram_business_manage_insights');
+    u.searchParams.set('state',state);
+    u.searchParams.set('enable_fb_login','0');
+    u.searchParams.set('force_authentication','1');
+    res.writeHead(302,{Location:u.toString(),'Cache-Control':'no-store'});return res.end();
+  }
+  if(platform==='youtube'){
+    if(!(process.env.YOUTUBE_CLIENT_ID&&process.env.YOUTUBE_CLIENT_SECRET))return json(res,503,{error:'YouTube OAuth credentials are not configured'});
+    const state=await createOauthState(platform);
+    const u=new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    u.searchParams.set('client_id',process.env.YOUTUBE_CLIENT_ID);
+    u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/youtube/callback');
+    u.searchParams.set('response_type','code');
+    u.searchParams.set('scope','https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly');
+    u.searchParams.set('access_type','offline');
+    u.searchParams.set('prompt','consent');
+    u.searchParams.set('include_granted_scopes','true');
+    u.searchParams.set('state',state);
+    res.writeHead(302,{Location:u.toString(),'Cache-Control':'no-store'});return res.end();
+  }
+  if(platform==='x'){
+    if(!process.env.X_CLIENT_ID)return json(res,503,{error:'X OAuth credentials are not configured'});
+    const verifier=randomBytes(48).toString('base64url');
+    const challenge=createHash('sha256').update(verifier).digest('base64url');
+    const state=await createOauthState(platform,verifier);
+    const u=new URL('https://x.com/i/oauth2/authorize');
+    u.searchParams.set('response_type','code');
+    u.searchParams.set('client_id',process.env.X_CLIENT_ID);
+    u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/x/callback');
+    u.searchParams.set('scope','tweet.read users.read offline.access');
+    u.searchParams.set('state',state);
+    u.searchParams.set('code_challenge',challenge);
+    u.searchParams.set('code_challenge_method','S256');
+    res.writeHead(302,{Location:u.toString(),'Cache-Control':'no-store'});return res.end();
+  }
+  return json(res,404,{error:'Unknown analytics source'});
+}
+
+async function oauthCallback(platform,u,res) {
+  const state=u.searchParams.get('state');
+  const code=u.searchParams.get('code');
+  const error=u.searchParams.get('error');
+  if(error)return html(res,400,oauthResultPage(platform,'Provider returned: '+error,false));
+  const row=await consumeOauthState(state,platform);
+  if(!row||!code)return html(res,400,oauthResultPage(platform,'Invalid or expired OAuth state.',false));
+  try{
+    if(platform==='instagram'){
+      const body=new URLSearchParams({
+        client_id:process.env.INSTAGRAM_CLIENT_ID,client_secret:process.env.INSTAGRAM_CLIENT_SECRET,
+        grant_type:'authorization_code',redirect_uri:publicBaseUrl()+'/oauth/instagram/callback',code
+      });
+      const short=await fetchJson('https://api.instagram.com/oauth/access_token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+      const longUrl=new URL('https://graph.instagram.com/access_token');
+      longUrl.searchParams.set('grant_type','ig_exchange_token');
+      longUrl.searchParams.set('client_secret',process.env.INSTAGRAM_CLIENT_SECRET);
+      longUrl.searchParams.set('access_token',short.access_token);
+      const long=await fetchJson(longUrl);
+      const token=long.access_token||short.access_token;
+      const meUrl=new URL('https://graph.instagram.com/'+(process.env.INSTAGRAM_API_VERSION||'v26.0')+'/me');
+      meUrl.searchParams.set('fields','id,username,account_type,media_count');
+      meUrl.searchParams.set('access_token',token);
+      const me=await fetchJson(meUrl);
+      await saveConnection('instagram',{
+        accountId:me.id||String(short.user_id||''),accountName:me.username||'Instagram',
+        accessToken:token,expiresAt:long.expires_in?new Date(Date.now()+Number(long.expires_in)*1000).toISOString():null,
+        scope:short.permissions||'instagram_business_basic,instagram_business_manage_insights',meta:{accountType:me.account_type,mediaCount:me.media_count}
+      });
+      syncInstagram().catch(e=>console.error('Instagram first sync:',e.message));
+      return html(res,200,oauthResultPage('Instagram connected',me.username||'Analytics connection is active.'));
+    }
+    if(platform==='youtube'){
+      const body=new URLSearchParams({
+        client_id:process.env.YOUTUBE_CLIENT_ID,client_secret:process.env.YOUTUBE_CLIENT_SECRET,code,
+        grant_type:'authorization_code',redirect_uri:publicBaseUrl()+'/oauth/youtube/callback'
+      });
+      const tok=await fetchJson('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+      const chUrl=new URL('https://www.googleapis.com/youtube/v3/channels');
+      chUrl.searchParams.set('part','id,snippet');chUrl.searchParams.set('mine','true');
+      const ch=await fetchJson(chUrl,{headers:{Authorization:'Bearer '+tok.access_token}});
+      const channel=(ch.items||[])[0]||{};
+      await saveConnection('youtube',{
+        accountId:channel.id||null,accountName:channel.snippet?.title||'YouTube',
+        accessToken:tok.access_token,refreshToken:tok.refresh_token||null,
+        expiresAt:tok.expires_in?new Date(Date.now()+Number(tok.expires_in)*1000).toISOString():null,
+        scope:tok.scope||null,meta:{channel:channel.snippet||{}}
+      });
+      syncYouTube().catch(e=>console.error('YouTube first sync:',e.message));
+      return html(res,200,oauthResultPage('YouTube connected',channel.snippet?.title||'Analytics connection is active.'));
+    }
+    if(platform==='x'){
+      const body=new URLSearchParams({
+        code,grant_type:'authorization_code',client_id:process.env.X_CLIENT_ID,
+        redirect_uri:publicBaseUrl()+'/oauth/x/callback',code_verifier:row.code_verifier||''
+      });
+      const headers={'Content-Type':'application/x-www-form-urlencoded'};
+      if(process.env.X_CLIENT_SECRET)headers.Authorization='Basic '+Buffer.from(process.env.X_CLIENT_ID+':'+process.env.X_CLIENT_SECRET).toString('base64');
+      const tok=await fetchJson('https://api.x.com/2/oauth2/token',{method:'POST',headers,body});
+      const me=await fetchJson('https://api.x.com/2/users/me?user.fields=username,name',{headers:{Authorization:'Bearer '+tok.access_token}});
+      await saveConnection('x',{
+        accountId:me.data?.id||null,accountName:me.data?.username?('@'+me.data.username):(me.data?.name||'X'),
+        accessToken:tok.access_token,refreshToken:tok.refresh_token||null,
+        expiresAt:tok.expires_in?new Date(Date.now()+Number(tok.expires_in)*1000).toISOString():null,
+        scope:tok.scope||null,meta:{name:me.data?.name,username:me.data?.username}
+      });
+      syncX().catch(e=>console.error('X first sync:',e.message));
+      return html(res,200,oauthResultPage('X connected',me.data?.username?('@'+me.data.username):'Analytics connection is active.'));
+    }
+    return html(res,404,oauthResultPage('Unknown source','No OAuth handler.',false));
+  }catch(error){
+    console.error(platform+' OAuth callback:',error);
+    return html(res,500,oauthResultPage(platform,'Connection failed: '+error.message,false));
+  }
 }
 
 async function route(req, res) {
   const u = new URL(req.url, 'http://localhost');
+
+  const oauthStartMatch=u.pathname.match(/^\/oauth\/(instagram|youtube|x)\/start$/);
+  if(oauthStartMatch && req.method==='GET') return oauthStart(oauthStartMatch[1],res);
+  const oauthCallbackMatch=u.pathname.match(/^\/oauth\/(instagram|youtube|x)\/callback$/);
+  if(oauthCallbackMatch && req.method==='GET') return oauthCallback(oauthCallbackMatch[1],u,res);
 
   if (u.pathname === '/api/health') return json(res, 200, { ok: true, db: Boolean(pool) });
 
@@ -750,7 +1070,7 @@ async function route(req, res) {
   }
 
   if (u.pathname === '/api/analytics/sources' && req.method === 'GET') {
-    return json(res, 200, { sources: analyticsSourceState() });
+    return json(res, 200, { sources: await analyticsSourceState() });
   }
 
   if (u.pathname === '/api/analytics/summary' && req.method === 'GET') {
