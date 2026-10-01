@@ -836,8 +836,11 @@ async function analyticsSummary() {
   return {sources:await analyticsSourceState(),assets,totals:totals||{}};
 }
 
-async function oauthStart(platform,res) {
+async function oauthStart(platform,u,res) {
   if(!pool)return json(res,503,{error:'Database unavailable'});
+  const requiredPin=String(process.env.ANALYTICS_CONNECT_PIN||'');
+  if(!requiredPin)return json(res,503,{error:'ANALYTICS_CONNECT_PIN is not configured'});
+  if(String(u.searchParams.get('pin')||'')!==requiredPin)return json(res,403,{error:'Invalid analytics admin PIN'});
   if(platform==='instagram'){
     if(!(process.env.INSTAGRAM_CLIENT_ID&&process.env.INSTAGRAM_CLIENT_SECRET))return json(res,503,{error:'Instagram developer credentials are not configured'});
     const state=await createOauthState(platform);
@@ -963,7 +966,7 @@ async function route(req, res) {
   const u = new URL(req.url, 'http://localhost');
 
   const oauthStartMatch=u.pathname.match(/^\/oauth\/(instagram|youtube|x)\/start$/);
-  if(oauthStartMatch && req.method==='GET') return oauthStart(oauthStartMatch[1],res);
+  if(oauthStartMatch && req.method==='GET') return oauthStart(oauthStartMatch[1],u,res);
   const oauthCallbackMatch=u.pathname.match(/^\/oauth\/(instagram|youtube|x)\/callback$/);
   if(oauthCallbackMatch && req.method==='GET') return oauthCallback(oauthCallbackMatch[1],u,res);
 
