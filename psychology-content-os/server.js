@@ -583,19 +583,7 @@ async function fetchJson(url, options = {}) {
 }
 
 async function refreshInstagramConnection(conn) {
-  if(!conn?.access_token_enc) return conn;
-  const expires=conn.expires_at ? new Date(conn.expires_at).getTime() : 0;
-  if(expires && expires-Date.now() > 7*86400000) return conn;
-  const token=decryptSecret(conn.access_token_enc);
-  const u=new URL('https://graph.instagram.com/refresh_access_token');
-  u.searchParams.set('grant_type','ig_refresh_token');
-  u.searchParams.set('access_token',token);
-  const d=await fetchJson(u);
-  return saveConnection('instagram',{
-    accountId:conn.account_id,accountName:conn.account_name,accessToken:d.access_token||token,
-    expiresAt:d.expires_in?new Date(Date.now()+Number(d.expires_in)*1000).toISOString():conn.expires_at,
-    scope:conn.scope,meta:{refreshedAt:new Date().toISOString()}
-  });
+  return conn;
 }
 
 async function instagramToken() {
@@ -610,8 +598,8 @@ async function syncInstagram() {
   const auth=await instagramToken();
   if(!auth) return {source:'instagram',skipped:true};
   const {token,userId}=auth;
-  const base=process.env.INSTAGRAM_GRAPH_BASE || 'https://graph.instagram.com';
-  const apiVersion=process.env.INSTAGRAM_API_VERSION || 'v26.0';
+  const base=process.env.INSTAGRAM_GRAPH_BASE || 'https://graph.facebook.com';
+  const apiVersion=process.env.META_API_VERSION || 'v24.0';
   const mediaUrl=new URL(base.replace(/\/$/,'')+'/'+apiVersion+'/'+encodeURIComponent(userId)+'/media');
   mediaUrl.searchParams.set('fields','id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count');
   mediaUrl.searchParams.set('limit','50');
@@ -842,16 +830,14 @@ async function oauthStart(platform,u,res) {
   if(!requiredPin)return json(res,503,{error:'ANALYTICS_CONNECT_PIN is not configured'});
   if(String(u.searchParams.get('pin')||'')!==requiredPin)return json(res,403,{error:'Invalid analytics admin PIN'});
   if(platform==='instagram'){
-    if(!(process.env.INSTAGRAM_CLIENT_ID&&process.env.INSTAGRAM_CLIENT_SECRET))return json(res,503,{error:'Instagram developer credentials are not configured'});
+    if(!(process.env.INSTAGRAM_CLIENT_ID&&process.env.INSTAGRAM_CLIENT_SECRET))return json(res,503,{error:'Meta app credentials are not configured'});
     const state=await createOauthState(platform);
-    const u=new URL('https://www.instagram.com/oauth/authorize');
+    const u=new URL('https://www.facebook.com/'+(process.env.META_API_VERSION||'v24.0')+'/dialog/oauth');
     u.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
     u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/instagram/callback');
     u.searchParams.set('response_type','code');
-    u.searchParams.set('scope','instagram_business_basic,instagram_business_manage_insights');
+    u.searchParams.set('scope','instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management');
     u.searchParams.set('state',state);
-    u.searchParams.set('enable_fb_login','0');
-    u.searchParams.set('force_authentication','1');
     res.writeHead(302,{Location:u.toString(),'Cache-Control':'no-store'});return res.end();
   }
   if(platform==='youtube'){
@@ -895,28 +881,40 @@ async function oauthCallback(platform,u,res) {
   if(!row||!code)return html(res,400,oauthResultPage(platform,'Invalid or expired OAuth state.',false));
   try{
     if(platform==='instagram'){
-      const body=new URLSearchParams({
-        client_id:process.env.INSTAGRAM_CLIENT_ID,client_secret:process.env.INSTAGRAM_CLIENT_SECRET,
-        grant_type:'authorization_code',redirect_uri:publicBaseUrl()+'/oauth/instagram/callback',code
-      });
-      const short=await fetchJson('https://api.instagram.com/oauth/access_token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-      const longUrl=new URL('https://graph.instagram.com/access_token');
-      longUrl.searchParams.set('grant_type','ig_exchange_token');
+      const tokenUrl=new URL('https://graph.facebook.com/'+(process.env.META_API_VERSION||'v24.0')+'/oauth/access_token');
+      tokenUrl.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
+      tokenUrl.searchParams.set('client_secret',process.env.INSTAGRAM_CLIENT_SECRET);
+      tokenUrl.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/instagram/callback');
+      tokenUrl.searchParams.set('code',code);
+      const short=await fetchJson(tokenUrl);
+
+      const longUrl=new URL('https://graph.facebook.com/'+(process.env.META_API_VERSION||'v24.0')+'/oauth/access_token');
+      longUrl.searchParams.set('grant_type','fb_exchange_token');
+      longUrl.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
       longUrl.searchParams.set('client_secret',process.env.INSTAGRAM_CLIENT_SECRET);
-      longUrl.searchParams.set('access_token',short.access_token);
-      const long=await fetchJson(longUrl);
+      longUrl.searchParams.set('fb_exchange_token',short.access_token);
+      let long=short;
+      try{long=await fetchJson(longUrl)}catch(error){console.warn('Long-lived Meta token exchange failed:',error.message)}
+
       const token=long.access_token||short.access_token;
-      const meUrl=new URL('https://graph.instagram.com/'+(process.env.INSTAGRAM_API_VERSION||'v26.0')+'/me');
-      meUrl.searchParams.set('fields','id,username,account_type,media_count');
-      meUrl.searchParams.set('access_token',token);
-      const me=await fetchJson(meUrl);
+      const pagesUrl=new URL('https://graph.facebook.com/'+(process.env.META_API_VERSION||'v24.0')+'/me/accounts');
+      pagesUrl.searchParams.set('fields','id,name,access_token,instagram_business_account{id,username,profile_picture_url}');
+      pagesUrl.searchParams.set('access_token',token);
+      const pages=await fetchJson(pagesUrl);
+      const page=(pages.data||[]).find(p=>p.instagram_business_account?.id);
+      if(!page) throw new Error('No Facebook Page with a connected Instagram Professional account was found');
+      const ig=page.instagram_business_account;
+      const pageToken=page.access_token||token;
+
       await saveConnection('instagram',{
-        accountId:me.id||String(short.user_id||''),accountName:me.username||'Instagram',
-        accessToken:token,expiresAt:long.expires_in?new Date(Date.now()+Number(long.expires_in)*1000).toISOString():null,
-        scope:short.permissions||'instagram_business_basic,instagram_business_manage_insights',meta:{accountType:me.account_type,mediaCount:me.media_count}
+        accountId:ig.id,accountName:ig.username||page.name||'Instagram',
+        accessToken:pageToken,
+        expiresAt:long.expires_in?new Date(Date.now()+Number(long.expires_in)*1000).toISOString():null,
+        scope:'instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management',
+        meta:{pageId:page.id,pageName:page.name,facebookUserTokenStored:false}
       });
       syncInstagram().catch(e=>console.error('Instagram first sync:',e.message));
-      return html(res,200,oauthResultPage('Instagram connected',me.username||'Analytics connection is active.'));
+      return html(res,200,oauthResultPage('Instagram connected',ig.username?('@'+ig.username):'Analytics connection is active.'));
     }
     if(platform==='youtube'){
       const body=new URLSearchParams({
