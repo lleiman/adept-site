@@ -86,20 +86,51 @@ async function initDb() {
       notes text NOT NULL DEFAULT '',
       trend jsonb NOT NULL DEFAULT '{}'::jsonb
     );
+    CREATE TABLE IF NOT EXISTS published_assets (
+      id uuid PRIMARY KEY,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      item_id text REFERENCES content_items(id) ON DELETE SET NULL,
+      platform text NOT NULL,
+      external_id text NOT NULL,
+      url text,
+      title text,
+      published_at timestamptz,
+      last_synced_at timestamptz,
+      raw jsonb NOT NULL DEFAULT '{}'::jsonb
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS published_assets_platform_external_idx
+      ON published_assets(platform, external_id);
     CREATE TABLE IF NOT EXISTS performance_events (
       id uuid PRIMARY KEY,
       created_at timestamptz NOT NULL DEFAULT now(),
+      asset_id uuid REFERENCES published_assets(id) ON DELETE CASCADE,
       item_id text,
       platform text NOT NULL,
       published_at timestamptz,
       views bigint,
+      reach bigint,
+      impressions bigint,
       likes bigint,
       comments bigint,
       shares bigint,
       saves bigint,
+      bookmarks bigint,
+      profile_clicks bigint,
+      subscribers_gained bigint,
       watch_time_seconds numeric,
+      average_view_duration numeric,
+      completion_rate numeric,
       raw jsonb NOT NULL DEFAULT '{}'::jsonb
     );
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS asset_id uuid REFERENCES published_assets(id) ON DELETE CASCADE;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS reach bigint;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS impressions bigint;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS bookmarks bigint;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS profile_clicks bigint;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS subscribers_gained bigint;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS average_view_duration numeric;
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS completion_rate numeric;
   `);
   const seed = parseEnvJson('CONTENT_PIPELINE_JSON', []);
   for (const pack of Array.isArray(seed) ? seed : []) {
@@ -319,6 +350,300 @@ async function getItems() {
   return rows;
 }
 
+function analyticsSourceState() {
+  return [
+    {
+      id: 'instagram',
+      name: 'Instagram',
+      configured: Boolean(process.env.INSTAGRAM_USER_ID && process.env.INSTAGRAM_ACCESS_TOKEN),
+      mode: 'Instagram Professional Insights',
+      needs: ['INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN']
+    },
+    {
+      id: 'youtube',
+      name: 'YouTube',
+      configured: Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET && process.env.YOUTUBE_REFRESH_TOKEN),
+      mode: 'YouTube Analytics API',
+      needs: ['YOUTUBE_CLIENT_ID','YOUTUBE_CLIENT_SECRET','YOUTUBE_REFRESH_TOKEN']
+    },
+    {
+      id: 'x',
+      name: 'X',
+      configured: Boolean(process.env.X_USER_ID && process.env.X_BEARER_TOKEN),
+      mode: 'X API v2 public metrics',
+      needs: ['X_USER_ID','X_BEARER_TOKEN']
+    },
+    {
+      id: 'telegram',
+      name: 'Telegram',
+      configured: false,
+      mode: 'MTProto channel statistics',
+      needs: ['admin MTProto authorization']
+    },
+    {
+      id: 'reddit',
+      name: 'Reddit',
+      configured: Boolean(process.env.REDDIT_USERNAME),
+      mode: 'Public post metrics',
+      needs: ['REDDIT_USERNAME']
+    }
+  ];
+}
+
+function numeric(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function externalIdFromUrl(platform, url) {
+  const value = String(url || '').trim();
+  if (!value) return null;
+  try {
+    const u = new URL(value);
+    if (platform === 'youtube') {
+      if (u.hostname.includes('youtu.be')) return u.pathname.split('/').filter(Boolean)[0] || null;
+      return u.searchParams.get('v') || (u.pathname.match(/\/shorts\/([^/?]+)/)?.[1]) || null;
+    }
+    if (platform === 'instagram') return u.pathname.split('/').filter(Boolean)[1] || u.pathname.split('/').filter(Boolean)[0] || null;
+    if (platform === 'x') return u.pathname.match(/\/status\/(\d+)/)?.[1] || null;
+    if (platform === 'reddit') return u.pathname.match(/\/comments\/([^/]+)/)?.[1] || null;
+    if (platform === 'telegram') return u.pathname.split('/').filter(Boolean).slice(-1)[0] || null;
+  } catch {}
+  return null;
+}
+
+async function upsertAsset({ platform, externalId, url, title, publishedAt, raw, itemId = null }) {
+  if (!pool || !externalId) return null;
+  const { rows } = await pool.query(`
+    INSERT INTO published_assets(id,item_id,platform,external_id,url,title,published_at,last_synced_at,raw)
+    VALUES($1,$2,$3,$4,$5,$6,$7,now(),$8::jsonb)
+    ON CONFLICT (platform,external_id) DO UPDATE SET
+      updated_at=now(),
+      item_id=COALESCE(published_assets.item_id,EXCLUDED.item_id),
+      url=COALESCE(EXCLUDED.url,published_assets.url),
+      title=COALESCE(EXCLUDED.title,published_assets.title),
+      published_at=COALESCE(EXCLUDED.published_at,published_assets.published_at),
+      last_synced_at=now(),
+      raw=EXCLUDED.raw
+    RETURNING *
+  `, [randomUUID(), itemId, platform, String(externalId), url || null, title || null, publishedAt || null, JSON.stringify(raw || {})]);
+  return rows[0];
+}
+
+async function saveSnapshot(asset, metrics, raw) {
+  if (!pool || !asset) return null;
+  const id = randomUUID();
+  await pool.query(`
+    INSERT INTO performance_events(
+      id,asset_id,item_id,platform,published_at,views,reach,impressions,likes,comments,shares,saves,bookmarks,
+      profile_clicks,subscribers_gained,watch_time_seconds,average_view_duration,completion_rate,raw
+    ) VALUES(
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19::jsonb
+    )
+  `, [
+    id, asset.id, asset.item_id || null, asset.platform, asset.published_at || null,
+    numeric(metrics.views), numeric(metrics.reach), numeric(metrics.impressions), numeric(metrics.likes),
+    numeric(metrics.comments), numeric(metrics.shares), numeric(metrics.saves), numeric(metrics.bookmarks),
+    numeric(metrics.profileClicks), numeric(metrics.subscribersGained), numeric(metrics.watchTimeSeconds),
+    numeric(metrics.averageViewDuration), numeric(metrics.completionRate), JSON.stringify(raw || {})
+  ]);
+  return id;
+}
+
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, { ...options, signal: options.signal || AbortSignal.timeout(20000) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error((data.error && (data.error.message || data.error)) || ('HTTP ' + response.status));
+  return data;
+}
+
+async function syncInstagram() {
+  if (!(process.env.INSTAGRAM_USER_ID && process.env.INSTAGRAM_ACCESS_TOKEN)) return { source:'instagram', skipped:true };
+  const userId = process.env.INSTAGRAM_USER_ID;
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+  const base = process.env.INSTAGRAM_GRAPH_BASE || 'https://graph.instagram.com';
+  const apiVersion = process.env.INSTAGRAM_API_VERSION || 'v24.0';
+  const mediaUrl = new URL(base.replace(/\/$/,'') + '/' + apiVersion + '/' + encodeURIComponent(userId) + '/media');
+  mediaUrl.searchParams.set('fields','id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count');
+  mediaUrl.searchParams.set('limit','50');
+  mediaUrl.searchParams.set('access_token',token);
+  const media = await fetchJson(mediaUrl);
+  let synced = 0;
+  for (const m of Array.isArray(media.data) ? media.data : []) {
+    const metrics = { likes:m.like_count, comments:m.comments_count };
+    const insightRaw = {};
+    for (const metric of ['views','reach','saved','shares']) {
+      try {
+        const u = new URL(base.replace(/\/$/,'') + '/' + apiVersion + '/' + encodeURIComponent(m.id) + '/insights');
+        u.searchParams.set('metric',metric);
+        u.searchParams.set('access_token',token);
+        const d = await fetchJson(u);
+        const row = Array.isArray(d.data) ? d.data[0] : null;
+        const value = row && (row.values?.[0]?.value ?? row.total_value?.value ?? row.value);
+        insightRaw[metric] = d;
+        if (metric === 'saved') metrics.saves = value;
+        else metrics[metric] = value;
+      } catch (error) {
+        insightRaw[metric] = { error:error.message };
+      }
+    }
+    const asset = await upsertAsset({
+      platform:'instagram', externalId:m.id, url:m.permalink, title:(m.caption || '').slice(0,180),
+      publishedAt:m.timestamp, raw:m
+    });
+    await saveSnapshot(asset, metrics, { media:m, insights:insightRaw });
+    synced++;
+  }
+  return { source:'instagram', synced };
+}
+
+async function youtubeAccessToken() {
+  const body = new URLSearchParams({
+    client_id:process.env.YOUTUBE_CLIENT_ID || '',
+    client_secret:process.env.YOUTUBE_CLIENT_SECRET || '',
+    refresh_token:process.env.YOUTUBE_REFRESH_TOKEN || '',
+    grant_type:'refresh_token'
+  });
+  const data = await fetchJson('https://oauth2.googleapis.com/token', {
+    method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body
+  });
+  return data.access_token;
+}
+
+async function syncYouTube() {
+  if (!(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET && process.env.YOUTUBE_REFRESH_TOKEN)) return { source:'youtube', skipped:true };
+  const token = await youtubeAccessToken();
+  const end = new Date();
+  const start = new Date(end.getTime() - 90 * 86400000);
+  const q = new URL('https://youtubeanalytics.googleapis.com/v2/reports');
+  q.searchParams.set('ids','channel==MINE');
+  q.searchParams.set('startDate',start.toISOString().slice(0,10));
+  q.searchParams.set('endDate',end.toISOString().slice(0,10));
+  q.searchParams.set('dimensions','video');
+  q.searchParams.set('metrics','views,likes,comments,shares,subscribersGained,estimatedMinutesWatched,averageViewDuration');
+  q.searchParams.set('sort','-views');
+  q.searchParams.set('maxResults','200');
+  const report = await fetchJson(q, { headers:{Authorization:'Bearer ' + token} });
+  const headers = (report.columnHeaders || []).map(x => x.name);
+  const rows = Array.isArray(report.rows) ? report.rows : [];
+  const ids = rows.map(r => String(r[0])).filter(Boolean);
+  const snippets = {};
+  for (let i=0;i<ids.length;i+=50) {
+    const u = new URL('https://www.googleapis.com/youtube/v3/videos');
+    u.searchParams.set('part','snippet');
+    u.searchParams.set('id',ids.slice(i,i+50).join(','));
+    const d = await fetchJson(u, { headers:{Authorization:'Bearer ' + token} });
+    for (const item of Array.isArray(d.items)?d.items:[]) snippets[item.id]=item.snippet || {};
+  }
+  let synced=0;
+  for (const row of rows) {
+    const obj={};headers.forEach((h,i)=>obj[h]=row[i]);
+    const id=String(obj.video);
+    const sn=snippets[id] || {};
+    const asset=await upsertAsset({
+      platform:'youtube', externalId:id, url:'https://www.youtube.com/watch?v='+id,
+      title:sn.title || id, publishedAt:sn.publishedAt || null, raw:{analytics:obj,snippet:sn}
+    });
+    await saveSnapshot(asset, {
+      views:obj.views, likes:obj.likes, comments:obj.comments, shares:obj.shares,
+      subscribersGained:obj.subscribersGained,
+      watchTimeSeconds:numeric(obj.estimatedMinutesWatched) === null ? null : Number(obj.estimatedMinutesWatched)*60,
+      averageViewDuration:obj.averageViewDuration
+    }, obj);
+    synced++;
+  }
+  return { source:'youtube', synced };
+}
+
+async function syncX() {
+  if (!(process.env.X_USER_ID && process.env.X_BEARER_TOKEN)) return { source:'x', skipped:true };
+  const u = new URL('https://api.x.com/2/users/' + encodeURIComponent(process.env.X_USER_ID) + '/tweets');
+  u.searchParams.set('max_results','100');
+  u.searchParams.set('exclude','retweets,replies');
+  u.searchParams.set('tweet.fields','created_at,public_metrics,attachments');
+  u.searchParams.set('expansions','attachments.media_keys');
+  u.searchParams.set('media.fields','public_metrics,type');
+  const d = await fetchJson(u,{headers:{Authorization:'Bearer '+process.env.X_BEARER_TOKEN}});
+  let synced=0;
+  for (const t of Array.isArray(d.data)?d.data:[]) {
+    const pm=t.public_metrics || {};
+    const asset=await upsertAsset({
+      platform:'x', externalId:t.id, url:'https://x.com/i/web/status/'+t.id,
+      title:(t.text||'').slice(0,180), publishedAt:t.created_at, raw:t
+    });
+    await saveSnapshot(asset,{
+      views:pm.impression_count, impressions:pm.impression_count, likes:pm.like_count,
+      comments:pm.reply_count, shares:(pm.retweet_count||0)+(pm.quote_count||0), bookmarks:pm.bookmark_count
+    },t);
+    synced++;
+  }
+  return { source:'x', synced };
+}
+
+async function syncReddit() {
+  const username=String(process.env.REDDIT_USERNAME||'').trim();
+  if (!username) return { source:'reddit', skipped:true };
+  const u='https://www.reddit.com/user/'+encodeURIComponent(username)+'/submitted.json?limit=100&raw_json=1';
+  const d=await fetchJson(u,{headers:{'User-Agent':'PsychologyContentOS/2.1 analytics'}});
+  let synced=0;
+  for(const child of d.data?.children || []) {
+    const p=child.data || {};
+    const asset=await upsertAsset({
+      platform:'reddit', externalId:p.id, url:'https://www.reddit.com'+(p.permalink||''),
+      title:p.title||p.id, publishedAt:p.created_utc ? new Date(p.created_utc*1000).toISOString() : null, raw:p
+    });
+    await saveSnapshot(asset,{likes:p.score,comments:p.num_comments},{score:p.score,upvote_ratio:p.upvote_ratio,num_comments:p.num_comments});
+    synced++;
+  }
+  return { source:'reddit', synced };
+}
+
+let analyticsSyncRunning=false;
+async function syncAnalyticsSources() {
+  if (!pool || analyticsSyncRunning) return [];
+  analyticsSyncRunning=true;
+  const results=[];
+  for (const fn of [syncInstagram,syncYouTube,syncX,syncReddit]) {
+    try { results.push(await fn()); }
+    catch (error) { results.push({ source:fn.name.replace(/^sync/,'').toLowerCase(), error:error.message }); }
+  }
+  analyticsSyncRunning=false;
+  console.log('Analytics sync:', JSON.stringify(results));
+  return results;
+}
+
+async function analyticsSummary() {
+  if (!pool) return { sources:analyticsSourceState(), assets:[], totals:{} };
+  const { rows:assets }=await pool.query(`
+    SELECT a.*, p.views,p.reach,p.impressions,p.likes,p.comments,p.shares,p.saves,p.bookmarks,p.profile_clicks,
+           p.subscribers_gained,p.watch_time_seconds,p.average_view_duration,p.completion_rate,p.created_at AS measured_at,
+           i.title AS idea_title
+    FROM published_assets a
+    LEFT JOIN content_items i ON i.id=a.item_id
+    LEFT JOIN LATERAL (
+      SELECT * FROM performance_events pe WHERE pe.asset_id=a.id ORDER BY pe.created_at DESC LIMIT 1
+    ) p ON true
+    ORDER BY COALESCE(a.published_at,a.created_at) DESC
+    LIMIT 250
+  `);
+  const { rows:[totals] }=await pool.query(`
+    WITH latest AS (
+      SELECT DISTINCT ON (asset_id) * FROM performance_events WHERE asset_id IS NOT NULL ORDER BY asset_id,created_at DESC
+    )
+    SELECT
+      COALESCE(SUM(views),0)::bigint AS views,
+      COALESCE(SUM(likes),0)::bigint AS likes,
+      COALESCE(SUM(comments),0)::bigint AS comments,
+      COALESCE(SUM(shares),0)::bigint AS shares,
+      COALESCE(SUM(saves),0)::bigint AS saves,
+      COALESCE(SUM(bookmarks),0)::bigint AS bookmarks,
+      COALESCE(SUM(subscribers_gained),0)::bigint AS subscribers_gained
+    FROM latest
+  `);
+  return { sources:analyticsSourceState(), assets, totals:totals||{} };
+}
+
 async function route(req, res) {
   const u = new URL(req.url, 'http://localhost');
 
@@ -424,18 +749,51 @@ async function route(req, res) {
     return json(res, 200, result);
   }
 
+  if (u.pathname === '/api/analytics/sources' && req.method === 'GET') {
+    return json(res, 200, { sources: analyticsSourceState() });
+  }
+
+  if (u.pathname === '/api/analytics/summary' && req.method === 'GET') {
+    return json(res, 200, await analyticsSummary());
+  }
+
+  if (u.pathname === '/api/analytics/link' && req.method === 'POST') {
+    if (!pool) return json(res, 503, { error:'Database unavailable' });
+    const body=await readJsonBody(req);
+    const platform=String(body.platform||'').toLowerCase().trim();
+    const url=String(body.url||'').trim();
+    const externalId=String(body.externalId||externalIdFromUrl(platform,url)||'').trim();
+    if (!platform || !externalId) return json(res,400,{error:'platform and recognizable URL/externalId required'});
+    const asset=await upsertAsset({
+      platform, externalId, url:url||null, title:body.title||null, publishedAt:body.publishedAt||null,
+      itemId:body.itemId||null, raw:{manualLink:true}
+    });
+    return json(res,200,{ok:true,asset});
+  }
+
   if (u.pathname === '/api/performance' && req.method === 'POST') {
     if (!pool) return json(res, 503, { error: 'Database unavailable' });
     const body = await readJsonBody(req);
-    const id = randomUUID();
-    await pool.query(`
-      INSERT INTO performance_events(id,item_id,platform,published_at,views,likes,comments,shares,saves,watch_time_seconds,raw)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
-    `, [
-      id, body.itemId || null, body.platform || 'unknown', body.publishedAt || null,
-      body.views ?? null, body.likes ?? null, body.comments ?? null, body.shares ?? null,
-      body.saves ?? null, body.watchTimeSeconds ?? null, JSON.stringify(body)
-    ]);
+    let asset=null;
+    if (body.assetId) {
+      const q=await pool.query('SELECT * FROM published_assets WHERE id=$1',[body.assetId]);asset=q.rows[0]||null;
+    } else if (body.platform && (body.externalId || body.url)) {
+      const externalId=body.externalId || externalIdFromUrl(body.platform,body.url);
+      asset=await upsertAsset({platform:body.platform,externalId,url:body.url||null,title:body.title||null,publishedAt:body.publishedAt||null,itemId:body.itemId||null,raw:{manual:true}});
+    }
+    const id = asset
+      ? await saveSnapshot(asset, body, body)
+      : randomUUID();
+    if (!asset) {
+      await pool.query(`
+        INSERT INTO performance_events(id,item_id,platform,published_at,views,reach,impressions,likes,comments,shares,saves,bookmarks,profile_clicks,subscribers_gained,watch_time_seconds,average_view_duration,completion_rate,raw)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::jsonb)
+      `,[
+        id,body.itemId||null,body.platform||'unknown',body.publishedAt||null,body.views??null,body.reach??null,body.impressions??null,
+        body.likes??null,body.comments??null,body.shares??null,body.saves??null,body.bookmarks??null,body.profileClicks??null,
+        body.subscribersGained??null,body.watchTimeSeconds??null,body.averageViewDuration??null,body.completionRate??null,JSON.stringify(body)
+      ]);
+    }
     return json(res, 200, { ok: true, id });
   }
 
@@ -459,11 +817,19 @@ async function route(req, res) {
 }
 
 initDb()
-  .then(() => http.createServer((req,res) => route(req,res).catch(error => {
-    console.error(error);
-    if (!res.headersSent) json(res, error.statusCode || 500, { error: error.message, code: error.code || null });
-    else res.end();
-  })).listen(port, '0.0.0.0', () => console.log('Psychology Content OS v2 running on ' + port)))
+  .then(() => {
+    const server=http.createServer((req,res) => route(req,res).catch(error => {
+      console.error(error);
+      if (!res.headersSent) json(res, error.statusCode || 500, { error: error.message, code: error.code || null });
+      else res.end();
+    }));
+    server.listen(port,'0.0.0.0',() => {
+      console.log('Psychology Content OS v2.1 running on ' + port);
+      setTimeout(() => syncAnalyticsSources().catch(error => console.error('Initial analytics sync failed:',error.message)), 15000);
+      const minutes=Math.max(60,Number(process.env.ANALYTICS_SYNC_MINUTES||360));
+      setInterval(() => syncAnalyticsSources().catch(error => console.error('Analytics sync failed:',error.message)), minutes*60000);
+    });
+  })
   .catch(error => {
     console.error('Database initialization failed:', error);
     process.exit(1);
