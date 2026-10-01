@@ -219,10 +219,37 @@ Return ONLY valid JSON with this exact high-level shape:
   "x_en": [string, string, string],
   "youtube": {"title": string, "thesis": string, "outline": [string]},
   "reddit": {"title": string, "body": string},
+  "visual_strategy": {"primary_format": "carousel" | "gif" | "reel", "reason": string},
+  "carousel_ru": {
+    "format": "1080x1350",
+    "cover": string,
+    "slides": [{"n": number, "headline": string, "body": string, "visual": string}],
+    "caption": string,
+    "visual_direction": string
+  },
+  "gif": {
+    "language": "none" | "ru" | "en",
+    "aspect_ratio": "4:5" | "1:1",
+    "duration_seconds": number,
+    "loop": boolean,
+    "purpose": string,
+    "frames": [{"frame": number, "text": string, "visual": string, "motion": string}],
+    "prompt": string,
+    "visual_direction": string
+  },
   "rationale": string
 }
 Russian: intellectually precise, direct, no influencer clichés.
 English: natural for an international research/intellectual audience.
+Carousel rules: 6-9 slides, one idea per slide, the cover must create cognitive tension without clickbait, body copy must be short enough to read on mobile, and the final slide should crystallize a reusable concept rather than use a generic CTA.
+GIF rules: 4-8 frames, simple readable motion, visually intelligible without sound, seamless loop when conceptually appropriate, minimal text, and a clear psychological/conceptual metaphor rather than decorative motion.
+Visual style profile:
+${JSON.stringify(parseEnvJson('VISUAL_STYLE_JSON', {
+  name: 'Leo Psychology Editorial',
+  principles: ['dark editorial', 'conceptual not therapeutic', 'high contrast', 'large typography', 'negative space', 'cinematic restraint', 'one acid accent'],
+  palette: ['#090A0C','#F4F5F7','#D9FF69'],
+  avoid: ['pastel wellness aesthetics','stock therapy imagery','generic gradients','emoji-led self-help','busy infographics']
+}))}
 The durable goal is Trend -> Interpretation -> Framework, not trend summary.`;
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
@@ -303,7 +330,15 @@ async function route(req, res) {
       database: Boolean(pool),
       transcription: Boolean(process.env.OPENAI_API_KEY),
       transcriptionModel: process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-transcribe',
-      editorialModel: process.env.OPENAI_EDITORIAL_MODEL || 'gpt-5.6-terra'
+      editorialModel: process.env.OPENAI_EDITORIAL_MODEL || 'gpt-5.6-terra',
+      visualStyle: parseEnvJson('VISUAL_STYLE_JSON', {
+        name: 'Leo Psychology Editorial',
+        principles: ['dark editorial','conceptual not therapeutic','high contrast','large typography','negative space','cinematic restraint','one acid accent'],
+        palette: ['#090A0C','#F4F5F7','#D9FF69'],
+        carousel: { format: '1080x1350', slides: '6-9', density: 'one idea per slide' },
+        gif: { frames: '4-8', loop: true, text: 'minimal' },
+        avoid: ['pastel wellness aesthetics','stock therapy imagery','generic gradients','emoji-led self-help','busy infographics']
+      })
     });
   }
 
