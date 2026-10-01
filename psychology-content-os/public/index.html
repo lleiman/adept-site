@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Psychology Content OS</title>
+<style>
+:root{
+  --bg:#0a0b0d;--panel:#111318;--panel2:#171a20;--line:#262a32;--text:#f4f5f7;
+  --muted:#9298a3;--soft:#c9cdd4;--accent:#d8ff67;--accent2:#8ce1ff;--danger:#ff8c8c;
+  --radius:18px;--shadow:0 16px 40px rgba(0,0,0,.28)
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100vh}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.shell{max-width:1480px;margin:0 auto;padding:22px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:8px 0 24px}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,var(--accent),#5cff9d);box-shadow:0 0 36px rgba(216,255,103,.14)}
+.brand h1{font-size:17px;margin:0;letter-spacing:-.01em}
+.brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
+.status{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:#70ff98;box-shadow:0 0 12px rgba(112,255,152,.6)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tab{border:1px solid var(--line);background:#0e1014;color:var(--muted);padding:10px 14px;border-radius:999px}
+.tab.active{background:var(--text);color:#111;border-color:var(--text)}
+.page{display:none}.page.active{display:block}
+.hero{display:grid;grid-template-columns:1.4fr .8fr;gap:16px;margin-bottom:18px}
+.hero-card,.panel{background:linear-gradient(180deg,var(--panel),#0e1014);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.hero-card{padding:28px;min-height:190px}
+.hero-card h2{font-size:42px;line-height:1.02;letter-spacing:-.04em;margin:0 0 12px;max-width:760px}
+.hero-card p{margin:0;color:var(--muted);max-width:720px;line-height:1.55}
+.hero-card .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.score{padding:24px;display:flex;flex-direction:column;justify-content:space-between}
+.score .big{font-size:54px;line-height:1;letter-spacing:-.05em}
+.score .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.score .small{color:var(--soft);font-size:13px;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.col-8{grid-column:span 8}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-12{grid-column:span 12}
+.panel{padding:20px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.panel h3{margin:0;font-size:15px}
+.kicker{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.trend-list,.pack-list{display:grid;gap:12px}
+.trend{border:1px solid var(--line);background:var(--panel2);border-radius:16px;padding:18px}
+.trend-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.trend h4{margin:0;font-size:20px;line-height:1.2;letter-spacing:-.02em}
+.meta{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.signal{display:inline-flex;padding:6px 9px;border:1px solid #3a3e47;border-radius:999px;color:var(--soft);font-size:11px;white-space:nowrap}
+.trend p{color:#c8ccd3;line-height:1.55;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border:1px solid var(--line);background:#11141a;color:var(--text);padding:9px 12px;border-radius:10px}
+.btn.primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:700}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.small{font-size:12px;padding:7px 10px}
+.pipeline{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow:auto;padding-bottom:4px}
+.stage{min-width:230px;background:#0d0f13;border:1px solid var(--line);border-radius:16px;padding:12px}
+.stage h4{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:4px 4px 12px}
+.mini{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:9px}
+.mini strong{display:block;font-size:13px;line-height:1.35}
+.mini span{display:block;color:var(--muted);font-size:11px;margin-top:8px}
+.empty{color:var(--muted);padding:28px;text-align:center;border:1px dashed var(--line);border-radius:14px}
+.pack{border:1px solid var(--line);background:#11141a;border-radius:16px;overflow:hidden}
+.pack-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:18px;border-bottom:1px solid var(--line)}
+.pack-head h4{margin:0;font-size:21px}
+.pack-body{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.block{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:14px}
+.block.wide{grid-column:1/-1}
+.block h5{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.block pre{white-space:pre-wrap;font-family:inherit;color:#d9dde4;line-height:1.55;margin:0;font-size:13px}
+.editbox{width:100%;min-height:130px;background:#0b0d10;border:1px solid var(--line);color:var(--text);padding:12px;border-radius:10px;resize:vertical}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.metric{background:#0d0f13;border:1px solid var(--line);border-radius:14px;padding:16px}
+.metric b{font-size:28px;display:block;letter-spacing:-.03em}
+.metric span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.system-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.flow{display:grid;gap:10px}
+.flow-step{display:grid;grid-template-columns:38px 1fr;gap:12px;align-items:start}
+.flow-num{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;color:var(--accent)}
+.flow-step b{display:block;font-size:14px;margin:2px 0 4px}
+.flow-step p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.cadence{width:100%;border-collapse:collapse}
+.cadence td{padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.cadence td:last-child{text-align:right;color:var(--muted)}
+.toast{position:fixed;right:20px;bottom:20px;background:#f2f4f6;color:#101114;padding:11px 14px;border-radius:11px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.grid{display:block}.panel{margin-bottom:14px}.pack-body{grid-template-columns:1fr}.system-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr 1fr}.hero-card h2{font-size:34px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand"><div class="mark"></div><div><h1>Psychology Content OS</h1><p>Trend → Thesis → Production → Distribution</p></div></div>
+    <div class="status"><span class="dot"></span><span id="statusText">loading</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-page="today">Today</button>
+    <button class="tab" data-page="production">Production</button>
+    <button class="tab" data-page="library">Library</button>
+    <button class="tab" data-page="system">System</button>
+  </div>
+
+  <section class="page active" id="today">
+    <div class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">Editorial operating system</div>
+        <h2>One strong idea per day. Everything else is distribution.</h2>
+        <p>The system uses English-language psychology signals as raw material, then forces each topic through your own interpretation before it becomes content.</p>
+      </div>
+      <div class="hero-card score">
+        <div><div class="label">Today’s radar</div><div class="big" id="trendCount">—</div></div>
+        <div class="small">Only topics with real acceleration should enter production. The goal is not to comment faster; it is to create a stronger frame.</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel col-8">
+        <div class="panel-head"><div><div class="kicker">Input</div><h3>Trend Radar</h3></div><button class="btn small" id="refreshTrends">Refresh</button></div>
+        <div id="trendList" class="trend-list"><div class="empty">Loading trends…</div></div>
+      </div>
+      <div class="panel col-4">
+        <div class="panel-head"><div><div class="kicker">Rule</div><h3>Editorial filter</h3></div></div>
+        <div class="flow">
+          <div class="flow-step"><div class="flow-num">1</div><div><b>Signal</b><p>Is there actual acceleration, not just an evergreen topic?</p></div></div>
+          <div class="flow-step"><div class="flow-num">2</div><div><b>Interpretation</b><p>Can you say something more precise than the source material?</p></div></div>
+          <div class="flow-step"><div class="flow-num">3</div><div><b>Framework</b><p>Can the idea become a reusable concept, model, or vocabulary?</p></div></div>
+          <div class="flow-step"><div class="flow-num">4</div><div><b>Distribution</b><p>Only then convert it into Telegram, Reel, X, YouTube, Reddit.</p></div></div>
+        </div>
+      </div>
+      <div class="panel col-12">
+        <div class="panel-head"><div><div class="kicker">Flow</div><h3>Today’s pipeline</h3></div></div>
+        <div class="pipeline" id="pipeline"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="production">
+    <div class="panel">
+      <div class="panel-head"><div><div class="kicker">Output</div><h3>Production packs</h3></div><button class="btn small" id="refreshPacks">Refresh</button></div>
+      <div id="packList" class="pack-list"><div class="empty">Loading content packs…</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="library">
+    <div class="panel">
+      <div class="panel-head"><div><div class="kicker">Feedback loop</div><h3>Performance memory</h3></div></div>
+      <div class="metric-grid">
+        <div class="metric"><b id="metricIdeas">0</b><span>ideas saved locally</span></div>
+        <div class="metric"><b id="metricApproved">0</b><span>approved</span></div>
+        <div class="metric"><b id="metricPublished">0</b><span>published</span></div>
+        <div class="metric"><b id="metricPatterns">0</b><span>winning patterns</span></div>
+      </div>
+      <div style="height:16px"></div>
+      <div id="libraryList" class="trend-list"></div>
+    </div>
+  </section>
+
+  <section class="page" id="system">
+    <div class="system-grid">
+      <div class="panel">
+        <div class="panel-head"><div><div class="kicker">Architecture</div><h3>How the machine works</h3></div></div>
+        <div class="flow">
+          <div class="flow-step"><div class="flow-num">01</div><div><b>English Internet</b><p>Reddit, X, YouTube and public Telegram are scanned for psychology topics with real velocity.</p></div></div>
+          <div class="flow-step"><div class="flow-num">02</div><div><b>Trend Radar</b><p>Signals are reduced to 5–7 themes with evidence, mechanics, and replication notes.</p></div></div>
+          <div class="flow-step"><div class="flow-num">03</div><div><b>Core thesis</b><p>The strongest themes are translated into your own point of view: not summary, but interpretation.</p></div></div>
+          <div class="flow-step"><div class="flow-num">04</div><div><b>Content pack</b><p>One thesis becomes Telegram, Reel/Short, X, YouTube long-form outline and a Reddit discussion angle.</p></div></div>
+          <div class="flow-step"><div class="flow-num">05</div><div><b>Human approval</b><p>You edit the thesis, record a voice/video take, and approve. Full autopublishing comes only after the voice is stable.</p></div></div>
+          <div class="flow-step"><div class="flow-num">06</div><div><b>Feedback</b><p>Performance data is used to learn which hooks and conceptual frames actually compound.</p></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><div class="kicker">Cadence</div><h3>Platform roles</h3></div></div>
+        <table class="cadence">
+          <tr><td>Telegram</td><td>1 strong RU post/day</td></tr>
+          <tr><td>Instagram</td><td>1 RU Reel/day</td></tr>
+          <tr><td>YouTube Shorts</td><td>same vertical asset</td></tr>
+          <tr><td>YouTube long</td><td>1 thesis video/week</td></tr>
+          <tr><td>X / Twitter</td><td>2–4 EN thoughts/day</td></tr>
+          <tr><td>Reddit</td><td>2–3 real discussions/week</td></tr>
+        </table>
+        <div style="height:18px"></div>
+        <div class="kicker">Operating constraint</div>
+        <p style="color:var(--soft);line-height:1.55">Do not publish every trend. A trend is only raw demand. Your durable asset is the framework you attach to it.</p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast">Copied</div>
+<script>
+const LS='psychology-content-os-v1';
+let trends=[], packs=[];
+const state=loadState();
+
+function loadState(){try{return JSON.parse(localStorage.getItem(LS))||{items:{}}}catch{return {items:{}}}}
+function saveState(){localStorage.setItem(LS,JSON.stringify(state));renderPipeline();renderLibrary()}
+function keyFor(title){return btoa(unescape(encodeURIComponent(title||'untitled'))).slice(0,32)}
+function ensureItem(trend){
+  const id=keyFor(trend.topic||trend.title);
+  if(!state.items[id]) state.items[id]={id,title:trend.topic||trend.title,status:'radar',notes:'',savedAt:new Date().toISOString(),trend};
+  return state.items[id];
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1200)}
+async function copyText(txt){await navigator.clipboard.writeText(txt||'');toast('Copied')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function arr(v){return Array.isArray(v)?v:[]}
+
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');document.getElementById(btn.dataset.page).classList.add('active');
+}));
+
+async function loadTrends(){
+  document.getElementById('statusText').textContent='syncing radar';
+  try{
+    const r=await fetch('/api/trends',{cache:'no-store'}), j=await r.json();
+    trends=arr(j.trends);
+    document.getElementById('trendCount').textContent=trends.length;
+    document.getElementById('statusText').textContent='radar live';
+    renderTrends();renderPipeline();
+  }catch(e){
+    document.getElementById('statusText').textContent='radar unavailable';
+    document.getElementById('trendList').innerHTML='<div class="empty">Trend source unavailable.</div>';
+  }
+}
+
+function renderTrends(){
+  const root=document.getElementById('trendList');
+  if(!trends.length){root.innerHTML='<div class="empty">No trends in the current batch.</div>';return}
+  root.innerHTML=trends.map((t,i)=>`
+    <article class="trend">
+      <div class="trend-top">
+        <div><h4>${esc(t.topic||t.title)}</h4><div class="meta">${esc(arr(t.platforms).join(' · '))}</div></div>
+        <span class="signal">${esc(t.confidence||'pending')}</span>
+      </div>
+      <p><b>Why now:</b> ${esc(t.why_viral||'—')}</p>
+      <p><b>Mechanic:</b> ${esc(t.content_mechanic||'—')}</p>
+      <p><b>Your angle:</b> ${esc(t.psychology_angle||'—')}</p>
+      <div class="actions">
+        <button class="btn primary small" onclick="promote(${i})">Move to thesis</button>
+        <button class="btn small" onclick="copyBrief(${i})">Copy brief</button>
+        ${arr(t.source_links).length?'<a class="btn ghost small" target="_blank" rel="noopener" href="'+esc(t.source_links[0])+'">Source</a>':''}
+      </div>
+    </article>`).join('');
+}
+
+function promote(i){
+  const item=ensureItem(trends[i]);item.status='thesis';item.savedAt=new Date().toISOString();saveState();toast('Moved to thesis');
+}
+function copyBrief(i){
+  const t=trends[i];
+  copyText(`TREND: ${t.topic||t.title}\nWHY NOW: ${t.why_viral||''}\nMECHANIC: ${t.content_mechanic||''}\nANGLE: ${t.psychology_angle||''}\nHOOKS: ${arr(t.suggested_hooks).join(' | ')}`);
+}
+function moveStatus(id,status){state.items[id].status=status;saveState()}
+function renderPipeline(){
+  const statuses=[
+    ['radar','Radar'],['thesis','Core thesis'],['production','Production'],['published','Published']
+  ];
+  const items=Object.values(state.items||{});
+  document.getElementById('pipeline').innerHTML=statuses.map(([status,label])=>{
+    const list=items.filter(x=>x.status===status);
+    return `<div class="stage"><h4>${label}</h4>${list.length?list.map(x=>`
+      <div class="mini"><strong>${esc(x.title)}</strong><span>${new Date(x.savedAt).toLocaleDateString()}</span>
+      <div class="actions">${status==='thesis'?'<button class="btn small primary" onclick="moveStatus(\''+x.id+'\',\'production\')">Approve</button>':''}
+      ${status==='production'?'<button class="btn small primary" onclick="moveStatus(\''+x.id+'\',\'published\')">Published</button>':''}</div></div>`).join(''):'<div class="empty">—</div>'}</div>`;
+  }).join('');
+}
+
+async function loadPacks(){
+  try{
+    const r=await fetch('/api/packs',{cache:'no-store'}), j=await r.json();packs=arr(j.packs);renderPacks();
+  }catch{document.getElementById('packList').innerHTML='<div class="empty">No production feed available.</div>'}
+}
+function textFrom(v){
+  if(Array.isArray(v)) return v.map((x,i)=>`${i+1}. ${typeof x==='string'?x:JSON.stringify(x)}`).join('\n');
+  if(v&&typeof v==='object') return Object.entries(v).map(([k,val])=>`${k}: ${Array.isArray(val)?val.join('\n'):val}`).join('\n');
+  return v||'';
+}
+function renderPacks(){
+  const root=document.getElementById('packList');
+  if(!packs.length){root.innerHTML='<div class="empty">The daily generator has not written a production pack yet.</div>';return}
+  root.innerHTML=packs.map((p,i)=>`
+    <article class="pack">
+      <div class="pack-head"><div><div class="kicker">${esc(p.date||'Today')} · priority ${esc(p.priority||'—')}</div><h4>${esc(p.sourceTrendTitle||p.title||'Content pack')}</h4></div><span class="signal">${esc(p.status||'draft')}</span></div>
+      <div class="pack-body">
+        ${block('Core thesis RU',p.thesis_ru,'thesis_ru',i,true)}
+        ${block('Core thesis EN',p.thesis_en,'thesis_en',i,true)}
+        ${block('Telegram',p.telegram,'telegram',i,false)}
+        ${block('Reel RU',p.reel_ru,'reel_ru',i,false)}
+        ${block('X / Twitter EN',p.x_en,'x_en',i,false)}
+        ${block('YouTube long',p.youtube,'youtube',i,false)}
+        ${block('Reddit discussion',p.reddit,'reddit',i,false)}
+        ${block('Notes / why this matters',p.notes||p.rationale,'notes',i,false)}
+      </div>
+    </article>`).join('');
+}
+function block(label,value,key,i,wide){
+  const txt=textFrom(value);
+  return `<div class="block ${wide?'wide':''}"><h5>${esc(label)}</h5><pre>${esc(txt||'—')}</pre><div class="controls"><button class="btn small" onclick="copyPack(${i},'${key}')">Copy</button></div></div>`;
+}
+function copyPack(i,key){copyText(textFrom(packs[i]?.[key]))}
+
+function renderLibrary(){
+  const items=Object.values(state.items||{});
+  document.getElementById('metricIdeas').textContent=items.length;
+  document.getElementById('metricApproved').textContent=items.filter(x=>['production','published'].includes(x.status)).length;
+  document.getElementById('metricPublished').textContent=items.filter(x=>x.status==='published').length;
+  document.getElementById('metricPatterns').textContent=items.filter(x=>x.winner).length;
+  const root=document.getElementById('libraryList');
+  if(!items.length){root.innerHTML='<div class="empty">No saved ideas yet. Promote a trend from Today.</div>';return}
+  root.innerHTML=items.slice().reverse().map(x=>`
+    <article class="trend"><div class="trend-top"><div><h4>${esc(x.title)}</h4><div class="meta">${esc(x.status)}</div></div>
+    <button class="btn small ${x.winner?'primary':''}" onclick="toggleWinner('${x.id}')">${x.winner?'Winning pattern':'Mark winner'}</button></div>
+    <p>${esc(x.trend?.psychology_angle||'')}</p></article>`).join('');
+}
+function toggleWinner(id){state.items[id].winner=!state.items[id].winner;saveState()}
+
+document.getElementById('refreshTrends').addEventListener('click',loadTrends);
+document.getElementById('refreshPacks').addEventListener('click',loadPacks);
+loadTrends();loadPacks();renderPipeline();renderLibrary();
+</script>
+</body>
+</html>
