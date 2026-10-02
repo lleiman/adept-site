@@ -1300,11 +1300,11 @@ async function route(req, res) {
   if(adeptSlide && req.method==='GET'){
     const n=Number(adeptSlide[1]),format=adeptSlide[2];
     if(format==='svg'){
-      res.writeHead(200,{'Content-Type':'image/svg+xml','Cache-Control':'public, max-age=3600'});
+      res.writeHead(200,{'Content-Type':'image/svg+xml; charset=utf-8','Cache-Control':'no-store, max-age=0','Pragma':'no-cache'});
       return res.end(adeptCarouselSlideSvg(n));
     }
     const jpg=await adeptCarouselJpeg(n);
-    res.writeHead(200,{'Content-Type':'image/jpeg','Content-Length':jpg.length,'Cache-Control':'public, max-age=3600'});
+    res.writeHead(200,{'Content-Type':'image/jpeg','Content-Length':jpg.length,'Cache-Control':'no-store, max-age=0','Pragma':'no-cache'});
     return res.end(jpg);
   }
   if(u.pathname==='/api/adept/carousel/v2' && req.method==='GET'){
