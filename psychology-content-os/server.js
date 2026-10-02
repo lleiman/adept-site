@@ -87,12 +87,12 @@ function carouselVisualSvg(kind){
   const lime='#d9ff69', white='#f4f5f7', line='#3b4048', gray='#89919c';
   if(kind==='signal') return `
     <g transform="translate(450 470)">
-      <path d="M40 610 C180 470 245 360 360 240 C470 120 560 95 610 30" fill="none" stroke="\${lime}" stroke-width="3" opacity=".65"/>
-      \${Array.from({length:18},(_,i)=>{const x=(i%6)*70;const y=Math.floor(i/6)*82+320;const o=.18+(i%4)*.05;return '<rect x="'+x+'" y="'+y+'" width="58" height="64" rx="3" fill="#d9dde4" opacity="'+o+'" transform="rotate('+(i%3-1)*5+' '+(x+29)+' '+(y+32)+')"/>';}).join('')}
+      <path d="M40 610 C180 470 245 360 360 240 C470 120 560 95 610 30" fill="none" stroke="${lime}" stroke-width="3" opacity=".65"/>
+      ${Array.from({length:18},(_,i)=>{const x=(i%6)*70;const y=Math.floor(i/6)*82+320;const o=.18+(i%4)*.05;return '<rect x="'+x+'" y="'+y+'" width="58" height="64" rx="3" fill="#d9dde4" opacity="'+o+'" transform="rotate('+(i%3-1)*5+' '+(x+29)+' '+(y+32)+')"/>';}).join('')}
       <g transform="translate(340 40)">
         <path d="M0 330 L115 60 L290 0 L430 175 L375 430 L130 500 Z" fill="url(#glass)" stroke="#dfe4ea" stroke-opacity=".65" stroke-width="2"/>
         <path d="M75 355 L180 130 L330 90 L370 220 L315 395 L150 438 Z" fill="#d9ff69" opacity=".15"/>
-        <circle cx="252" cy="230" r="152" fill="none" stroke="\${lime}" opacity=".5"/>
+        <circle cx="252" cy="230" r="152" fill="none" stroke="${lime}" opacity=".5"/>
       </g>
     </g>`;
   if(kind==='monolith') return `
@@ -100,60 +100,60 @@ function carouselVisualSvg(kind){
       <path d="M80 630 L110 150 L310 90 L430 600 Z" fill="#777" opacity=".68"/>
       <path d="M235 90 L260 610" stroke="#08090b" stroke-width="26"/>
       <path d="M252 295 C310 190 400 160 465 80 C430 230 400 420 308 555 C276 490 260 403 252 295 Z" fill="url(#chrome)" stroke="#f3f5f6" stroke-opacity=".65"/>
-      <circle cx="365" cy="210" r="130" fill="none" stroke="\${lime}" stroke-width="2" opacity=".55"/>
-      <path d="M460 92 L575 10 M435 210 L604 170 M386 340 L600 390" stroke="\${lime}" stroke-width="2" opacity=".55"/>
-      \${Array.from({length:22},(_,i)=>'<circle cx="'+(90+(i*47)%520)+'" cy="'+(180+(i*73)%430)+'" r="'+(3+(i%6))+'" fill="#b7bcc3" opacity="'+(.15+(i%4)*.1)+'"/>').join('')}
+      <circle cx="365" cy="210" r="130" fill="none" stroke="${lime}" stroke-width="2" opacity=".55"/>
+      <path d="M460 92 L575 10 M435 210 L604 170 M386 340 L600 390" stroke="${lime}" stroke-width="2" opacity=".55"/>
+      ${Array.from({length:22},(_,i)=>'<circle cx="'+(90+(i*47)%520)+'" cy="'+(180+(i*73)%430)+'" r="'+(3+(i%6))+'" fill="#b7bcc3" opacity="'+(.15+(i%4)*.1)+'"/>').join('')}
     </g>`;
   if(kind==='storyboard') return `
     <g transform="translate(385 430) rotate(-4 350 360)">
-      \${Array.from({length:9},(_,i)=>{const col=i%3,row=Math.floor(i/3),x=col*225,y=row*210;const forms=[
+      ${Array.from({length:9},(_,i)=>{const col=i%3,row=Math.floor(i/3),x=col*225,y=row*210;const forms=[
         '<circle cx="'+(x+112)+'" cy="'+(y+92)+'" r="65" fill="#ccd0d5" opacity=".55"/><path d="M'+(x+36)+' '+(y+145)+' L'+(x+190)+' '+(y+35)+'" stroke="#111" stroke-width="18"/>',
         '<path d="M'+(x+26)+' '+(y+160)+' Q'+(x+112)+' '+(y+10)+' '+(x+202)+' '+(y+160)+'" fill="none" stroke="#d8dce0" stroke-width="30" opacity=".5"/>',
         '<rect x="'+(x+55)+'" y="'+(y+28)+'" width="115" height="135" rx="58" fill="#c2c6cb" opacity=".48"/>'
       ]; return '<rect x="'+x+'" y="'+y+'" width="210" height="188" rx="8" fill="#13161b" stroke="'+line+'"/>'+forms[i%3]+'<rect x="'+(x+8)+'" y="'+(y+170)+'" width="'+(42+(i%4)*28)+'" height="5" fill="'+lime+'" opacity=".8"/>';}).join('')}
-      <path d="M0 665 C220 600 440 710 670 620" fill="none" stroke="\${lime}" stroke-width="3"/>
+      <path d="M0 665 C220 600 440 710 670 620" fill="none" stroke="${lime}" stroke-width="3"/>
     </g>`;
   if(kind==='system') return `
     <g transform="translate(450 440)">
-      <rect x="0" y="0" width="570" height="690" rx="10" fill="#0d1014" stroke="\${line}"/>
-      \${Array.from({length:6},(_,i)=>'<rect x="'+(30+(i%3)*170)+'" y="'+(35+Math.floor(i/3)*190)+'" width="145" height="155" rx="5" fill="'+(i===1?lime:'#e2e4e7')+'" opacity="'+(i===1?'.78':'.18')+'"/>').join('')}
+      <rect x="0" y="0" width="570" height="690" rx="10" fill="#0d1014" stroke="${line}"/>
+      ${Array.from({length:6},(_,i)=>'<rect x="'+(30+(i%3)*170)+'" y="'+(35+Math.floor(i/3)*190)+'" width="145" height="155" rx="5" fill="'+(i===1?lime:'#e2e4e7')+'" opacity="'+(i===1?'.78':'.18')+'"/>').join('')}
       <g transform="translate(34 430)">
-        \${['#f4f5f7','#b4bac1','#606874','#20252c',lime].map((c,i)=>'<rect x="'+(i*96)+'" y="0" width="76" height="46" fill="'+c+'"/>').join('')}
+        ${['#f4f5f7','#b4bac1','#606874','#20252c',lime].map((c,i)=>'<rect x="'+(i*96)+'" y="0" width="76" height="46" fill="'+c+'"/>').join('')}
       </g>
-      <g transform="translate(34 520)" stroke="\${gray}" fill="none">
+      <g transform="translate(34 520)" stroke="${gray}" fill="none">
         <rect x="0" y="0" width="230" height="120"/><rect x="260" y="0" width="270" height="120"/>
-        <circle cx="375" cy="60" r="42"/><path d="M290 88 L348 40 L408 78 L488 28" stroke="\${lime}" stroke-width="3"/>
+        <circle cx="375" cy="60" r="42"/><path d="M290 88 L348 40 L408 78 L488 28" stroke="${lime}" stroke-width="3"/>
       </g>
-      <path d="M25 16 H545 M25 210 H545 M25 408 H545" stroke="\${line}"/>
+      <path d="M25 16 H545 M25 210 H545 M25 408 H545" stroke="${line}"/>
     </g>`;
   if(kind==='motion') return `
     <g transform="translate(405 520)">
-      <path d="M35 605 C130 580 170 475 265 430 C360 385 455 290 610 55" fill="none" stroke="\${lime}" stroke-width="4" opacity=".75"/>
-      \${[0,1,2,3,4,5].map((i)=>{const x=55+i*105,y=555-i*92;const rot=i*18;return '<g transform="translate('+x+' '+y+') rotate('+rot+')"><rect x="-44" y="-44" width="88" height="88" rx="'+(i*9)+'" fill="#e6e9ec" opacity="'+(.25+i*.08)+'" stroke="#fff" stroke-opacity=".45"/><path d="M-34 0 Q0 '+(-50+i*8)+' 34 0 Q0 '+(50-i*8)+' -34 0" fill="'+lime+'" opacity="'+(.08+i*.05)+'"/></g>';}).join('')}
-      <path d="M50 640 H665" stroke="#555b64"/>\${[0,1,2,3,4,5].map(i=>'<line x1="'+(55+i*105)+'" y1="630" x2="'+(55+i*105)+'" y2="650" stroke="#c4c9cf"/>').join('')}
+      <path d="M35 605 C130 580 170 475 265 430 C360 385 455 290 610 55" fill="none" stroke="${lime}" stroke-width="4" opacity=".75"/>
+      ${[0,1,2,3,4,5].map((i)=>{const x=55+i*105,y=555-i*92;const rot=i*18;return '<g transform="translate('+x+' '+y+') rotate('+rot+')"><rect x="-44" y="-44" width="88" height="88" rx="'+(i*9)+'" fill="#e6e9ec" opacity="'+(.25+i*.08)+'" stroke="#fff" stroke-opacity=".45"/><path d="M-34 0 Q0 '+(-50+i*8)+' 34 0 Q0 '+(50-i*8)+' -34 0" fill="'+lime+'" opacity="'+(.08+i*.05)+'"/></g>';}).join('')}
+      <path d="M50 640 H665" stroke="#555b64"/>${[0,1,2,3,4,5].map(i=>'<line x1="'+(55+i*105)+'" y1="630" x2="'+(55+i*105)+'" y2="650" stroke="#c4c9cf"/>').join('')}
     </g>`;
   if(kind==='production') return `
     <g transform="translate(390 420)">
-      <path d="M580 95 C470 180 435 255 365 330 C300 400 230 485 125 610" fill="none" stroke="\${lime}" stroke-width="4"/>
-      \${[
+      <path d="M580 95 C470 180 435 255 365 330 C300 400 230 485 125 610" fill="none" stroke="${lime}" stroke-width="4"/>
+      ${[
         [350,30,320,135,'RAW FRAME'],[235,190,350,150,'COMP'],[100,370,380,150,'EDIT'],[0,550,405,120,'FINAL']
       ].map((a,i)=>'<g transform="translate('+a[0]+' '+a[1]+')"><rect width="'+a[2]+'" height="'+a[3]+'" rx="8" fill="#10141a" stroke="#59616c"/><rect x="16" y="18" width="'+(a[2]*.43)+'" height="'+(a[3]-36)+'" fill="#d8dde2" opacity="'+(.16+i*.05)+'"/><path d="M'+(a[2]*.5)+' 35 H'+(a[2]-20)+' M'+(a[2]*.5)+' 60 H'+(a[2]-50)+' M'+(a[2]*.5)+' 85 H'+(a[2]-80)+'" stroke="'+(i===3?lime:'#727b86')+'" stroke-width="5"/></g>').join('')}
-      <g transform="translate(490 390)"><circle cx="70" cy="70" r="55" fill="none" stroke="#68717d" stroke-width="15"/><path d="M70 70 L110 32" stroke="\${lime}" stroke-width="7"/></g>
-      <g transform="translate(405 555)">\${Array.from({length:28},(_,i)=>'<rect x="'+(i*9)+'" y="'+(44-Math.sin(i*.8)*24)+'" width="4" height="'+(40+Math.sin(i*.8)*45)+'" fill="#cfd3d8" opacity=".55"/>').join('')}</g>
+      <g transform="translate(490 390)"><circle cx="70" cy="70" r="55" fill="none" stroke="#68717d" stroke-width="15"/><path d="M70 70 L110 32" stroke="${lime}" stroke-width="7"/></g>
+      <g transform="translate(405 555)">${Array.from({length:28},(_,i)=>'<rect x="'+(i*9)+'" y="'+(44-Math.sin(i*.8)*24)+'" width="4" height="'+(40+Math.sin(i*.8)*45)+'" fill="#cfd3d8" opacity=".55"/>').join('')}</g>
     </g>`;
   return `
     <g transform="translate(410 410)">
-      <rect x="0" y="0" width="620" height="710" rx="8" fill="#0b0e12" stroke="\${line}"/>
+      <rect x="0" y="0" width="620" height="710" rx="8" fill="#0b0e12" stroke="${line}"/>
       <rect x="20" y="20" width="355" height="255" fill="url(#gradA)"/>
       <circle cx="195" cy="145" r="86" fill="none" stroke="#f2f4f5" stroke-opacity=".5"/>
       <rect x="395" y="20" width="205" height="255" fill="#d9ff69" opacity=".13"/>
-      <path d="M420 235 Q490 80 565 235" fill="none" stroke="\${lime}" stroke-width="16"/>
+      <path d="M420 235 Q490 80 565 235" fill="none" stroke="${lime}" stroke-width="16"/>
       <rect x="20" y="295" width="210" height="185" fill="#e3e6e9" opacity=".13"/>
       <path d="M45 440 L118 330 L198 430" fill="none" stroke="#d7dbe0" stroke-width="20" opacity=".55"/>
       <rect x="250" y="295" width="350" height="185" fill="#131820"/>
-      \${Array.from({length:5},(_,i)=>'<rect x="'+(275+i*61)+'" y="'+(318+i%2*30)+'" width="45" height="'+(125-i*12)+'" fill="'+(i===2?lime:'#d9dde3')+'" opacity="'+(i===2?'.75':'.24')+'"/>').join('')}
+      ${Array.from({length:5},(_,i)=>'<rect x="'+(275+i*61)+'" y="'+(318+i%2*30)+'" width="45" height="'+(125-i*12)+'" fill="'+(i===2?lime:'#d9dde3')+'" opacity="'+(i===2?'.75':'.24')+'"/>').join('')}
       <rect x="20" y="500" width="580" height="185" fill="#0f1318" stroke="#3f4650"/>
-      <path d="M60 640 C170 515 245 665 350 555 C430 475 505 620 565 545" fill="none" stroke="\${lime}" stroke-width="4"/>
+      <path d="M60 640 C170 515 245 665 350 555 C430 475 505 620 565 545" fill="none" stroke="${lime}" stroke-width="4"/>
       <circle cx="352" cy="555" r="56" fill="#e5e8ea" opacity=".25"/>
     </g>`;
 }
@@ -169,20 +169,20 @@ function adeptCarouselSlideSvg(index){
       <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f5f7" stop-opacity=".55"/><stop offset=".55" stop-color="#d9ff69" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".4"/></linearGradient>
       <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".32" stop-color="#777"/><stop offset=".6" stop-color="#111"/><stop offset=".78" stop-color="#d9ff69"/><stop offset="1" stop-color="#bbb"/></linearGradient>
       <linearGradient id="gradA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151a20"/><stop offset=".55" stop-color="#303943"/><stop offset="1" stop-color="#d9ff69" stop-opacity=".38"/></linearGradient>
-      <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="\${i}"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .07 0"/></filter>
+      <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="${i}"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .07 0"/></filter>
     </defs>
     <rect width="1080" height="1350" fill="url(#bg)"/>
     <rect width="1080" height="1350" filter="url(#grain)" opacity=".42"/>
     <path d="M62 54 H212 M62 54 V86" stroke="#8d949d" stroke-opacity=".55"/>
-    <circle cx="938" cy="58" r="5" fill="\${lime}"/><path d="M952 58 H1016" stroke="#6f7680"/>
-    \${carouselVisualSvg(s.visual)}
+    <circle cx="938" cy="58" r="5" fill="${lime}"/><path d="M952 58 H1016" stroke="#6f7680"/>
+    ${carouselVisualSvg(s.visual)}
     <rect x="0" y="0" width="690" height="650" fill="#07080a" opacity=".35"/>
-    \${svgLines(s.title,62,150,68,800,white,.98)}
-    \${s.accent.length?svgLines(s.accent,62,accentY,65,800,lime,.98):''}
-    <rect x="62" y="\${bodyY-30}" width="88" height="5" rx="2.5" fill="\${lime}"/>
-    \${svgLines(s.body,62,bodyY+15,29,400,muted,1.35)}
-    <text x="62" y="1287" fill="#bfc4cb" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" letter-spacing="4">ADEPT PRODUCTION  /  0\${i}</text>
-    <text x="990" y="1287" fill="\${lime}" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" text-anchor="end">0\${i}</text>
+    ${svgLines(s.title,62,150,68,800,white,.98)}
+    ${s.accent.length?svgLines(s.accent,62,accentY,65,800,lime,.98):''}
+    <rect x="62" y="${bodyY-30}" width="88" height="5" rx="2.5" fill="${lime}"/>
+    ${svgLines(s.body,62,bodyY+15,29,400,muted,1.35)}
+    <text x="62" y="1287" fill="#bfc4cb" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" letter-spacing="4">ADEPT PRODUCTION  /  0${i}</text>
+    <text x="990" y="1287" fill="${lime}" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" text-anchor="end">0${i}</text>
   </svg>`;
 }
 async function adeptCarouselJpeg(index){
