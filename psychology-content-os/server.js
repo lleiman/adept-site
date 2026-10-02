@@ -744,7 +744,7 @@ async function analyticsSourceState(workspace='psychology') {
   workspace=normalizeWorkspace(workspace);
   const connections={};
   if(pool){
-    const {rows}=await pool.query('SELECT platform,account_id,account_name,expires_at,updated_at,meta FROM analytics_connections WHERE workspace=$1',[workspace]);
+    const {rows}=await pool.query('SELECT platform,account_id,account_name,expires_at,updated_at,scope,meta FROM analytics_connections WHERE workspace=$1',[workspace]);
     for(const row of rows) connections[row.platform]=row;
   }
   return [
