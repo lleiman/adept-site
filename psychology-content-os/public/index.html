@@ -284,7 +284,7 @@ function compactNum(v){
   if(n>=1000)return (n/1000).toFixed(n>=10000?0:1)+'K';
   return String(n);
 }
-function connectSource(id,url){
+async function connectSource(id,url){
   let pin=sessionStorage.getItem('analyticsConnectPin')||'';
   if(!pin){
     pin=prompt('Analytics admin PIN');
@@ -292,6 +292,22 @@ function connectSource(id,url){
     sessionStorage.setItem('analyticsConnectPin',pin);
   }
   const sep=url.includes('?')?'&':'?';
+  if(id==='instagram'){
+    try{
+      const j=await api(url+sep+'pin='+encodeURIComponent(pin)+'&format=json');
+      try{
+        await navigator.clipboard.writeText(j.url);
+        alert('Instagram login URL copied. Open a new Private Safari tab, paste it into the address bar, and continue there. Do not tap “Open in Instagram”.');
+      }catch(_){
+        prompt('Copy this URL, then paste it into a Private Safari address bar:',j.url);
+      }
+      return;
+    }catch(e){
+      sessionStorage.removeItem('analyticsConnectPin');
+      alert(e.message);
+      return;
+    }
+  }
   window.location.href=url+sep+'pin='+encodeURIComponent(pin);
 }
 
