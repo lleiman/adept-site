@@ -149,7 +149,37 @@ async function initDb() {
       code_verifier text,
       created_at timestamptz NOT NULL DEFAULT now()
     );
-    DELETE FROM oauth_states WHERE created_at < now() - interval '30 minutes';
+    ALTER TABLE voice_notes ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE content_packs ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE content_items ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE published_assets ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE analytics_connections ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE oauth_states ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+
+    UPDATE analytics_connections
+      SET workspace='adept'
+      WHERE platform='instagram' AND lower(replace(coalesce(account_name,''),'@',''))='adept.production';
+    UPDATE published_assets SET workspace='adept' WHERE platform='instagram';
+    UPDATE performance_events SET workspace='adept' WHERE platform='instagram';
+
+    DROP INDEX IF EXISTS published_assets_platform_external_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS published_assets_workspace_platform_external_idx
+      ON published_assets(workspace,platform,external_id);
+
+    ALTER TABLE analytics_connections DROP CONSTRAINT IF EXISTS analytics_connections_pkey;
+    DO $
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname='analytics_connections_workspace_platform_pkey'
+      ) THEN
+        ALTER TABLE analytics_connections
+          ADD CONSTRAINT analytics_connections_workspace_platform_pkey PRIMARY KEY(workspace,platform);
+      END IF;
+    END $;
+
+        DELETE FROM oauth_states WHERE created_at < now() - interval '30 minutes';
   `);
   const seed = parseEnvJson('CONTENT_PIPELINE_JSON', []);
   for (const pack of Array.isArray(seed) ? seed : []) {
@@ -355,17 +385,23 @@ async function saveVoiceAndPack({ transcript, source, language, sourceTrendTitle
   return { voiceId, transcript, pack };
 }
 
-async function getPacks() {
-  if (pool) {
-    const { rows } = await pool.query('SELECT payload FROM content_packs ORDER BY created_at DESC LIMIT 100');
-    if (rows.length) return rows.map(r => r.payload);
-  }
-  return parseEnvJson('CONTENT_PIPELINE_JSON', []);
+function normalizeWorkspace(value) {
+  return String(value||'psychology').toLowerCase()==='adept' ? 'adept' : 'psychology';
 }
 
-async function getItems() {
+async function getPacks(workspace='psychology') {
+  workspace=normalizeWorkspace(workspace);
+  if (pool) {
+    const { rows } = await pool.query('SELECT payload FROM content_packs WHERE workspace=$1 ORDER BY created_at DESC LIMIT 100',[workspace]);
+    if (rows.length) return rows.map(r => r.payload);
+  }
+  return workspace==='psychology' ? parseEnvJson('CONTENT_PIPELINE_JSON', []) : [];
+}
+
+async function getItems(workspace='psychology') {
+  workspace=normalizeWorkspace(workspace);
   if (!pool) return [];
-  const { rows } = await pool.query('SELECT id,title,status,winner,notes,trend,created_at,updated_at FROM content_items ORDER BY updated_at DESC');
+  const { rows } = await pool.query('SELECT id,title,status,winner,notes,trend,created_at,updated_at FROM content_items WHERE workspace=$1 ORDER BY updated_at DESC',[workspace]);
   return rows;
 }
 
@@ -397,18 +433,20 @@ function decryptSecret(value) {
   return Buffer.concat([decipher.update(Buffer.from(dataB64,'base64url')),decipher.final()]).toString('utf8');
 }
 
-async function getConnection(platform) {
+async function getConnection(platform,workspace='psychology') {
   if (!pool) return null;
-  const {rows}=await pool.query('SELECT * FROM analytics_connections WHERE platform=$1',[platform]);
+  workspace=normalizeWorkspace(workspace);
+  const {rows}=await pool.query('SELECT * FROM analytics_connections WHERE workspace=$1 AND platform=$2',[workspace,platform]);
   return rows[0] || null;
 }
 
-async function saveConnection(platform,{accountId,accountName,accessToken,refreshToken,expiresAt,scope,meta}) {
+async function saveConnection(platform,{accountId,accountName,accessToken,refreshToken,expiresAt,scope,meta},workspace='psychology') {
   if (!pool) throw new Error('Database unavailable');
+  workspace=normalizeWorkspace(workspace);
   await pool.query(`
-    INSERT INTO analytics_connections(platform,account_id,account_name,access_token_enc,refresh_token_enc,expires_at,scope,meta)
-    VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb)
-    ON CONFLICT(platform) DO UPDATE SET
+    INSERT INTO analytics_connections(workspace,platform,account_id,account_name,access_token_enc,refresh_token_enc,expires_at,scope,meta)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)
+    ON CONFLICT(workspace,platform) DO UPDATE SET
       updated_at=now(),
       account_id=COALESCE(EXCLUDED.account_id,analytics_connections.account_id),
       account_name=COALESCE(EXCLUDED.account_name,analytics_connections.account_name),
@@ -418,17 +456,18 @@ async function saveConnection(platform,{accountId,accountName,accessToken,refres
       scope=COALESCE(EXCLUDED.scope,analytics_connections.scope),
       meta=analytics_connections.meta || EXCLUDED.meta
   `,[
-    platform,accountId||null,accountName||null,
+    workspace,platform,accountId||null,accountName||null,
     accessToken?encryptSecret(accessToken):null,
     refreshToken?encryptSecret(refreshToken):null,
     expiresAt||null,scope||null,JSON.stringify(meta||{})
   ]);
-  return getConnection(platform);
+  return getConnection(platform,workspace);
 }
 
-async function createOauthState(platform,codeVerifier=null) {
+async function createOauthState(platform,codeVerifier=null,workspace='psychology') {
+  workspace=normalizeWorkspace(workspace);
   const state=randomBytes(24).toString('base64url');
-  await pool.query('INSERT INTO oauth_states(state,platform,code_verifier) VALUES($1,$2,$3)',[state,platform,codeVerifier]);
+  await pool.query('INSERT INTO oauth_states(state,platform,code_verifier,workspace) VALUES($1,$2,$3,$4)',[state,platform,codeVerifier,workspace]);
   return state;
 }
 
@@ -459,10 +498,11 @@ function oauthResultPage(title,message,ok=true) {
     '</div></body>';
 }
 
-async function analyticsSourceState() {
+async function analyticsSourceState(workspace='psychology') {
+  workspace=normalizeWorkspace(workspace);
   const connections={};
   if(pool){
-    const {rows}=await pool.query('SELECT platform,account_id,account_name,expires_at,updated_at,meta FROM analytics_connections');
+    const {rows}=await pool.query('SELECT platform,account_id,account_name,expires_at,updated_at,meta FROM analytics_connections WHERE workspace=$1',[workspace]);
     for(const row of rows) connections[row.platform]=row;
   }
   return [
@@ -471,7 +511,7 @@ async function analyticsSourceState() {
       credentialReady:Boolean(process.env.INSTAGRAM_CLIENT_ID && process.env.INSTAGRAM_CLIENT_SECRET),
       account:connections.instagram?.account_name || null,
       mode:'Instagram Professional Insights',
-      connectUrl:'/oauth/instagram/start',
+      connectUrl:'/oauth/instagram/start?workspace='+workspace,
       callbackUrl:publicBaseUrl()+'/oauth/instagram/callback',
       needs:['Instagram Business/Creator account','Instagram Login: App ID + App Secret','Scopes: instagram_business_basic + instagram_business_manage_insights','On iPhone: use browser login to avoid opening the Instagram app']
     },
@@ -480,7 +520,7 @@ async function analyticsSourceState() {
       credentialReady:Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET),
       account:connections.youtube?.account_name || null,
       mode:'YouTube Analytics API',
-      connectUrl:'/oauth/youtube/start',
+      connectUrl:'/oauth/youtube/start?workspace='+workspace,
       callbackUrl:publicBaseUrl()+'/oauth/youtube/callback',
       needs:['Google Cloud OAuth Web client','YouTube Analytics API + YouTube Data API v3']
     },
@@ -489,7 +529,7 @@ async function analyticsSourceState() {
       credentialReady:Boolean(process.env.X_CLIENT_ID),
       account:connections.x?.account_name || null,
       mode:'X API v2 user metrics',
-      connectUrl:'/oauth/x/start',
+      connectUrl:'/oauth/x/start?workspace='+workspace,
       callbackUrl:publicBaseUrl()+'/oauth/x/callback',
       needs:['X Developer app with OAuth 2.0 PKCE']
     },
@@ -537,12 +577,13 @@ function externalIdFromUrl(platform, url) {
   return null;
 }
 
-async function upsertAsset({ platform, externalId, url, title, publishedAt, raw, itemId = null }) {
+async function upsertAsset({ platform, externalId, url, title, publishedAt, raw, itemId = null, workspace='psychology' }) {
   if (!pool || !externalId) return null;
+  workspace=normalizeWorkspace(workspace);
   const { rows } = await pool.query(`
-    INSERT INTO published_assets(id,item_id,platform,external_id,url,title,published_at,last_synced_at,raw)
-    VALUES($1,$2,$3,$4,$5,$6,$7,now(),$8::jsonb)
-    ON CONFLICT (platform,external_id) DO UPDATE SET
+    INSERT INTO published_assets(id,workspace,item_id,platform,external_id,url,title,published_at,last_synced_at,raw)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,now(),$9::jsonb)
+    ON CONFLICT (workspace,platform,external_id) DO UPDATE SET
       updated_at=now(),
       item_id=COALESCE(published_assets.item_id,EXCLUDED.item_id),
       url=COALESCE(EXCLUDED.url,published_assets.url),
@@ -551,7 +592,7 @@ async function upsertAsset({ platform, externalId, url, title, publishedAt, raw,
       last_synced_at=now(),
       raw=EXCLUDED.raw
     RETURNING *
-  `, [randomUUID(), itemId, platform, String(externalId), url || null, title || null, publishedAt || null, JSON.stringify(raw || {})]);
+  `, [randomUUID(), workspace, itemId, platform, String(externalId), url || null, title || null, publishedAt || null, JSON.stringify(raw || {})]);
   return rows[0];
 }
 
@@ -560,13 +601,13 @@ async function saveSnapshot(asset, metrics, raw) {
   const id = randomUUID();
   await pool.query(`
     INSERT INTO performance_events(
-      id,asset_id,item_id,platform,published_at,views,reach,impressions,likes,comments,shares,saves,bookmarks,
+      id,workspace,asset_id,item_id,platform,published_at,views,reach,impressions,likes,comments,shares,saves,bookmarks,
       profile_clicks,subscribers_gained,watch_time_seconds,average_view_duration,completion_rate,raw
     ) VALUES(
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19::jsonb
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb
     )
   `, [
-    id, asset.id, asset.item_id || null, asset.platform, asset.published_at || null,
+    id, normalizeWorkspace(asset.workspace), asset.id, asset.item_id || null, asset.platform, asset.published_at || null,
     numeric(metrics.views), numeric(metrics.reach), numeric(metrics.impressions), numeric(metrics.likes),
     numeric(metrics.comments), numeric(metrics.shares), numeric(metrics.saves), numeric(metrics.bookmarks),
     numeric(metrics.profileClicks), numeric(metrics.subscribersGained), numeric(metrics.watchTimeSeconds),
@@ -582,7 +623,7 @@ async function fetchJson(url, options = {}) {
   return data;
 }
 
-async function refreshInstagramConnection(conn) {
+async function refreshInstagramConnection(conn,workspace='adept') {
   if(!conn?.access_token_enc) return conn;
   const expires=conn.expires_at ? new Date(conn.expires_at).getTime() : 0;
   if(expires && expires-Date.now() > 14*86400000) return conn;
@@ -598,19 +639,21 @@ async function refreshInstagramConnection(conn) {
     expiresAt:d.expires_in?new Date(Date.now()+Number(d.expires_in)*1000).toISOString():conn.expires_at,
     scope:conn.scope,
     meta:{refreshedAt:new Date().toISOString()}
-  });
+  },workspace);
 }
 
-async function instagramToken() {
-  let conn=await getConnection('instagram');
-  if(conn) conn=await refreshInstagramConnection(conn);
+async function instagramToken(workspace='adept') {
+  workspace=normalizeWorkspace(workspace);
+  let conn=await getConnection('instagram',workspace);
+  if(conn) conn=await refreshInstagramConnection(conn,workspace);
   if(conn?.access_token_enc) return {token:decryptSecret(conn.access_token_enc),userId:conn.account_id};
   if(process.env.INSTAGRAM_USER_ID && process.env.INSTAGRAM_ACCESS_TOKEN) return {token:process.env.INSTAGRAM_ACCESS_TOKEN,userId:process.env.INSTAGRAM_USER_ID};
   return null;
 }
 
-async function syncInstagram() {
-  const auth=await instagramToken();
+async function syncInstagram(workspace='adept') {
+  workspace=normalizeWorkspace(workspace);
+  const auth=await instagramToken(workspace);
   if(!auth) return {source:'instagram',skipped:true};
   const {token,userId}=auth;
   const base=process.env.INSTAGRAM_GRAPH_BASE || 'https://graph.instagram.com';
@@ -638,12 +681,12 @@ async function syncInstagram() {
     }
     const asset=await upsertAsset({
       platform:'instagram',externalId:m.id,url:m.permalink,title:(m.caption||'').slice(0,180),
-      publishedAt:m.timestamp,raw:m
+      publishedAt:m.timestamp,raw:m,workspace
     });
     await saveSnapshot(asset,metrics,{media:m,insights:insightRaw});
     synced++;
   }
-  return {source:'instagram',synced};
+  return {source:'instagram',workspace,synced};
 }
 
 async function refreshYouTubeConnection(conn) {
@@ -800,7 +843,12 @@ async function syncAnalyticsSources() {
   if(!pool||analyticsSyncRunning)return [];
   analyticsSyncRunning=true;
   const results=[];
-  for(const fn of [syncInstagram,syncYouTube,syncX,syncReddit]){
+  for(const workspace of ['adept','psychology']){
+    for(const fn of [syncInstagram]){
+      try{results.push(await fn(workspace))}catch(error){results.push({workspace,source:fn.name.replace(/^sync/,'').toLowerCase(),error:error.message})}
+    }
+  }
+  for(const fn of [syncYouTube,syncX,syncReddit]){
     try{results.push(await fn())}catch(error){results.push({source:fn.name.replace(/^sync/,'').toLowerCase(),error:error.message})}
   }
   analyticsSyncRunning=false;
@@ -808,23 +856,25 @@ async function syncAnalyticsSources() {
   return results;
 }
 
-async function analyticsSummary() {
-  if(!pool)return {sources:await analyticsSourceState(),assets:[],totals:{}};
+async function analyticsSummary(workspace='psychology') {
+  workspace=normalizeWorkspace(workspace);
+  if(!pool)return {workspace,sources:await analyticsSourceState(workspace),assets:[],totals:{}};
   const {rows:assets}=await pool.query(`
     SELECT a.*,p.views,p.reach,p.impressions,p.likes,p.comments,p.shares,p.saves,p.bookmarks,p.profile_clicks,
            p.subscribers_gained,p.watch_time_seconds,p.average_view_duration,p.completion_rate,p.created_at AS measured_at,
            i.title AS idea_title
     FROM published_assets a
-    LEFT JOIN content_items i ON i.id=a.item_id
+    LEFT JOIN content_items i ON i.id=a.item_id AND i.workspace=a.workspace
     LEFT JOIN LATERAL (
       SELECT * FROM performance_events pe WHERE pe.asset_id=a.id ORDER BY pe.created_at DESC LIMIT 1
     ) p ON true
+    WHERE a.workspace=$1
     ORDER BY COALESCE(a.published_at,a.created_at) DESC
     LIMIT 250
-  `);
+  `,[workspace]);
   const {rows:[totals]}=await pool.query(`
     WITH latest AS (
-      SELECT DISTINCT ON (asset_id) * FROM performance_events WHERE asset_id IS NOT NULL ORDER BY asset_id,created_at DESC
+      SELECT DISTINCT ON (asset_id) * FROM performance_events WHERE asset_id IS NOT NULL AND workspace=$1 ORDER BY asset_id,created_at DESC
     )
     SELECT
       COALESCE(SUM(views),0)::bigint AS views,
@@ -835,18 +885,19 @@ async function analyticsSummary() {
       COALESCE(SUM(bookmarks),0)::bigint AS bookmarks,
       COALESCE(SUM(subscribers_gained),0)::bigint AS subscribers_gained
     FROM latest
-  `);
-  return {sources:await analyticsSourceState(),assets,totals:totals||{}};
+  `,[workspace]);
+  return {workspace,sources:await analyticsSourceState(workspace),assets,totals:totals||{}};
 }
 
 async function oauthStart(platform,u,res) {
   if(!pool)return json(res,503,{error:'Database unavailable'});
+  const workspace=normalizeWorkspace(u.searchParams.get('workspace'));
   const requiredPin=String(process.env.ANALYTICS_CONNECT_PIN||'');
   if(!requiredPin)return json(res,503,{error:'ANALYTICS_CONNECT_PIN is not configured'});
   if(String(u.searchParams.get('pin')||'')!==requiredPin)return json(res,403,{error:'Invalid analytics admin PIN'});
   if(platform==='instagram'){
     if(!(process.env.INSTAGRAM_CLIENT_ID&&process.env.INSTAGRAM_CLIENT_SECRET))return json(res,503,{error:'Instagram app credentials are not configured'});
-    const state=await createOauthState(platform);
+    const state=await createOauthState(platform,null,workspace);
     const u=new URL('https://www.instagram.com/oauth/authorize');
     u.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
     u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/instagram/callback');
@@ -862,7 +913,7 @@ async function oauthStart(platform,u,res) {
   }
   if(platform==='youtube'){
     if(!(process.env.YOUTUBE_CLIENT_ID&&process.env.YOUTUBE_CLIENT_SECRET))return json(res,503,{error:'YouTube OAuth credentials are not configured'});
-    const state=await createOauthState(platform);
+    const state=await createOauthState(platform,null,workspace);
     const u=new URL('https://accounts.google.com/o/oauth2/v2/auth');
     u.searchParams.set('client_id',process.env.YOUTUBE_CLIENT_ID);
     u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/youtube/callback');
@@ -878,7 +929,7 @@ async function oauthStart(platform,u,res) {
     if(!process.env.X_CLIENT_ID)return json(res,503,{error:'X OAuth credentials are not configured'});
     const verifier=randomBytes(48).toString('base64url');
     const challenge=createHash('sha256').update(verifier).digest('base64url');
-    const state=await createOauthState(platform,verifier);
+    const state=await createOauthState(platform,verifier,workspace);
     const u=new URL('https://x.com/i/oauth2/authorize');
     u.searchParams.set('response_type','code');
     u.searchParams.set('client_id',process.env.X_CLIENT_ID);
@@ -899,6 +950,7 @@ async function oauthCallback(platform,u,res) {
   if(error)return html(res,400,oauthResultPage(platform,'Provider returned: '+error,false));
   const row=await consumeOauthState(state,platform);
   if(!row||!code)return html(res,400,oauthResultPage(platform,'Invalid or expired OAuth state.',false));
+  const workspace=normalizeWorkspace(row.workspace);
   try{
     if(platform==='instagram'){
       const body=new URLSearchParams({
@@ -926,7 +978,7 @@ async function oauthCallback(platform,u,res) {
       meUrl.searchParams.set('fields','id,username,account_type,media_count');
       meUrl.searchParams.set('access_token',token);
       const me=await fetchJson(meUrl);
-      const expectedUsername=(process.env.INSTAGRAM_EXPECTED_USERNAME||'').replace(/^@/,'').trim().toLowerCase();
+      const expectedUsername=(workspace==='adept'?(process.env.INSTAGRAM_EXPECTED_USERNAME||''):(process.env.PSYCHOLOGY_INSTAGRAM_EXPECTED_USERNAME||'')).replace(/^@/,'').trim().toLowerCase();
       const actualUsername=String(me.username||'').replace(/^@/,'').trim().toLowerCase();
       if(expectedUsername && actualUsername && actualUsername!==expectedUsername){
         throw new Error('Wrong Instagram account authorized: @'+actualUsername+'. Please sign in as @'+expectedUsername+' and try again.');
@@ -939,9 +991,9 @@ async function oauthCallback(platform,u,res) {
         expiresAt:long.expires_in?new Date(Date.now()+Number(long.expires_in)*1000).toISOString():null,
         scope:'instagram_business_basic,instagram_business_manage_insights',
         meta:{accountType:me.account_type,mediaCount:me.media_count}
-      });
-      syncInstagram().catch(e=>console.error('Instagram first sync:',e.message));
-      return html(res,200,oauthResultPage('Instagram connected',me.username?('@'+me.username):'Analytics connection is active.'));
+      },workspace);
+      syncInstagram(workspace).catch(e=>console.error('Instagram first sync:',e.message));
+      return html(res,200,oauthResultPage('Instagram connected',me.username?('@'+me.username+' · '+workspace):('Analytics connection is active · '+workspace)));
     }
     if(platform==='youtube'){
       const body=new URLSearchParams({
@@ -958,7 +1010,7 @@ async function oauthCallback(platform,u,res) {
         accessToken:tok.access_token,refreshToken:tok.refresh_token||null,
         expiresAt:tok.expires_in?new Date(Date.now()+Number(tok.expires_in)*1000).toISOString():null,
         scope:tok.scope||null,meta:{channel:channel.snippet||{}}
-      });
+      },workspace);
       syncYouTube().catch(e=>console.error('YouTube first sync:',e.message));
       return html(res,200,oauthResultPage('YouTube connected',channel.snippet?.title||'Analytics connection is active.'));
     }
@@ -976,7 +1028,7 @@ async function oauthCallback(platform,u,res) {
         accessToken:tok.access_token,refreshToken:tok.refresh_token||null,
         expiresAt:tok.expires_in?new Date(Date.now()+Number(tok.expires_in)*1000).toISOString():null,
         scope:tok.scope||null,meta:{name:me.data?.name,username:me.data?.username}
-      });
+      },workspace);
       syncX().catch(e=>console.error('X first sync:',e.message));
       return html(res,200,oauthResultPage('X connected',me.data?.username?('@'+me.data.username):'Analytics connection is active.'));
     }
@@ -1021,26 +1073,27 @@ async function route(req, res) {
   }
 
   if (u.pathname === '/api/packs' && req.method === 'GET') {
-    return json(res, 200, { updatedAt: new Date().toISOString(), packs: await getPacks() });
+    return json(res, 200, { workspace:normalizeWorkspace(u.searchParams.get('workspace')), updatedAt: new Date().toISOString(), packs: await getPacks(u.searchParams.get('workspace')) });
   }
 
   if (u.pathname === '/api/items' && req.method === 'GET') {
-    return json(res, 200, { items: await getItems() });
+    return json(res, 200, { workspace:normalizeWorkspace(u.searchParams.get('workspace')), items: await getItems(u.searchParams.get('workspace')) });
   }
 
   if (u.pathname === '/api/items' && req.method === 'POST') {
     if (!pool) return json(res, 503, { error: 'Database unavailable' });
     const body = await readJsonBody(req);
+    const workspace=normalizeWorkspace(body.workspace||u.searchParams.get('workspace'));
     const trend = body.trend || {};
     const title = String(body.title || trend.topic || trend.title || '').trim();
     if (!title) return json(res, 400, { error: 'title required' });
     const id = body.id || slugId(title);
     const status = body.status || 'thesis';
     await pool.query(`
-      INSERT INTO content_items(id,title,status,trend)
-      VALUES($1,$2,$3,$4::jsonb)
-      ON CONFLICT (id) DO UPDATE SET updated_at=now(), status=EXCLUDED.status, trend=EXCLUDED.trend
-    `, [id, title, status, JSON.stringify(trend)]);
+      INSERT INTO content_items(id,workspace,title,status,trend)
+      VALUES($1,$2,$3,$4,$5::jsonb)
+      ON CONFLICT (id) DO UPDATE SET updated_at=now(), workspace=EXCLUDED.workspace, status=EXCLUDED.status, trend=EXCLUDED.trend
+    `, [id, workspace, title, status, JSON.stringify(trend)]);
     return json(res, 200, { ok: true, id });
   }
 
@@ -1049,14 +1102,15 @@ async function route(req, res) {
     if (!pool) return json(res, 503, { error: 'Database unavailable' });
     const body = await readJsonBody(req);
     const id = decodeURIComponent(itemMatch[1]);
-    const { rows } = await pool.query('SELECT * FROM content_items WHERE id=$1', [id]);
+    const workspace=normalizeWorkspace(u.searchParams.get('workspace'));
+    const { rows } = await pool.query('SELECT * FROM content_items WHERE id=$1 AND workspace=$2', [id,workspace]);
     if (!rows.length) return json(res, 404, { error: 'Not found' });
     const current = rows[0];
     await pool.query(`
       UPDATE content_items
       SET status=$2,winner=$3,notes=$4,updated_at=now()
-      WHERE id=$1
-    `, [id, body.status ?? current.status, body.winner ?? current.winner, body.notes ?? current.notes]);
+      WHERE id=$1 AND workspace=$5
+    `, [id, body.status ?? current.status, body.winner ?? current.winner, body.notes ?? current.notes,workspace]);
     return json(res, 200, { ok: true });
   }
 
@@ -1098,23 +1152,24 @@ async function route(req, res) {
   }
 
   if (u.pathname === '/api/analytics/sources' && req.method === 'GET') {
-    return json(res, 200, { sources: await analyticsSourceState() });
+    return json(res, 200, { workspace:normalizeWorkspace(u.searchParams.get('workspace')), sources: await analyticsSourceState(u.searchParams.get('workspace')) });
   }
 
   if (u.pathname === '/api/analytics/summary' && req.method === 'GET') {
-    return json(res, 200, await analyticsSummary());
+    return json(res, 200, await analyticsSummary(u.searchParams.get('workspace')));
   }
 
   if (u.pathname === '/api/analytics/link' && req.method === 'POST') {
     if (!pool) return json(res, 503, { error:'Database unavailable' });
     const body=await readJsonBody(req);
+    const workspace=normalizeWorkspace(body.workspace||u.searchParams.get('workspace'));
     const platform=String(body.platform||'').toLowerCase().trim();
     const url=String(body.url||'').trim();
     const externalId=String(body.externalId||externalIdFromUrl(platform,url)||'').trim();
     if (!platform || !externalId) return json(res,400,{error:'platform and recognizable URL/externalId required'});
     const asset=await upsertAsset({
       platform, externalId, url:url||null, title:body.title||null, publishedAt:body.publishedAt||null,
-      itemId:body.itemId||null, raw:{manualLink:true}
+      itemId:body.itemId||null, raw:{manualLink:true}, workspace
     });
     return json(res,200,{ok:true,asset});
   }
@@ -1127,7 +1182,7 @@ async function route(req, res) {
       const q=await pool.query('SELECT * FROM published_assets WHERE id=$1',[body.assetId]);asset=q.rows[0]||null;
     } else if (body.platform && (body.externalId || body.url)) {
       const externalId=body.externalId || externalIdFromUrl(body.platform,body.url);
-      asset=await upsertAsset({platform:body.platform,externalId,url:body.url||null,title:body.title||null,publishedAt:body.publishedAt||null,itemId:body.itemId||null,raw:{manual:true}});
+      asset=await upsertAsset({platform:body.platform,externalId,url:body.url||null,title:body.title||null,publishedAt:body.publishedAt||null,itemId:body.itemId||null,raw:{manual:true},workspace:normalizeWorkspace(body.workspace||u.searchParams.get('workspace'))});
     }
     const id = asset
       ? await saveSnapshot(asset, body, body)
