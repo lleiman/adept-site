@@ -356,6 +356,7 @@ async function initDb() {
     ALTER TABLE performance_events ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
     ALTER TABLE analytics_connections ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
     ALTER TABLE oauth_states ADD COLUMN IF NOT EXISTS workspace text NOT NULL DEFAULT 'psychology';
+    ALTER TABLE oauth_states ADD COLUMN IF NOT EXISTS action text;
 
     UPDATE analytics_connections
       SET workspace='adept'
@@ -706,10 +707,10 @@ async function saveConnection(platform,{accountId,accountName,accessToken,refres
   return getConnection(platform,workspace);
 }
 
-async function createOauthState(platform,codeVerifier=null,workspace='psychology') {
+async function createOauthState(platform,codeVerifier=null,workspace='psychology',action=null) {
   workspace=normalizeWorkspace(workspace);
   const state=randomBytes(24).toString('base64url');
-  await pool.query('INSERT INTO oauth_states(state,platform,code_verifier,workspace) VALUES($1,$2,$3,$4)',[state,platform,codeVerifier,workspace]);
+  await pool.query('INSERT INTO oauth_states(state,platform,code_verifier,workspace,action) VALUES($1,$2,$3,$4,$5)',[state,platform,codeVerifier,workspace,action]);
   return state;
 }
 
@@ -1140,7 +1141,7 @@ async function oauthStart(platform,u,res) {
   if(String(u.searchParams.get('pin')||'')!==requiredPin)return json(res,403,{error:'Invalid analytics admin PIN'});
   if(platform==='instagram'){
     if(!(process.env.INSTAGRAM_CLIENT_ID&&process.env.INSTAGRAM_CLIENT_SECRET))return json(res,503,{error:'Instagram app credentials are not configured'});
-    const state=await createOauthState(platform,null,workspace);
+    const state=await createOauthState(platform,null,workspace,String(u.searchParams.get('after')||'')||null);
     const u=new URL('https://www.instagram.com/oauth/authorize');
     u.searchParams.set('client_id',process.env.INSTAGRAM_CLIENT_ID);
     u.searchParams.set('redirect_uri',publicBaseUrl()+'/oauth/instagram/callback');
@@ -1236,6 +1237,10 @@ async function oauthCallback(platform,u,res) {
         meta:{accountType:me.account_type,mediaCount:me.media_count}
       },workspace);
       syncInstagram(workspace).catch(e=>console.error('Instagram first sync:',e.message));
+      if(workspace==='adept' && row.action==='publish_v2'){
+        const published=await publishAdeptCarousel();
+        return html(res,200,oauthResultPage('Instagram connected + carousel published',published.permalink||('@'+(me.username||'adept.production'))));
+      }
       return html(res,200,oauthResultPage('Instagram connected',me.username?('@'+me.username+' · '+workspace):('Analytics connection is active · '+workspace)));
     }
     if(platform==='youtube'){
