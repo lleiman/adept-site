@@ -309,7 +309,7 @@ async function loadAnalytics(){
       const action=s.connected
         ? '<div class="actions"><span class="tag">'+esc(s.account||'connected')+'</span></div>'
         : (s.credentialReady&&s.connectUrl
-          ? '<div class="actions"><button class="btn primary small" onclick=\'connectSource('+JSON.stringify(JSON.stringify(s.id))+','+JSON.stringify(JSON.stringify(s.connectUrl))+')\'>Connect '+esc(s.name)+'</button></div>'
+          ? '<div class="actions"><button class="btn primary small" onclick=\'connectSource('+JSON.stringify(s.id)+','+JSON.stringify(s.connectUrl)+')\'>Connect '+esc(s.name)+'</button></div>'
           : (s.callbackUrl
             ? '<div class="actions"><button class="btn small" onclick=\'copy('+JSON.stringify(JSON.stringify(s.callbackUrl))+')\'>Copy callback URL</button></div>'
             : ''));
