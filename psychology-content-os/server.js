@@ -923,6 +923,11 @@ async function oauthCallback(platform,u,res) {
       meUrl.searchParams.set('fields','id,username,account_type,media_count');
       meUrl.searchParams.set('access_token',token);
       const me=await fetchJson(meUrl);
+      const expectedUsername=(process.env.INSTAGRAM_EXPECTED_USERNAME||'').replace(/^@/,'').trim().toLowerCase();
+      const actualUsername=String(me.username||'').replace(/^@/,'').trim().toLowerCase();
+      if(expectedUsername && actualUsername && actualUsername!==expectedUsername){
+        throw new Error('Wrong Instagram account authorized: @'+actualUsername+'. Please sign in as @'+expectedUsername+' and try again.');
+      }
 
       await saveConnection('instagram',{
         accountId:me.id||userId,
