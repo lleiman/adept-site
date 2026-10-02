@@ -208,15 +208,20 @@ function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setT
 async function api(url,opts={}){const r=await fetch(url,{cache:'no-store',...opts});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
 async function copy(v){await navigator.clipboard.writeText(textFrom(v));toast('Copied')}
 
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
-function showPage(id){
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page,true)));
+function showPage(id,updateHash=false){
+  const valid=[...document.querySelectorAll('.page')].some(x=>x.id===id);
+  if(!valid) id='today';
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.page===id));
   document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));
+  if(updateHash && location.hash!=='#'+id) history.replaceState(null,'','#'+id);
   if(id==='voice') loadVoiceNotes();
   if(id==='production') loadPacks();
   if(id==='analytics') { loadItems().then(loadAnalytics); }
   if(id==='library') loadItems();
 }
+function pageFromHash(){return (location.hash||'#today').slice(1)}
+window.addEventListener('hashchange',()=>showPage(pageFromHash(),false));
 
 async function loadConfig(){
   try{
@@ -383,7 +388,8 @@ $('processTextBtn').addEventListener('click',async()=>{
   }catch(e){toast(e.message)}finally{$('processTextBtn').disabled=false;$('processTextBtn').textContent='Process into content pack'}
 });
 
-Promise.all([loadConfig(),loadTrends(),loadItems(),loadPacks(),loadAnalytics()]);
+Promise.all([loadConfig(),loadTrends(),loadItems(),loadPacks(),loadAnalytics()])
+  .finally(()=>showPage(pageFromHash(),false));
 </script>
 </body>
 </html>
