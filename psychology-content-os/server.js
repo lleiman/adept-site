@@ -168,7 +168,7 @@ async function initDb() {
       ON published_assets(workspace,platform,external_id);
 
     ALTER TABLE analytics_connections DROP CONSTRAINT IF EXISTS analytics_connections_pkey;
-    DO $
+    DO $$
     BEGIN
       IF NOT EXISTS (
         SELECT 1 FROM pg_constraint
@@ -177,9 +177,9 @@ async function initDb() {
         ALTER TABLE analytics_connections
           ADD CONSTRAINT analytics_connections_workspace_platform_pkey PRIMARY KEY(workspace,platform);
       END IF;
-    END $;
+    END $$;
 
-        DELETE FROM oauth_states WHERE created_at < now() - interval '30 minutes';
+    DELETE FROM oauth_states WHERE created_at < now() - interval '30 minutes';
   `);
   const seed = parseEnvJson('CONTENT_PIPELINE_JSON', []);
   for (const pack of Array.isArray(seed) ? seed : []) {
@@ -1087,7 +1087,7 @@ async function route(req, res) {
     const trend = body.trend || {};
     const title = String(body.title || trend.topic || trend.title || '').trim();
     if (!title) return json(res, 400, { error: 'title required' });
-    const id = body.id || slugId(title);
+    const id = body.id || (workspace==='psychology' ? slugId(title) : workspace+'-'+slugId(title));
     const status = body.status || 'thesis';
     await pool.query(`
       INSERT INTO content_items(id,workspace,title,status,trend)
@@ -1116,8 +1116,9 @@ async function route(req, res) {
 
   if (u.pathname === '/api/voice' && req.method === 'GET') {
     if (!pool) return json(res, 200, { notes: [] });
-    const { rows } = await pool.query('SELECT id,created_at,transcript,language,source,source_trend_title,status,meta FROM voice_notes ORDER BY created_at DESC LIMIT 50');
-    return json(res, 200, { notes: rows });
+    const workspace=normalizeWorkspace(u.searchParams.get('workspace'));
+    const { rows } = await pool.query('SELECT id,created_at,transcript,language,source,source_trend_title,status,meta FROM voice_notes WHERE workspace=$1 ORDER BY created_at DESC LIMIT 50',[workspace]);
+    return json(res, 200, { workspace,notes: rows });
   }
 
   if (u.pathname === '/api/voice' && req.method === 'POST') {
@@ -1189,10 +1190,10 @@ async function route(req, res) {
       : randomUUID();
     if (!asset) {
       await pool.query(`
-        INSERT INTO performance_events(id,item_id,platform,published_at,views,reach,impressions,likes,comments,shares,saves,bookmarks,profile_clicks,subscribers_gained,watch_time_seconds,average_view_duration,completion_rate,raw)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::jsonb)
+        INSERT INTO performance_events(id,workspace,item_id,platform,published_at,views,reach,impressions,likes,comments,shares,saves,bookmarks,profile_clicks,subscribers_gained,watch_time_seconds,average_view_duration,completion_rate,raw)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19::jsonb)
       `,[
-        id,body.itemId||null,body.platform||'unknown',body.publishedAt||null,body.views??null,body.reach??null,body.impressions??null,
+        id,normalizeWorkspace(body.workspace||u.searchParams.get('workspace')),body.itemId||null,body.platform||'unknown',body.publishedAt||null,body.views??null,body.reach??null,body.impressions??null,
         body.likes??null,body.comments??null,body.shares??null,body.saves??null,body.bookmarks??null,body.profileClicks??null,
         body.subscribersGained??null,body.watchTimeSeconds??null,body.averageViewDuration??null,body.completionRate??null,JSON.stringify(body)
       ]);
@@ -1227,7 +1228,7 @@ initDb()
       else res.end();
     }));
     server.listen(port,'0.0.0.0',() => {
-      console.log('Psychology Content OS v2.1 running on ' + port);
+      console.log('Content OS v3.0 running on ' + port);
       setTimeout(() => syncAnalyticsSources().catch(error => console.error('Initial analytics sync failed:',error.message)), 15000);
       const minutes=Math.max(60,Number(process.env.ANALYTICS_SYNC_MINUTES||360));
       setInterval(() => syncAnalyticsSources().catch(error => console.error('Analytics sync failed:',error.message)), minutes*60000);
