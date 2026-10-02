@@ -473,7 +473,7 @@ async function analyticsSourceState() {
       mode:'Instagram Professional Insights',
       connectUrl:'/oauth/instagram/start',
       callbackUrl:publicBaseUrl()+'/oauth/instagram/callback',
-      needs:['Instagram Business/Creator account','Instagram Login: App ID + App Secret','Scopes: instagram_business_basic + instagram_business_manage_insights']
+      needs:['Instagram Business/Creator account','Instagram Login: App ID + App Secret','Scopes: instagram_business_basic + instagram_business_manage_insights','On iPhone: use browser login to avoid opening the Instagram app']
     },
     {
       id:'youtube',name:'YouTube',connected:Boolean(connections.youtube),
@@ -855,6 +855,9 @@ async function oauthStart(platform,u,res) {
     u.searchParams.set('state',state);
     u.searchParams.set('enable_fb_login','0');
     u.searchParams.set('force_authentication','1');
+    if(String(arguments[1]?.searchParams?.get('format')||'')==='json'){
+      return json(res,200,{url:u.toString(),expiresInSeconds:1200});
+    }
     res.writeHead(302,{Location:u.toString(),'Cache-Control':'no-store'});return res.end();
   }
   if(platform==='youtube'){
