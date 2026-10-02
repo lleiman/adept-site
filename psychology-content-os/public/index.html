@@ -453,7 +453,7 @@ function renderPacks(){
 async function publishAdeptCarouselV2(){
   let pin=sessionStorage.getItem('analyticsConnectPin')||'';
   if(!pin){pin=prompt('Analytics admin PIN');if(!pin)return;sessionStorage.setItem('analyticsConnectPin',pin)}
-  if(!confirm('Publish this 7-slide carousel to @adept.production now? The SVG preview above is the source of truth.'))return;
+  if(!confirm('Publish these 7 JPEG slides to @adept.production now?'))return;
   try{
     const j=await api('/api/adept/carousel/v2/publish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
     toast('Published to Instagram');
