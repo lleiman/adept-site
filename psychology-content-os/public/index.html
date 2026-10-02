@@ -434,7 +434,14 @@ function block(label,v,wide=false){return '<div class="block '+(wide?'wide':'')+
 function renderPacks(){
   if(workspace==='adept'){
     const prod=items.filter(x=>x.status==='production'||x.status==='thesis');
-    $('packList').innerHTML=prod.length?prod.map(x=>'<div class="card"><div class="row"><div><h4>'+esc(x.title)+'</h4><div class="meta">'+esc(x.status)+' · '+esc(x.trend?.format||'creative')+'</div></div><span class="tag">ADEPT</span></div><p>Creative production item. Link the published post in Analytics after release so performance stays attached to this idea.</p></div>').join(''):'<div class="empty">No ADEPT creatives in production yet. Add an idea on Today.</div>';
+    $('packList').innerHTML=prod.length?prod.map(x=>{
+      const c=x.trend?.carousel;
+      const slides=c?.slides||[];
+      const detail=slides.length
+        ? '<div class="pack-body">'+slides.map(s=>block('Slide '+s.n+' · '+s.headline,{body:s.body,visual:s.visual})).join('')+block('Caption',c.caption,true)+block('Visual direction',c.visual_direction,true)+'</div>'
+        : '<p style="padding:0 18px 18px">Creative production item. Link the published post in Analytics after release so performance stays attached to this idea.</p>';
+      return '<article class="pack"><div class="pack-head"><div><div class="kicker">'+esc(x.trend?.format||'creative')+' · '+esc(x.status)+'</div><h4>'+esc(x.title)+'</h4></div><span class="tag">ADEPT</span></div>'+detail+'</article>';
+    }).join(''):'<div class="empty">No ADEPT creatives in production yet. Add an idea on Today.</div>';
     return;
   }
   if(!packs.length){$('packList').innerHTML='<div class="empty">No packs yet.</div>';return}
