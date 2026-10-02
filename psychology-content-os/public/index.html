@@ -382,7 +382,7 @@ async function loadAnalytics(){
     $('analyticsSources').innerHTML=sources.map(s=>{
       const status=s.connected?'CONNECTED':(s.credentialReady?'READY TO AUTHORIZE':'DEV APP NEEDED');
       const action=s.connected
-        ? '<div class="actions"><span class="tag">'+esc(s.account||'connected')+'</span>'+(s.id==='instagram'&&workspace==='adept'&&!s.canPublish&&s.connectUrl?'<button class="btn primary small" onclick=\'connectSource('+JSON.stringify(s.id)+','+JSON.stringify(s.connectUrl)+')\'>Reconnect for publishing</button>':'')+'</div>'
+        ? '<div class="actions"><span class="tag">'+esc(s.account||'connected')+'</span>'+(s.id==='instagram'&&workspace==='adept'&&!s.canPublish&&s.connectUrl?'<button class="btn primary small" onclick=\'connectSource('+JSON.stringify(s.id)+','+JSON.stringify(s.connectUrl+'&after=publish_v2')+')\'>Reconnect & publish</button>':'')+'</div>'
         : (s.credentialReady&&s.connectUrl
           ? '<div class="actions"><button class="btn primary small" onclick=\'connectSource('+JSON.stringify(s.id)+','+JSON.stringify(s.connectUrl)+')\'>Connect '+esc(s.name)+'</button></div>'
           : (s.callbackUrl
