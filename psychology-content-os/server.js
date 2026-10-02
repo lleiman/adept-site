@@ -188,6 +188,16 @@ function adeptCarouselSlideSvg(index){
 async function adeptCarouselJpeg(index){
   return sharp(Buffer.from(adeptCarouselSlideSvg(index))).jpeg({quality:93,chromaSubsampling:'4:4:4'}).toBuffer();
 }
+async function ensureAdeptCarouselAssets(){
+  const dir=path.join(root,'assets','adept','carousel-v2');
+  fs.mkdirSync(dir,{recursive:true});
+  for(let i=1;i<=ADEPT_CAROUSEL_V2.slides.length;i++){
+    const jpg=await adeptCarouselJpeg(i);
+    const file=path.join(dir,'slide-'+String(i).padStart(2,'0')+'.jpg');
+    fs.writeFileSync(file,jpg);
+  }
+  console.log('ADEPT carousel v2 static JPEGs ready');
+}
 async function waitInstagramContainer(base,version,id,token){
   for(let n=0;n<12;n++){
     const u=new URL(base+'/'+version+'/'+id);
@@ -216,7 +226,7 @@ async function publishAdeptCarousel(){
   const children=[];
   for(let i=1;i<=ADEPT_CAROUSEL_V2.slides.length;i++){
     const body=new URLSearchParams({
-      image_url:publicBaseUrl()+'/api/adept/carousel/v2/slide/'+i+'.jpg',
+      image_url:publicBaseUrl()+'/assets/adept/carousel-v2/slide-'+String(i).padStart(2,'0')+'.jpg',
       is_carousel_item:'true',
       access_token:token
     });
@@ -1310,7 +1320,7 @@ async function route(req, res) {
   if(u.pathname==='/api/adept/carousel/v2' && req.method==='GET'){
     return json(res,200,{
       ...ADEPT_CAROUSEL_V2,
-      images:ADEPT_CAROUSEL_V2.slides.map((_,i)=>publicBaseUrl()+'/api/adept/carousel/v2/slide/'+(i+1)+'.jpg')
+      images:ADEPT_CAROUSEL_V2.slides.map((_,i)=>publicBaseUrl()+'/assets/adept/carousel-v2/slide-'+String(i+1).padStart(2,'0')+'.jpg')
     });
   }
   if(u.pathname==='/api/adept/carousel/v2/publish' && req.method==='POST'){
@@ -1494,6 +1504,7 @@ async function route(req, res) {
 }
 
 initDb()
+  .then(() => ensureAdeptCarouselAssets())
   .then(() => {
     const server=http.createServer((req,res) => route(req,res).catch(error => {
       console.error(error);
