@@ -13,7 +13,7 @@ button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:2
 .workspace-switch{display:flex;gap:6px;padding:5px;border:1px solid var(--line);background:#0d0f13;border-radius:14px;margin:0 0 18px;width:max-content;max-width:100%;overflow:auto}
 .wsbtn{border:0;background:transparent;color:var(--muted);padding:9px 12px;border-radius:10px;cursor:pointer;white-space:nowrap}.wsbtn.active{background:var(--accent);color:#101214;font-weight:800}
 .creative-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.creative-type{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:13px}.creative-type b{font-size:13px}.creative-type span{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin-top:6px}
-.intel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.intel-card{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:15px}.intel-card b{font-size:24px;display:block}.intel-card span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.carousel-gallery{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px}.carousel-gallery img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#090a0c}.publish-card{padding:18px;background:#0d0f13;border:1px solid var(--line);border-radius:14px;margin-bottom:16px}.publish-card h4{margin:0 0 8px;font-size:20px}.publish-card p{margin:0;color:var(--muted);line-height:1.5;font-size:13px}
+.intel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.intel-card{background:#0d0f13;border:1px solid var(--line);border-radius:13px;padding:15px}.intel-card b{font-size:24px;display:block}.intel-card span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.carousel-gallery{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px}.carousel-gallery img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#090a0c}.publish-card{padding:18px;background:#0d0f13;border:1px solid var(--line);border-radius:14px;margin-bottom:16px}.publish-card h4{margin:0 0 8px;font-size:20px}.publish-card p{margin:0;color:var(--muted);line-height:1.5;font-size:13px}.auto-publish{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-bottom:14px}.auto-publish-main,.auto-publish-side{background:#0d0f13;border:1px solid var(--line);border-radius:14px;padding:16px}.auto-publish h4{margin:4px 0 8px;font-size:18px}.auto-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px}.switch input{width:18px;height:18px}.schedule-input{background:#090b0f;border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 10px}.jobline{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}.statusdot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#636b76;margin-right:7px}.statusdot.on{background:#7cff91}.statusdot.warn{background:#ffd36d}@media(max-width:900px){.auto-publish{grid-template-columns:1fr}}
 @media(max-width:900px){.creative-grid{grid-template-columns:1fr 1fr}.intel-grid{grid-template-columns:1fr 1fr}.carousel-gallery{grid-template-columns:1fr 1fr}}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tab{border:1px solid var(--line);background:#0d0f13;color:var(--muted);padding:10px 14px;border-radius:999px;cursor:pointer}.tab.active{background:#f2f4f6;color:#111;border-color:#f2f4f6}
 .page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.c8{grid-column:span 8}.c4{grid-column:span 4}.c12{grid-column:span 12}.c6{grid-column:span 6}
@@ -114,8 +114,9 @@ button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:2
   </section>
 
   <section class="page" id="production">
+    <div id="publishingControl"></div>
     <div class="panel">
-      <div class="panel-head"><div><div class="kicker" id="productionKicker">Output</div><h3 id="productionTitle">Production packs</h3></div><button class="btn small" onclick="loadPacks()">Refresh</button></div>
+      <div class="panel-head"><div><div class="kicker" id="productionKicker">Output</div><h3 id="productionTitle">Production packs</h3></div><button class="btn small" onclick="Promise.all([loadPacks(),loadPublishing()])">Refresh</button></div>
       <div class="list" id="packList"><div class="empty">Loading…</div></div>
     </div>
   </section>
@@ -211,7 +212,7 @@ button,textarea,input{font:inherit}.shell{max-width:1440px;margin:auto;padding:2
 <div class="toast" id="toast"></div>
 
 <script>
-let trends=[], items=[], packs=[], config={};
+let trends=[], items=[], packs=[], config={}, publishingStateData=null;
 const initialWorkspace=new URLSearchParams(location.search).get('workspace')||localStorage.getItem('contentWorkspace')||'adept';
 let workspace=initialWorkspace==='psychology'?'psychology':'adept';
 let mediaRecorder=null, chunks=[], timerInt=null, startedAt=0, selectedVoiceTrend='';
@@ -255,6 +256,7 @@ function applyWorkspace(){
     $('productionTitle').textContent='Production packs';
   }
   renderPipeline();renderLibrary();
+  if(workspace==='adept')loadPublishing();else if($('publishingControl'))$('publishingControl').innerHTML='';
 }
 async function saveAdeptIdea(){
   const title=($('adeptIdeaTitle')?.value||'').trim();
@@ -273,7 +275,7 @@ function showPage(id,updateHash=false){
   if(updateHash && location.hash!=='#'+id) history.replaceState(null,'','#'+id);
   if(id==='voice' && workspace==='adept') id='today';
   if(id==='voice') loadVoiceNotes();
-  if(id==='production') loadPacks();
+  if(id==='production'){loadPacks();if(workspace==='adept')loadPublishing();}
   if(id==='analytics') { loadItems().then(loadAnalytics); }
   if(id==='library') loadItems();
 }
@@ -426,6 +428,77 @@ function renderCreativeIntel(assets){
   $('creativeIntel').innerHTML='<div class="intel-card"><b>'+shareRate+'</b><span>share / view rate</span></div><div class="intel-card"><b>'+saveRate+'</b><span>save / view rate</span></div><div class="intel-card"><b>'+assets.length+'</b><span>creatives learned</span></div><div class="intel-card"><b style="font-size:14px;line-height:1.35">'+esc((top?.title||top?.external_id||'—').slice(0,70))+'</b><span>strongest resonance signal</span></div>';
 }
 
+async function loadPublishing(){
+  if(workspace!=='adept'||!$('publishingControl'))return;
+  try{
+    publishingStateData=await api('/api/adept/publishing');
+    renderPublishing();
+  }catch(e){
+    $('publishingControl').innerHTML='<div class="notice warn">'+esc(e.message)+'</div>';
+  }
+}
+function publishingPin(){
+  let pin=sessionStorage.getItem('analyticsConnectPin')||'';
+  if(!pin){pin=prompt('Analytics admin PIN')||'';if(pin)sessionStorage.setItem('analyticsConnectPin',pin)}
+  return pin;
+}
+function renderPublishing(){
+  if(workspace!=='adept'||!$('publishingControl'))return;
+  const st=publishingStateData||{};
+  const set=st.settings||{};
+  const jobs=arr(st.jobs);
+  const next=jobs.find(j=>['scheduled','retry','blocked','publishing'].includes(j.status));
+  const last=jobs.find(j=>j.status==='published');
+  const enabled=!!set.enabled;
+  const can=!!st.canPublish;
+  const nextText=next
+    ? (next.status.toUpperCase()+' · '+new Date(next.scheduled_at).toLocaleString())
+    : 'No queued publication';
+  const error=next?.error?'<div class="notice warn" style="margin-top:10px">'+esc(next.error)+'</div>':'';
+  $('publishingControl').innerHTML='<div class="auto-publish">'+
+    '<div class="auto-publish-main"><div class="kicker">AUTOMATIC PUBLISHING</div><h4><span class="statusdot '+(enabled?'on':'')+'"></span>'+(enabled?'ON':'OFF')+' · @'+esc(st.account||'adept.production')+'</h4>'+
+    '<p style="color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 12px">Content OS checks the queue every minute and publishes the next ready carousel automatically.</p>'+
+    '<div class="auto-row"><label class="switch"><input id="autoPublishEnabled" type="checkbox" '+(enabled?'checked':'')+'> Enabled</label>'+
+    '<label style="font-size:12px;color:var(--muted)">Daily slot <input id="autoPublishTime" class="schedule-input" type="time" value="'+esc(set.daily_time||'19:00')+'"></label>'+
+    '<button class="btn primary small" onclick="savePublishingSettings()">Save</button>'+
+    '<button class="btn small" onclick="queueAdeptCurrent(false)">Queue current</button></div>'+
+    (can?'':'<div class="notice warn" style="margin-top:12px">Instagram is connected, but publishing permission is not active. Reconnect Instagram in Analytics once; the queued post will resume automatically.</div>')+
+    error+'</div>'+
+    '<div class="auto-publish-side"><div class="kicker">NEXT JOB</div><div class="jobline"><b style="color:var(--text)">'+esc(nextText)+'</b></div>'+
+    '<div class="jobline">Timezone: '+esc(set.timezone||config.timezone||'Asia/Makassar')+'</div>'+
+    '<div class="jobline">Last published: '+esc(last?.published_at?new Date(last.published_at).toLocaleString():'—')+'</div>'+
+    '<div class="jobline">Retries are automatic; duplicate content keys are blocked.</div></div>'+
+  '</div>';
+}
+async function savePublishingSettings(){
+  const pin=publishingPin();if(!pin)return;
+  const enabled=!!$('autoPublishEnabled')?.checked;
+  const dailyTime=$('autoPublishTime')?.value||'19:00';
+  try{
+    publishingStateData=await api('/api/adept/publishing/settings',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pin,enabled,dailyTime,timezone:config.timezone||'Asia/Makassar'})
+    });
+    renderPublishing();toast(enabled?'Auto publishing enabled':'Auto publishing paused');
+  }catch(e){
+    if(e.message.includes('PIN'))sessionStorage.removeItem('analyticsConnectPin');
+    alert(e.message);
+  }
+}
+async function queueAdeptCurrent(now=false){
+  const pin=publishingPin();if(!pin)return;
+  try{
+    publishingStateData=await api('/api/adept/publishing/queue-current',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pin,now:!!now})
+    });
+    renderPublishing();toast(now?'Queued for immediate publish':'Queued for next daily slot');
+  }catch(e){
+    if(e.message.includes('PIN'))sessionStorage.removeItem('analyticsConnectPin');
+    alert(e.message);
+  }
+}
+
 async function loadPacks(){
   $('packList').innerHTML='<div class="empty">Loading packs…</div>';
   try{const j=await api(withWorkspace('/api/packs'));packs=arr(j.packs);renderPacks()}catch(e){$('packList').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
@@ -433,7 +506,7 @@ async function loadPacks(){
 function block(label,v,wide=false){return '<div class="block '+(wide?'wide':'')+'"><h5>'+esc(label)+'</h5><pre>'+esc(textFrom(v)||'—')+'</pre><div class="actions"><button class="btn small" onclick=\'copy('+JSON.stringify(JSON.stringify(v))+')\'>Copy</button></div></div>'}
 function renderPacks(){
   if(workspace==='adept'){
-    const hero='<div class="publish-card"><div class="kicker">Carousel V2 · ready asset</div><h4>AI-визуалы подешевели. AI-концепты — нет.</h4><p>Новая версия: единая дизайн-система, но отдельная визуальная метафора на каждом слайде.</p><div class="actions"><button class="btn primary" onclick="publishAdeptCarouselV2()">Publish to @adept.production</button><a class="btn small" href="/api/adept/carousel/v2" target="_blank" style="text-decoration:none">Open JSON</a></div></div><div class="carousel-gallery">'+[1,2,3,4,5,6,7].map(i=>{const n=String(i).padStart(2,'0');return '<a href="/assets/adept/carousel-v2/slide-'+n+'.jpg?v=7" target="_blank"><img loading="lazy" src="/assets/adept/carousel-v2/slide-'+n+'.jpg?v=7" alt="ADEPT carousel slide '+i+'"></a>'}).join('')+'</div><div style="height:18px"></div>';
+    const hero='<div class="publish-card"><div class="kicker">Carousel V2 · ready asset</div><h4>AI-визуалы подешевели. AI-концепты — нет.</h4><p>Новая версия: единая дизайн-система, но отдельная визуальная метафора на каждом слайде.</p><div class="actions"><button class="btn primary" onclick="publishAdeptCarouselV2()">Publish now</button><button class="btn small" onclick="queueAdeptCurrent(false)">Queue next slot</button><a class="btn small" href="/api/adept/carousel/v2" target="_blank" style="text-decoration:none">Open JSON</a></div></div><div class="carousel-gallery">'+[1,2,3,4,5,6,7].map(i=>{const n=String(i).padStart(2,'0');return '<a href="/assets/adept/carousel-v2/slide-'+n+'.jpg?v=7" target="_blank"><img loading="lazy" src="/assets/adept/carousel-v2/slide-'+n+'.jpg?v=7" alt="ADEPT carousel slide '+i+'"></a>'}).join('')+'</div><div style="height:18px"></div>';
     const prod=items.filter(x=>x.status==='production'||x.status==='thesis');
     const queue=prod.length?prod.map(x=>{
       const c=x.trend?.carousel;
@@ -458,7 +531,7 @@ async function publishAdeptCarouselV2(){
     const j=await api('/api/adept/carousel/v2/publish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
     toast('Published to Instagram');
     if(j.permalink) window.open(j.permalink,'_blank');
-    await Promise.all([loadAnalytics(),loadItems()]);
+    await Promise.all([loadAnalytics(),loadItems(),loadPublishing()]);
   }catch(e){
     if(String(e.message).includes('Publishing permission')) sessionStorage.removeItem('analyticsConnectPin');
     alert(e.message);
@@ -507,7 +580,7 @@ $('processTextBtn').addEventListener('click',async()=>{
 });
 
 applyWorkspace();
-Promise.all([loadConfig(),workspace==='psychology'?loadTrends():Promise.resolve(),loadItems(),loadPacks(),loadAnalytics()])
+Promise.all([loadConfig(),workspace==='psychology'?loadTrends():Promise.resolve(),loadItems(),loadPacks(),loadAnalytics(),workspace==='adept'?loadPublishing():Promise.resolve()])
   .finally(()=>showPage(pageFromHash(),false));
 </script>
 </body>
