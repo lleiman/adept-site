@@ -271,6 +271,216 @@ async function publishAdeptCarousel(){
   return {ok:true,id:pub.id,permalink:meta.permalink||null,assetId:asset?.id||null};
 }
 
+
+function tzParts(date,tz){
+  const parts=new Intl.DateTimeFormat('en-CA',{
+    timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+  }).formatToParts(date);
+  const out={};
+  for(const p of parts) if(p.type!=='literal') out[p.type]=Number(p.value);
+  return out;
+}
+function tzOffsetMs(date,tz){
+  const p=tzParts(date,tz);
+  return Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second)-date.getTime();
+}
+function zonedToUtc(year,month,day,hour,minute,tz){
+  const guess=new Date(Date.UTC(year,month-1,day,hour,minute,0));
+  let offset=tzOffsetMs(guess,tz);
+  let result=new Date(guess.getTime()-offset);
+  const offset2=tzOffsetMs(result,tz);
+  if(offset2!==offset) result=new Date(guess.getTime()-offset2);
+  return result;
+}
+function nextDailyPublishAt(dailyTime='19:00',tz='Asia/Makassar',from=new Date()){
+  const m=String(dailyTime||'19:00').match(/^(\d{2}):(\d{2})$/);
+  const hh=m?Math.min(23,Number(m[1])):19;
+  const mm=m?Math.min(59,Number(m[2])):0;
+  const p=tzParts(from,tz);
+  let candidate=zonedToUtc(p.year,p.month,p.day,hh,mm,tz);
+  if(candidate.getTime()<=from.getTime()+30000){
+    const noon=new Date(Date.UTC(p.year,p.month-1,p.day,12,0,0)+86400000);
+    const n=tzParts(noon,tz);
+    candidate=zonedToUtc(n.year,n.month,n.day,hh,mm,tz);
+  }
+  return candidate;
+}
+async function publishingState(workspace='adept'){
+  workspace=normalizeWorkspace(workspace);
+  if(!pool) return {workspace,settings:null,jobs:[]};
+  const {rows:srows}=await pool.query('SELECT * FROM publishing_settings WHERE workspace=$1',[workspace]);
+  const {rows:jobs}=await pool.query(`
+    SELECT id,workspace,platform,content_key,item_id,kind,status,scheduled_at,attempts,error,published_at,created_at,updated_at
+    FROM publish_jobs WHERE workspace=$1 ORDER BY created_at DESC LIMIT 25
+  `,[workspace]);
+  const conn=await getConnection('instagram',workspace);
+  return {
+    workspace,
+    settings:srows[0]||null,
+    canPublish:Boolean(conn && String(conn.scope||'').includes('instagram_business_content_publish')),
+    account:conn?.account_name||null,
+    jobs
+  };
+}
+async function ensureAdeptPublishingDefaults(){
+  if(!pool) return;
+  const timezone=process.env.CONTENT_TIMEZONE||'Asia/Makassar';
+  await pool.query(`
+    INSERT INTO publishing_settings(workspace,enabled,timezone,daily_time,mode)
+    VALUES('adept',true,$1,'19:00','daily_queue')
+    ON CONFLICT(workspace) DO NOTHING
+  `,[timezone]);
+
+  const {rows:[settings]}=await pool.query('SELECT * FROM publishing_settings WHERE workspace=$1',['adept']);
+  const {rows:[already]}=await pool.query(
+    "SELECT id FROM published_assets WHERE workspace='adept' AND platform='instagram' AND raw->>'carousel'=$1 LIMIT 1",
+    [ADEPT_CAROUSEL_V2.id]
+  );
+  if(already) return;
+
+  const scheduledAt=nextDailyPublishAt(settings?.daily_time||'19:00',settings?.timezone||timezone);
+  const payload={
+    title:ADEPT_CAROUSEL_V2.title,
+    caption:ADEPT_CAROUSEL_V2.caption,
+    images:ADEPT_CAROUSEL_V2.slides.map((_,i)=>'/assets/adept/carousel-v2/slide-'+String(i+1).padStart(2,'0')+'.jpg')
+  };
+  await pool.query(`
+    INSERT INTO publish_jobs(id,workspace,platform,content_key,item_id,kind,status,scheduled_at,payload)
+    VALUES($1,'adept','instagram',$2,$3,'carousel','scheduled',$4,$5::jsonb)
+    ON CONFLICT(workspace,platform,content_key) DO NOTHING
+  `,[
+    randomUUID(),ADEPT_CAROUSEL_V2.id,'adept-carousel-001-why-ai-ads-look-ai',
+    scheduledAt.toISOString(),JSON.stringify(payload)
+  ]);
+}
+async function publishInstagramCarouselJob(job){
+  const workspace=normalizeWorkspace(job.workspace||'adept');
+  const conn=await getConnection('instagram',workspace);
+  if(!conn) throw Object.assign(new Error('Instagram is not connected for '+workspace),{code:'instagram_not_connected'});
+  if(!String(conn.scope||'').includes('instagram_business_content_publish')){
+    throw Object.assign(new Error('Instagram publishing permission is missing. Reconnect Instagram with content publishing permission.'),{code:'instagram_publish_permission_missing'});
+  }
+  const auth=await instagramToken(workspace);
+  if(!auth) throw Object.assign(new Error('Instagram token unavailable'),{code:'instagram_token_unavailable'});
+  const payload=typeof job.payload==='string'?JSON.parse(job.payload):job.payload||{};
+  const images=Array.isArray(payload.images)?payload.images.filter(Boolean):[];
+  if(images.length<2) throw new Error('Carousel job needs at least 2 images');
+  const {token,userId}=auth;
+  const base=(process.env.INSTAGRAM_GRAPH_BASE||'https://graph.instagram.com').replace(/\/$/,'');
+  const version=process.env.INSTAGRAM_API_VERSION||'v26.0';
+  const children=[];
+  for(const image of images){
+    const imageUrl=/^https?:\/\//i.test(String(image))?String(image):publicBaseUrl()+String(image);
+    const body=new URLSearchParams({image_url:imageUrl,is_carousel_item:'true',access_token:token});
+    const child=await fetchJson(base+'/'+version+'/'+encodeURIComponent(userId)+'/media',{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body
+    });
+    children.push(String(child.id));
+  }
+  for(const id of children) await waitInstagramContainer(base,version,id,token);
+  const parentBody=new URLSearchParams({
+    media_type:'CAROUSEL',
+    children:children.join(','),
+    caption:String(payload.caption||''),
+    access_token:token
+  });
+  const parent=await fetchJson(base+'/'+version+'/'+encodeURIComponent(userId)+'/media',{
+    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:parentBody
+  });
+  await waitInstagramContainer(base,version,String(parent.id),token);
+  const pubBody=new URLSearchParams({creation_id:String(parent.id),access_token:token});
+  const pub=await fetchJson(base+'/'+version+'/'+encodeURIComponent(userId)+'/media_publish',{
+    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:pubBody
+  });
+  const metaUrl=new URL(base+'/'+version+'/'+encodeURIComponent(pub.id));
+  metaUrl.searchParams.set('fields','id,permalink,timestamp,caption,media_type');
+  metaUrl.searchParams.set('access_token',token);
+  const meta=await fetchJson(metaUrl).catch(()=>({id:pub.id}));
+  const asset=await upsertAsset({
+    workspace,platform:'instagram',externalId:String(pub.id),url:meta.permalink||null,
+    title:String(payload.title||job.content_key),publishedAt:meta.timestamp||new Date().toISOString(),
+    itemId:job.item_id||null,
+    raw:{publishedBy:'content-os-auto',carousel:job.content_key,jobId:job.id,meta}
+  });
+  return {ok:true,id:pub.id,permalink:meta.permalink||null,assetId:asset?.id||null};
+}
+let publishingWorkerBusy=false;
+async function processPublishingQueue(){
+  if(!pool||publishingWorkerBusy) return;
+  publishingWorkerBusy=true;
+  try{
+    const {rows:settingsRows}=await pool.query("SELECT * FROM publishing_settings WHERE enabled=true");
+    for(const settings of settingsRows){
+      const workspace=normalizeWorkspace(settings.workspace);
+      const {rows:due}=await pool.query(`
+        SELECT * FROM publish_jobs
+        WHERE workspace=$1 AND platform='instagram'
+          AND status IN ('scheduled','retry','blocked')
+          AND scheduled_at<=now()
+        ORDER BY scheduled_at ASC
+        LIMIT 1
+      `,[workspace]);
+      for(const job of due){
+        const {rows:claimed}=await pool.query(`
+          UPDATE publish_jobs SET status='publishing',attempts=attempts+1,error=NULL,updated_at=now()
+          WHERE id=$1 AND status IN ('scheduled','retry','blocked')
+          RETURNING *
+        `,[job.id]);
+        if(!claimed.length) continue;
+        const current=claimed[0];
+        try{
+          const result=await publishInstagramCarouselJob(current);
+          await pool.query(`
+            UPDATE publish_jobs SET status='published',published_at=now(),published_asset_id=$2,error=NULL,updated_at=now()
+            WHERE id=$1
+          `,[current.id,result.assetId||null]);
+          if(current.item_id){
+            await pool.query("UPDATE content_items SET status='published',updated_at=now() WHERE id=$1 AND workspace=$2",[current.item_id,workspace]).catch(()=>{});
+          }
+          console.log('Auto-published Instagram job',current.id,result.permalink||result.id);
+        }catch(error){
+          const code=error.code||'';
+          const attempts=Number(current.attempts||1);
+          const blocked=code==='instagram_publish_permission_missing'||code==='instagram_not_connected'||code==='instagram_token_unavailable';
+          const terminal=!blocked && attempts>=5;
+          const status=blocked?'blocked':(terminal?'failed':'retry');
+          const delayMinutes=blocked?15:Math.min(60,attempts*10);
+          await pool.query(`
+            UPDATE publish_jobs
+            SET status=$2,error=$3,scheduled_at=CASE WHEN $2 IN ('blocked','retry') THEN now()+($4||' minutes')::interval ELSE scheduled_at END,updated_at=now()
+            WHERE id=$1
+          `,[current.id,status,String(error.message||error),String(delayMinutes)]);
+          console.error('Auto-publish job failed',current.id,status,error.message);
+        }
+      }
+    }
+  }finally{
+    publishingWorkerBusy=false;
+  }
+}
+async function updateAdeptPublishingSettings(body){
+  const timezone=String(body.timezone||process.env.CONTENT_TIMEZONE||'Asia/Makassar');
+  try{ new Intl.DateTimeFormat('en-US',{timeZone:timezone}).format(new Date()); }catch{ throw Object.assign(new Error('Invalid timezone'),{statusCode:400}); }
+  const dailyTime=String(body.dailyTime||'19:00');
+  if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(dailyTime)) throw Object.assign(new Error('dailyTime must be HH:MM'),{statusCode:400});
+  const enabled=Boolean(body.enabled);
+  await pool.query(`
+    INSERT INTO publishing_settings(workspace,enabled,timezone,daily_time,mode,updated_at)
+    VALUES('adept',$1,$2,$3,'daily_queue',now())
+    ON CONFLICT(workspace) DO UPDATE SET enabled=EXCLUDED.enabled,timezone=EXCLUDED.timezone,daily_time=EXCLUDED.daily_time,updated_at=now()
+  `,[enabled,timezone,dailyTime]);
+  if(enabled){
+    await ensureAdeptPublishingDefaults();
+    const next=nextDailyPublishAt(dailyTime,timezone);
+    await pool.query(`
+      UPDATE publish_jobs SET scheduled_at=$1,updated_at=now()
+      WHERE workspace='adept' AND status IN ('scheduled','retry','blocked')
+    `,[next.toISOString()]);
+  }
+  return publishingState('adept');
+}
+
 async function initDb() {
   if (!pool) return;
   await pool.query(`
@@ -398,6 +608,35 @@ async function initDb() {
           ADD CONSTRAINT analytics_connections_workspace_platform_pkey PRIMARY KEY(workspace,platform);
       END IF;
     END $$;
+
+    CREATE TABLE IF NOT EXISTS publishing_settings (
+      workspace text PRIMARY KEY,
+      enabled boolean NOT NULL DEFAULT false,
+      timezone text NOT NULL DEFAULT 'Asia/Makassar',
+      daily_time text NOT NULL DEFAULT '19:00',
+      mode text NOT NULL DEFAULT 'daily_queue',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS publish_jobs (
+      id uuid PRIMARY KEY,
+      workspace text NOT NULL DEFAULT 'adept',
+      platform text NOT NULL DEFAULT 'instagram',
+      content_key text NOT NULL,
+      item_id text,
+      kind text NOT NULL DEFAULT 'carousel',
+      status text NOT NULL DEFAULT 'scheduled',
+      scheduled_at timestamptz NOT NULL,
+      attempts integer NOT NULL DEFAULT 0,
+      payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+      error text,
+      published_asset_id uuid,
+      published_at timestamptz,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS publish_jobs_workspace_platform_content_idx
+      ON publish_jobs(workspace,platform,content_key);
 
     DELETE FROM oauth_states WHERE created_at < now() - interval '30 minutes';
   `);
@@ -1256,6 +1495,7 @@ async function oauthCallback(platform,u,res) {
         meta:{accountType:me.account_type,mediaCount:me.media_count}
       },workspace);
       syncInstagram(workspace).catch(e=>console.error('Instagram first sync:',e.message));
+      if(workspace==='adept') setTimeout(()=>processPublishingQueue().catch(e=>console.error('Post-OAuth publish queue failed',e.message)),500);
       if(workspace==='adept' && row.action==='publish_v2'){
         const published=await publishAdeptCarousel();
         return html(res,200,oauthResultPage('Instagram connected + carousel published',published.permalink||('@'+(me.username||'adept.production'))));
@@ -1332,11 +1572,53 @@ async function route(req, res) {
       images:ADEPT_CAROUSEL_V2.slides.map((_,i)=>publicBaseUrl()+'/assets/adept/carousel-v2/slide-'+String(i+1).padStart(2,'0')+'.jpg')
     });
   }
+  if(u.pathname==='/api/adept/publishing' && req.method==='GET'){
+    return json(res,200,await publishingState('adept'));
+  }
+  if(u.pathname==='/api/adept/publishing/settings' && req.method==='POST'){
+    if(!pool) return json(res,503,{error:'Database unavailable'});
+    const body=await readJsonBody(req).catch(()=>({}));
+    const requiredPin=String(process.env.ANALYTICS_CONNECT_PIN||'');
+    if(!requiredPin || String(body.pin||'')!==requiredPin) return json(res,403,{error:'Invalid analytics admin PIN'});
+    return json(res,200,await updateAdeptPublishingSettings(body));
+  }
+  if(u.pathname==='/api/adept/publishing/queue-current' && req.method==='POST'){
+    if(!pool) return json(res,503,{error:'Database unavailable'});
+    const body=await readJsonBody(req).catch(()=>({}));
+    const requiredPin=String(process.env.ANALYTICS_CONNECT_PIN||'');
+    if(!requiredPin || String(body.pin||'')!==requiredPin) return json(res,403,{error:'Invalid analytics admin PIN'});
+    const state=await publishingState('adept');
+    const settings=state.settings||{timezone:process.env.CONTENT_TIMEZONE||'Asia/Makassar',daily_time:'19:00'};
+    const publishAt=body.now?new Date():nextDailyPublishAt(settings.daily_time,settings.timezone);
+    const payload={
+      title:ADEPT_CAROUSEL_V2.title,
+      caption:ADEPT_CAROUSEL_V2.caption,
+      images:ADEPT_CAROUSEL_V2.slides.map((_,i)=>'/assets/adept/carousel-v2/slide-'+String(i+1).padStart(2,'0')+'.jpg')
+    };
+    await pool.query(`
+      INSERT INTO publish_jobs(id,workspace,platform,content_key,item_id,kind,status,scheduled_at,payload,error,attempts)
+      VALUES($1,'adept','instagram',$2,$3,'carousel','scheduled',$4,$5::jsonb,NULL,0)
+      ON CONFLICT(workspace,platform,content_key) DO UPDATE SET
+        status=CASE WHEN publish_jobs.status='published' THEN publish_jobs.status ELSE 'scheduled' END,
+        scheduled_at=CASE WHEN publish_jobs.status='published' THEN publish_jobs.scheduled_at ELSE EXCLUDED.scheduled_at END,
+        payload=EXCLUDED.payload,error=NULL,attempts=CASE WHEN publish_jobs.status='published' THEN publish_jobs.attempts ELSE 0 END,updated_at=now()
+    `,[randomUUID(),ADEPT_CAROUSEL_V2.id,'adept-carousel-001-why-ai-ads-look-ai',publishAt.toISOString(),JSON.stringify(payload)]);
+    if(body.now) setTimeout(()=>processPublishingQueue().catch(e=>console.error('Queue-now publish failed',e.message)),50);
+    return json(res,200,await publishingState('adept'));
+  }
+
   if(u.pathname==='/api/adept/carousel/v2/publish' && req.method==='POST'){
     const requiredPin=String(process.env.ANALYTICS_CONNECT_PIN||'');
     const body=await readJsonBody(req).catch(()=>({}));
     if(!requiredPin || String(body.pin||'')!==requiredPin) return json(res,403,{error:'Invalid analytics admin PIN'});
-    return json(res,200,await publishAdeptCarousel());
+    const result=await publishAdeptCarousel();
+    if(pool){
+      await pool.query(`
+        UPDATE publish_jobs SET status='published',published_at=now(),published_asset_id=$2,error=NULL,updated_at=now()
+        WHERE workspace='adept' AND platform='instagram' AND content_key=$1 AND status<>'published'
+      `,[ADEPT_CAROUSEL_V2.id,result.assetId||null]).catch(()=>{});
+    }
+    return json(res,200,result);
   }
 
   if (u.pathname === '/api/health') return json(res, 200, { ok: true, db: Boolean(pool) });
@@ -1514,6 +1796,7 @@ async function route(req, res) {
 
 initDb()
   .then(() => ensureAdeptCarouselAssets())
+  .then(() => ensureAdeptPublishingDefaults())
   .then(() => {
     const server=http.createServer((req,res) => route(req,res).catch(error => {
       console.error(error);
@@ -1523,6 +1806,8 @@ initDb()
     server.listen(port,'0.0.0.0',() => {
       console.log('Content OS v3.0 running on ' + port);
       setTimeout(() => syncAnalyticsSources().catch(error => console.error('Initial analytics sync failed:',error.message)), 15000);
+      setTimeout(() => processPublishingQueue().catch(error => console.error('Initial publishing queue failed:',error.message)), 20000);
+      setInterval(() => processPublishingQueue().catch(error => console.error('Publishing queue failed:',error.message)), 60000);
       const minutes=Math.max(60,Number(process.env.ANALYTICS_SYNC_MINUTES||360));
       setInterval(() => syncAnalyticsSources().catch(error => console.error('Analytics sync failed:',error.message)), minutes*60000);
     });
