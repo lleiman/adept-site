@@ -186,17 +186,24 @@ function adeptCarouselSlideSvg(index){
   </svg>`;
 }
 async function adeptCarouselJpeg(index){
-  return sharp(Buffer.from(adeptCarouselSlideSvg(index))).jpeg({quality:93,chromaSubsampling:'4:4:4'}).toBuffer();
+  const i=Math.max(1,Math.min(7,Number(index)||1));
+  const sprite=path.join(root,'assets','adept','carousel-v2','final-sprite.jpg');
+  return sharp(sprite)
+    .extract({left:0,top:(i-1)*675,width:540,height:675})
+    .resize(1080,1350,{kernel:sharp.kernel.lanczos3})
+    .jpeg({quality:90,chromaSubsampling:'4:4:4'})
+    .toBuffer();
 }
 async function ensureAdeptCarouselAssets(){
   const dir=path.join(root,'assets','adept','carousel-v2');
-  fs.mkdirSync(dir,{recursive:true});
+  const sprite=path.join(dir,'final-sprite.jpg');
+  if(!fs.existsSync(sprite)) throw new Error('ADEPT final carousel sprite is missing');
   for(let i=1;i<=ADEPT_CAROUSEL_V2.slides.length;i++){
     const jpg=await adeptCarouselJpeg(i);
     const file=path.join(dir,'slide-'+String(i).padStart(2,'0')+'.jpg');
     fs.writeFileSync(file,jpg);
   }
-  console.log('ADEPT carousel v2 static JPEGs ready');
+  console.log('ADEPT final cinematic carousel JPEGs ready');
 }
 async function waitInstagramContainer(base,version,id,token){
   for(let n=0;n<12;n++){
@@ -1310,8 +1317,8 @@ async function route(req, res) {
   if(adeptSlide && req.method==='GET'){
     const n=Number(adeptSlide[1]),format=adeptSlide[2];
     if(format==='svg'){
-      res.writeHead(200,{'Content-Type':'image/svg+xml; charset=utf-8','Cache-Control':'no-store, max-age=0','Pragma':'no-cache'});
-      return res.end(adeptCarouselSlideSvg(n));
+      res.writeHead(410,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});
+      return res.end('SVG carousel previews are retired. Use JPG.');
     }
     const jpg=await adeptCarouselJpeg(n);
     res.writeHead(200,{'Content-Type':'image/jpeg','Content-Length':jpg.length,'Cache-Control':'no-store, max-age=0','Pragma':'no-cache'});
