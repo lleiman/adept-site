@@ -4,6 +4,7 @@ const path = require('path');
 const { randomUUID, createHash, randomBytes, createCipheriv, createDecipheriv } = require('crypto');
 const { Pool } = require('pg');
 const sharp = require('sharp');
+const AdmZip = require('adm-zip');
 
 const port = Number(process.env.PORT || 3000);
 const root = path.join(__dirname, 'public');
@@ -187,23 +188,24 @@ function adeptCarouselSlideSvg(index){
 }
 async function adeptCarouselJpeg(index){
   const i=Math.max(1,Math.min(7,Number(index)||1));
-  const sprite=path.join(root,'assets','adept','carousel-v2','final-sprite.jpg');
-  return sharp(sprite)
-    .extract({left:0,top:(i-1)*675,width:540,height:675})
+  const file=path.join(root,'assets','adept','carousel-v2','slide-'+String(i).padStart(2,'0')+'.jpg');
+  if(!fs.existsSync(file)) throw new Error('ADEPT carousel slide missing: '+file);
+  return sharp(file)
     .resize(1080,1350,{kernel:sharp.kernel.lanczos3})
-    .jpeg({quality:90,chromaSubsampling:'4:4:4'})
+    .jpeg({quality:92,chromaSubsampling:'4:4:4'})
     .toBuffer();
 }
 async function ensureAdeptCarouselAssets(){
   const dir=path.join(root,'assets','adept','carousel-v2');
-  const sprite=path.join(dir,'final-sprite.jpg');
-  if(!fs.existsSync(sprite)) throw new Error('ADEPT final carousel sprite is missing');
-  for(let i=1;i<=ADEPT_CAROUSEL_V2.slides.length;i++){
-    const jpg=await adeptCarouselJpeg(i);
+  const archive=path.join(dir,'final-carousel.zip');
+  if(!fs.existsSync(archive)) throw new Error('ADEPT final carousel archive is missing');
+  const zip=new AdmZip(archive);
+  zip.extractAllTo(dir,true);
+  for(let i=1;i<=7;i++){
     const file=path.join(dir,'slide-'+String(i).padStart(2,'0')+'.jpg');
-    fs.writeFileSync(file,jpg);
+    if(!fs.existsSync(file)) throw new Error('ADEPT extracted slide missing: '+file);
   }
-  console.log('ADEPT final cinematic carousel JPEGs ready');
+  console.log('ADEPT exact final carousel JPEGs ready');
 }
 async function waitInstagramContainer(base,version,id,token){
   for(let n=0;n<12;n++){
