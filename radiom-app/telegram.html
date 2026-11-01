@@ -35,6 +35,15 @@
 </main>
 <main id="tabStudio" class="tab"><div style="padding-top:28px" class="eyebrow">RADIOM / PRODUCTION SYSTEM</div><h1 class="headline">The 264<br><em>library.</em></h1><p class="lede">Редакторская лаборатория: 24 часа, 11 слотов в каждом. Загружай треки, сохраняй описание, отмечай готовность и запускай общий аудит.</p><div id="studioLocked" class="box"><div class="eyebrow">SECURED STUDIO</div><h2 class="box-title">Доступ к библиотеке</h2><p>Введи код RadiOM Studio. Данные Telegram не дают автоматического доступа к твоим файлам.</p><div class="field"><label>STUDIO ACCESS CODE</label><input id="studioKey" type="password" autocomplete="off" placeholder="Код Studio"></div><button id="studioLogin" class="btn">Войти в Studio</button><p id="loginStatus" class="status"></p></div>
 <div id="studioOpen" style="display:none">
+<div class="box" id="botConnectBox">
+  <div class="eyebrow">TELEGRAM / BOT CONNECTION</div>
+  <h2 class="box-title">Подключить RadiOM Bot</h2>
+  <p>Добавь токен бота один раз. RadiOM проверит его через Telegram, сохранит в зашифрованном виде на Railway и настроит команды, кнопку Mini App и webhook.</p>
+  <div class="field"><label>BOT TOKEN · ТОЛЬКО ДЛЯ ЗАЩИЩЁННОГО ПОДКЛЮЧЕНИЯ</label><input id="tgToken" type="password" autocomplete="off" spellcheck="false" placeholder="123456789:AA..."></div>
+  <div class="btnrow"><button id="tgConnect" class="btn">Подключить бота</button><button id="tgCheck" class="btn alt">Проверить статус</button></div>
+  <p class="status" id="tgResult" role="status">Бот ещё не подключён.</p>
+  <a id="tgBotLink" style="display:none" rel="noopener" target="_blank" href="#">Открыть бота в Telegram ↗</a>
+</div>
 <div class="statgrid"><div class="stat"><b id="sReady">0</b><small>READY / 264</small></div><div class="stat"><b id="sUploaded">0</b><small>UPLOADED</small></div><div class="stat"><b id="sHours">0</b><small>AUDIO HOURS</small></div></div>
 <div class="box"><div class="side"><h2 class="box-title">Выбери час</h2><a href="https://docs.google.com/document/d/1LnAJiMWJUoH5Zp9JszHQHARJ_wXpMwLjOPtKyIGp66M/edit" id="mainDocs" target="_blank">264 промпта ↗</a></div><div id="studioHours" class="hourstrip"></div><p class="hint" id="studioHourHint">11 слотов на час</p><div id="studioSlots" class="slotgrid"></div></div>
 <div class="box"><div class="side"><div><div class="eyebrow" id="sSlotId">RDM-00-01</div><h2 class="box-title">Карточка трека</h2></div><a id="hourDoc" target="_blank" href="#">Suno ↗</a></div><label class="upload"><strong>＋ Загрузить аудио</strong><br><span>MP3 / WAV / M4A · до 80 МБ<br>Загружается в закрытую библиотеку Railway</span><input id="studioFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac"></label><div class="progress"><div id="studioProgress"></div></div><p id="studioStatus" class="status"></p><audio id="studioAudio" controls class="smallaudio" preload="none"></audio>
@@ -112,7 +121,7 @@ $("labFile").onchange=async e=>{try{await labFile(e.target.files[0])}catch(err){
 $("labFetch").onclick=async()=>{let u;try{u=new URL($("labUrl").value.trim());if(!/^https?:$/.test(u.protocol))throw Error("Некорректная ссылка");if(/spotify\.com|youtube\.com|youtu\.be|soundcloud\.com|music\.apple\.com/i.test(u.hostname))throw Error("Для этой страницы нужен доступный аудиофайл; стриминговая страница не подходит.");$("labStatus").textContent="Получаю аудиофайл…";const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),20000);let response;try{response=await fetch(u.href,{signal:ac.signal})}finally{clearTimeout(timer)}if(!response.ok)throw Error("Источник вернул HTTP "+response.status);const len=Number(response.headers.get("content-length")||0);if(len>30*1024*1024)throw Error("Файл больше 30 МБ");const blob=await response.blob();if(blob.size>30*1024*1024)throw Error("Файл больше 30 МБ");await labFile(new File([blob],decodeURIComponent(u.pathname.split("/").pop()||"track.mp3"),{type:blob.type}))}catch(e){$("labStatus").className="status error";$("labStatus").textContent=e instanceof TypeError?"Сервер не разрешает CORS. Скачай легально доступный файл и загрузи его напрямую.":e.message}};
 $("copyLab").onclick=()=>{if(!labResult)return;const m=labResult,t=["RadiOM Lab · "+m.name,"Длительность "+metricsTime(m.duration),"BPM "+(m.bpm||"не определён"),"RMS "+m.rmsDb.toFixed(1)+" dBFS","Peak "+m.peakDb.toFixed(1)+" dBFS","Contrast "+m.dynamicDb.toFixed(1)+" dB","Спектр "+m.brightKhz.toFixed(2)+" kHz","Рекомендация "+pad(m.place.hour)+":00 · "+m.place.name].join("\n");navigator.clipboard.writeText(t).then(()=>tell("Анализ скопирован")).catch(()=>tell(t))};
 async function sRequest(path,options){const r=await fetch("/api/studio"+path,{...options,headers:{"x-studio-key":studioKey,...options?.headers}});if(!r.ok)throw Error("HTTP "+r.status+" · "+(await r.text()).slice(0,180));return r.json()}
-$("studioLogin").onclick=async()=>{studioKey=$("studioKey").value.trim();if(!studioKey){$("loginStatus").textContent="Нужен код Studio.";return}try{studioCatalog=await sRequest("/catalog");sessionStorage.setItem("radiom-studio-key",studioKey);$("studioLocked").style.display="none";$("studioOpen").style.display="block";renderStudio()}catch(e){$("loginStatus").textContent="Код неверный или сервис недоступен.";studioKey=""}};
+$("studioLogin").onclick=async()=>{studioKey=$("studioKey").value.trim();if(!studioKey){$("loginStatus").textContent="Нужен код Studio.";return}try{studioCatalog=await sRequest("/catalog");sessionStorage.setItem("radiom-studio-key",studioKey);$("studioLocked").style.display="none";$("studioOpen").style.display="block";renderStudio();telegramStatus()}catch(e){$("loginStatus").textContent="Код неверный или сервис недоступен.";studioKey=""}};
 function renderStudio(){let data=Object.values(studioCatalog),ready=data.filter(x=>x.status==="ready").length,uploaded=data.filter(x=>x.file).length;$("sReady").textContent=ready;$("sUploaded").textContent=uploaded;$("sHours").textContent=(data.reduce((sum,x)=>sum+(x.duration||0),0)/3600).toFixed(1);
 const h=$("studioHours");h.textContent="";for(let i=0;i<24;i++){const b=document.createElement("button");b.className="hbtn"+(sHour===i?" active":"");let r=Array.from({length:11},(_,j)=>studioCatalog[pad(i)+"-"+pad(j+1)]).filter(v=>v?.status==="ready").length;b.textContent=pad(i)+":00 · "+r+"/11";b.style.minHeight="65px";b.onclick=()=>{sHour=i;sSlot=1;renderStudio()};h.appendChild(b)}
 $("studioHourHint").textContent=pad(sHour)+":00 · "+names[sHour]+" · "+bpms[sHour]+" BPM · 11 слотов";
@@ -121,8 +130,40 @@ const v=studioCatalog[pad(sHour)+"-"+pad(sSlot)]||{};$("sSlotId").textContent="R
 $("sSuggest").onclick=()=>{const v=studioCatalog[sId()]||{},m=v.metrics||{},h=sHour;$("sDesc").value=($("sTitle").value||names[h])+". "+description[h]+" Привязка к "+pad(h)+":00 имеет художественный характер. "+(m.duration?"Длительность: "+Math.round(m.duration)+" сек.":"");$("sStructure").value="Референс: "+bpms[h]+" BPM. "+(m.rmsDb!=null?"RMS "+Number(m.rmsDb).toFixed(1)+" dBFS; ":"")+(m.peakDb!=null?"peak "+Number(m.peakDb).toFixed(1)+" dBFS. ":"")+"Требуется авторское прослушивание формы, фактуры и последних 30 секунд перед кроссфейдом."};
 $("sSave").onclick=async()=>{try{const body={title:$("sTitle").value,status:$("sStatus").value,bpm:$("sBpm").value,description:$("sDesc").value,structure:$("sStructure").value,notes:$("sNotes").value};studioCatalog[sId()]=await sRequest("/slot/"+sId(),{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(body)});renderStudio();tell("Карточка сохранена")}catch(e){tell("Ошибка: "+e.message)}};
 $("studioFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>80*1024*1024){$("studioStatus").textContent="Файл больше 80 МБ";return}const slot=sId();$("studioStatus").textContent="Анализирую и загружаю…";try{const metric=await computeAudio(await f.arrayBuffer());$("studioProgress").style.width="25%";const xhr=new XMLHttpRequest();xhr.open("POST","/api/studio/upload/"+slot);xhr.setRequestHeader("x-studio-key",studioKey);xhr.setRequestHeader("x-filename",encodeURIComponent(f.name));xhr.setRequestHeader("x-metrics",encodeURIComponent(JSON.stringify({duration:metric.duration,sampleRate:metric.sampleRate,channels:metric.channels,rmsDb:metric.rmsDb,peakDb:metric.peakDb,dynamicDb:metric.dynamicDb,bpm:metric.bpm,brightKhz:metric.brightKhz})));xhr.upload.onprogress=event=>{if(event.lengthComputable)$("studioProgress").style.width=(25+70*event.loaded/event.total)+"%"};xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300){studioCatalog[slot]=JSON.parse(xhr.responseText);$("studioProgress").style.width="100%";renderStudio();tell("Файл сохранён в библиотеке")}else $("studioStatus").textContent="Ошибка загрузки: "+xhr.status+" "+xhr.responseText};xhr.onerror=()=>{$("studioStatus").textContent="Сетевая ошибка"};xhr.send(f)}catch(err){$("studioStatus").textContent="Ошибка анализа: "+err.message}};
+
+async function telegramStatus(){
+  if(!studioKey)return;
+  try{
+    const data=await sRequest("/telegram/status");
+    const status=$("tgResult"),link=$("tgBotLink");
+    if(data.connected){
+      status.className="status green";
+      status.textContent="Подключён @"+data.username+" · webhook "+(data.webhookActive?"активен":"не подтверждён")+".";
+      link.href=data.link;
+      link.textContent="Открыть @"+data.username+" ↗";
+      link.style.display="inline";
+    }else{
+      status.className="status";
+      status.textContent=data.needsReconnect?"Бот требует повторного подключения.":"Бот пока не подключён.";
+      link.style.display="none";
+    }
+  }catch(e){$("tgResult").textContent="Не удалось проверить статус: "+e.message}
+}
+$("tgCheck").onclick=telegramStatus;
+$("tgConnect").onclick=async()=>{
+  const token=$("tgToken").value.trim(),btn=$("tgConnect");
+  if(!token){$("tgResult").textContent="Вставь токен из BotFather.";return}
+  btn.disabled=true;$("tgResult").className="status";$("tgResult").textContent="Проверяю бота и настраиваю Telegram...";
+  try{
+    const data=await sRequest("/telegram/connect",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token})});
+    $("tgToken").value="";
+    $("tgResult").textContent="Бот @"+data.username+" подключён. Команды, меню и webhook зарегистрированы.";
+    await telegramStatus();tell("Telegram бот RadiOM подключён");
+  }catch(e){$("tgResult").className="status error";$("tgResult").textContent="Ошибка подключения: "+e.message}
+  finally{btn.disabled=false}
+};
 $("sAudit").onclick=async()=>{try{const report=await sRequest("/audit");$("sReport").textContent=report.report}catch(e){$("sReport").textContent=e.message}};
-studioKey=sessionStorage.getItem("radiom-studio-key")||"";if(studioKey)sRequest("/catalog").then(c=>{studioCatalog=c;$("studioLocked").style.display="none";$("studioOpen").style.display="block";renderStudio()}).catch(()=>{studioKey="";sessionStorage.removeItem("radiom-studio-key")});
+studioKey=sessionStorage.getItem("radiom-studio-key")||"";if(studioKey)sRequest("/catalog").then(c=>{studioCatalog=c;$("studioLocked").style.display="none";$("studioOpen").style.display="block";renderStudio();telegramStatus()}).catch(()=>{studioKey="";sessionStorage.removeItem("radiom-studio-key")});
 updateClock();renderSelected();setPlayer();requestAnimationFrame(()=>resizeCanvas($("orbWave")));setInterval(updateClock,13000);
 })();
 </script></body></html>
