@@ -1,0 +1,271 @@
+{
+  "version": "1.0",
+  "locale": "ru",
+  "description": "24 часовых профиля RadiOM. Творческие гипотезы, не медицинские рекомендации.",
+  "songs": [
+    {
+      "title": "Ночной архив",
+      "scene": "Переход в глубокую ночь. Внимание не должно цепляться за мелодию; звуку лучше стать почти частью тишины.",
+      "intent": "Снизить музыкальную событийность: очень медленное дыхание гармонии, без выраженного такта и внезапных деталей.",
+      "sound": "Суббасовый дрон, тёплые синусоидальные обертоны, редкий шорох ленты, огромные паузы.",
+      "shape": "0–2 мин: появление низкого слоя; 2–5: медленные перемены тембра; финал без кульминации.",
+      "suno": "Instrumental sleep drone at 40 BPM felt as a very slow breathing cycle, nearly beatless. Deep rounded sine bass, dark felted harmonics, faint analog tape hiss, soft low-pass air and distant spectral swells. Let every chord take 30–50 seconds to emerge and fade. No piano motifs, no kick drums, no bright bells. Begin with near silence, expand into a warm shadowed sound field, then dissolve without a climax. Slow stereo drift, restrained low frequencies, velvet transients. Seamless looping ending.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 40 BPM. Intended role: sleep.",
+      "hour": 0,
+      "bpm": 40,
+      "category": "Sleep"
+    },
+    {
+      "title": "Глубинное течение",
+      "scene": "Самая тихая фаза ночи. Музыка должна удерживать непрерывность, не требуя реакции.",
+      "intent": "Обеспечить ровную, ненавязчивую основу для ночного прослушивания.",
+      "sound": "Гранулированный шёпот, длинные аналоговые волны, приглушённые металлические резонансы.",
+      "shape": "Почти неподвижная форма, редкие микросдвиги гармоний; избегать отчётливых переходов.",
+      "suno": "Ultra-minimal nocturnal ambient, 38 BPM as an implied pulse, no obvious beat. Slow granular clouds built from breath-like textures, deep analog oscillators, gently detuned partials and distant bowed metal resonances rolled off above 3 kHz. Make the timbre change more than the notes. Introduce a quiet low motif only after a long opening, then erase it. Very large gaps between events. No vocals, arpeggios, percussion, abrupt edits or bright highs. Stereo field moves almost imperceptibly; continuous calm, non-dramatic tail.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 38 BPM. Intended role: sleep.",
+      "hour": 1,
+      "bpm": 38,
+      "category": "Sleep"
+    },
+    {
+      "title": "Лунный простор",
+      "scene": "Ночь ещё длится, но гармония может обрести немного пространства и света.",
+      "intent": "Сохранить мягкую, устойчивую звуковую среду с редкими элементами движения.",
+      "sound": "Низкий синтезаторный хор без слов, растянутые струнные, медленные реверберационные хвосты.",
+      "shape": "Длительное вступление, одна медленная гармоническая трансформация, полное затухание.",
+      "suno": "Wordless, instrumental deep-night soundscape at 36 BPM, perceived rather than counted. Long bowed-cello harmonics stretched into soft granular ribbons, an extremely quiet synthetic choir texture without human phrases, smooth sine drones and distant subharmonics. One harmonic transformation over several minutes, not a succession of sections. Gentle dark reverb with no sharp attacks, no drum groove, no melodic hooks, no startling field recordings. Intimate, still, almost weightless. Fade into a loop-compatible darkness.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 36 BPM. Intended role: sleep.",
+      "hour": 2,
+      "bpm": 36,
+      "category": "Sleep"
+    },
+    {
+      "title": "Первое дыхание",
+      "scene": "Предрассветное пограничное состояние. Ещё ночь, но в звуке впервые ощущается воздух.",
+      "intent": "Создать очень плавное изменение окраски без побуждения просыпаться.",
+      "sound": "Воздушный шум, низкие струнные флажолеты, слабый восходящий обертон.",
+      "shape": "Сначала тишина и дыхание, затем один светлый гармонический сдвиг.",
+      "suno": "Pre-dawn ambient, slow 44 BPM, no foreground rhythm. Imagine the first breath of air before sunrise: airy filtered noise, fragile cello harmonics, barely audible distant chordal blooms, delicate resonant overtones. Begin from near silence, bring in a narrow band of light harmonics after 90 seconds, then let the texture breathe. Keep the music grounded, non-sentimental and austere, with very soft entrances. No birdsong clichés, no piano introduction, no rhythmic drops, no spoken narration. Deep spacious reverb and a natural loop seam.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 44 BPM. Intended role: rest.",
+      "hour": 3,
+      "bpm": 44,
+      "category": "Rest"
+    },
+    {
+      "title": "Бледный горизонт",
+      "scene": "Первые признаки утра. Пространство становится шире, но ещё не возникает требование действовать.",
+      "intent": "Дать ощущение постепенного раскрытия и ясности.",
+      "sound": "Прозрачная синтезаторная ткань, акцент на средних частотах, мягкие шумовые импульсы.",
+      "shape": "Плавное высветление спектра за всю композицию; динамика остаётся сдержанной.",
+      "suno": "Pale-horizon ambient at 48 BPM, organic electronic minimalism. Start with dark low harmonics, introduce slow translucent midrange pads, soft filtered static and faint glass-like resonances with dulled attacks. Gradually open the upper spectrum across the composition as though light is entering a room. Keep an understated sense of direction but avoid an obvious melody. Tiny stereo movements, carefully controlled sibilance, no pop chords, no piano arpeggios, no drum break, no euphoric build. Restrained, mineral and luminous.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 48 BPM. Intended role: rest.",
+      "hour": 4,
+      "bpm": 48,
+      "category": "Rest"
+    },
+    {
+      "title": "Порог",
+      "scene": "Переход от сна к бодрствованию. Слушателю нужно пространство для собственной мысли.",
+      "intent": "Начать ритмическую организацию, ещё не превращая музыку в двигатель.",
+      "sound": "Нечёткая пульсация, медленные струнные, тактильный плёночный шум.",
+      "shape": "Из свободной звуковой среды собирается тонкий повторяющийся рисунок.",
+      "suno": "Threshold music at 52 BPM, between night and morning. A thin repeating analog pulse emerges slowly from vaporous pads, subtly bowed strings, filtered tape rustle and low air. Delay the arrival of the pulse, then let it stabilize without turning into a beat. Minor-to-modal harmonic motion, no dramatic resolution. Quiet, tactile, precise sound design: slowly sweeping filters, subtle mechanical ticks, nearly subliminal stereo automation. No bright synth lead, piano ostinato, generic wellness chimes or vocals. Leave an open, unforced ending.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 52 BPM. Intended role: rest.",
+      "hour": 5,
+      "bpm": 52,
+      "category": "Rest"
+    },
+    {
+      "title": "Мягкое пробуждение",
+      "scene": "Утро начинается. Музыка сопровождает первые движения, воду, дыхание, лёгкую разминку.",
+      "intent": "Добавить мягкую определённость и ощущение нового цикла.",
+      "sound": "Открытый синтезаторный тон, низкий пульс, короткие струнные акценты.",
+      "shape": "Из длинных тонов постепенно появляется легкий ритмический рисунок.",
+      "suno": "Gentle waking composition at 58 BPM. Warm analog pads, a low rounded pulse with soft edges, restrained bowed-string fragments, airy granular flickers and small percussive taps that feel like footsteps far away. Start nearly beatless and reveal a slow rhythmic pattern over two minutes. Clear daylight tonality without overt optimism, no triumphant swell. Broad stereo image with a grounded mono-compatible bass, mild tape grain, subtle natural-space reflections. Avoid bells, stock meditation flutes, bright plucked keyboards and catchy vocals.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 58 BPM. Intended role: rest.",
+      "hour": 6,
+      "bpm": 58,
+      "category": "Rest"
+    },
+    {
+      "title": "Первый свет",
+      "scene": "Тело вступает в движение. Подходит для йоги, прогулки, медленной мобилизации.",
+      "intent": "Предложить телу устойчивый ритм без спортивной агрессии.",
+      "sound": "Органические томы, тёплый бас, редкие сухие щелчки, медленное панорамирование.",
+      "shape": "Постепенное построение грува; короткое затишье в середине; возврат рисунка.",
+      "suno": "Early-morning movement ritual at 74 BPM, grounded downtempo organic electronica. Rounded sub bass, resonant skin drums, softened hand percussion, grainy low strings, textured electronic insects scattered in the stereo field. Build the groove organically from sparse body-like taps into a dependable pulse for stretching and walking. Briefly strip back the percussion in the middle and return with greater depth, not greater loudness. No festival drop, no cheerful tropical-house clichés, no dominant guitar or piano, no lyrics. Sensual but daylight-clear.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 74 BPM. Intended role: move.",
+      "hour": 7,
+      "bpm": 74,
+      "category": "Move"
+    },
+    {
+      "title": "Выравнивание",
+      "scene": "Начало работы: мысли собираются, внимание ещё уязвимо к резким изменениям.",
+      "intent": "Поддерживать вход в задачу через повторение и ограниченную музыкальную новизну.",
+      "sound": "Мягкая секвенция синтезатора, глухая перкуссия, чистый низ, минимум верхнего спектра.",
+      "shape": "Предсказуемая микровариативность, отсутствие вокала и внезапных кульминаций.",
+      "suno": "Instrumental focus electronica at 82 BPM, carefully repetitive but not sterile. A rounded analog bass pulse, small modular sequences limited to a few notes, brushed electronic percussion, muted strings and airy filtered noise. Build a stable pattern suitable for writing or coding. Introduce micro-variations in timbre and stereo placement rather than melody; low surprise, no spoken words or vocals. Avoid huge reverbs that mask detail, bright bells, dramatic chord changes, drops and busy drums. Clean transients, intimate dry center, spacious peripheral textures.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 82 BPM. Intended role: focus.",
+      "hour": 8,
+      "bpm": 82,
+      "category": "Focus"
+    },
+    {
+      "title": "Чистое поле",
+      "scene": "Устойчивый рабочий блок. Фоновая музыка не должна соревноваться с речью и текстом.",
+      "intent": "Поддержать последовательность действий и длительную концентрацию.",
+      "sound": "Минималистичные повторяющиеся синтезаторные мотивы, мягкая ритм-секция, низкое гармоническое напряжение.",
+      "shape": "Ровный грув почти без крупных структурных перемен.",
+      "suno": "Deep-work minimal electronic composition at 92 BPM. Precise muted percussive grid, subdued analog step sequence, warm rounded bass, very sparse harmonic pads and tiny granular echoes. A repeating four- or eight-bar cell should feel dependable over many minutes; evolve filter movement, phase and room tone rather than adding lead melodies. Controlled frequency spectrum to leave space for human thought, no vocals, no sharp snare fills, no sudden breaks, no overtly happy chord progression. Subtle movement in stereo but a stable center. Seamless long-form flow.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 92 BPM. Intended role: focus.",
+      "hour": 9,
+      "bpm": 92,
+      "category": "Focus"
+    },
+    {
+      "title": "Конструкция",
+      "scene": "Дневной пик решения задач. Музыка допускает больше механической ясности и темпа.",
+      "intent": "Создать ощущение движения системы без перегрузки внимания.",
+      "sound": "Сухие синкопы, модульные ритмы, скульптурный бас, перкуссионный шум.",
+      "shape": "Плотность увеличивается через контрапункт, затем снова разрежается.",
+      "suno": "Architectural electronic music for focused problem solving at 100 BPM. Interlocking low-key modular patterns, clipped dry percussive sounds, rubbery sub bass, meticulously timed microscopic glitches and restrained harmonic drones. Let multiple rhythmic layers mesh like machinery, gradually increasing complexity without becoming frantic. Deliberate negative space around the beat, occasional polyrhythmic hints, no vocals, flashy synth leads, uplifting EDM drops or cinematic explosions. Mid-track subtraction of layers and precise rebuilding. Detailed, elegant, emotionally neutral but alive.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 100 BPM. Intended role: focus.",
+      "hour": 10,
+      "bpm": 100,
+      "category": "Focus"
+    },
+    {
+      "title": "Поток",
+      "scene": "Продолжение интеллектуальной работы без смены контекста. Музыка оставляет длинную перспективу.",
+      "intent": "Удерживать непрерывное движение, не навязывая слушателю новую историю.",
+      "sound": "Плавный бас, минимальная перкуссия, медленные изменение фильтров, короткие пространственные задержки.",
+      "shape": "Длинная волна почти незаметных изменений.",
+      "suno": "Flow-state deep electronica at 96 BPM. Understated low bass, a patient four-on-the-floor suggestion rather than a club beat, delicate granular rhythm, warm suspended chords and soft echoes slowly crossing the stereo field. Make the structure feel like one long sentence: subtle changes in attack, filter cutoff, density and harmonic color, never a sharp new section. Absolutely no vocals, motivational hooks, exuberant melody or giant risers. Keep midrange intelligible, percussion soft, bass stable and the loop seam natural. Hypnotic through economy.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 96 BPM. Intended role: focus.",
+      "hour": 11,
+      "bpm": 96,
+      "category": "Focus"
+    },
+    {
+      "title": "Полдень",
+      "scene": "Высокая дневная активность. Допустима более физическая работа ритма.",
+      "intent": "Сопроводить прогулку, перемещение, короткую тренировку или энергичную бытовую деятельность.",
+      "sound": "Упругий бас, сухая ритмика, подвижные электронные шумы, умеренная синкопа.",
+      "shape": "Быстро устанавливает грув, затем меняет фактуру, сохраняя темп.",
+      "suno": "Midday kinetic electronic groove at 104 BPM, sophisticated and physical without turning into dance-floor pop. Elastic sub bass, dry close-miked percussion, metallic ghost hits, granular insect-like stereo motions and a rough analogue chord bed. Establish the pulse early, then build rhythmic tension through syncopation and spatial contrast; a restrained breakdown clears the center before the groove returns. No commercial EDM drops, no bright festival synths, no lead guitar, no lyrics. Keep the body moving and the mind spacious; textured but never harsh.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 104 BPM. Intended role: move.",
+      "hour": 12,
+      "bpm": 104,
+      "category": "Move"
+    },
+    {
+      "title": "Интерлюдия",
+      "scene": "Послеобеденное окно для паузы. Нужно оторваться от непрерывного давления задач.",
+      "intent": "Сделать короткий островок снижения стимуляции.",
+      "sound": "Низкие бархатные аккорды, приглушённые струны, долгие хвосты, минимум перкуссии.",
+      "shape": "Одно камерное развитие с заметным воздухом между фразами.",
+      "suno": "Afternoon reset interlude at 64 BPM, quiet analog chamber ambient. Close warm cello textures, softly blurred electronic pads, muted tape patina and the faintest low heartbeat-like pulse. Spacious gaps, long suspended notes, subtle consonance and a very slow return of harmonic warmth. It should feel like leaving a busy room and standing in shade, not falling asleep. No spoken affirmations, no sentimental piano, no wellness bells, no loud drums. Gradually make the arrangement thinner, creating real silence around the final phrase.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 64 BPM. Intended role: rest.",
+      "hour": 13,
+      "bpm": 64,
+      "category": "Rest"
+    },
+    {
+      "title": "Возвращение",
+      "scene": "Второй рабочий подход. Не нужно повторять утреннюю энергию буквально.",
+      "intent": "Собрать внимание заново, мягко включив двигатель после перерыва.",
+      "sound": "Чёткий, но приглушённый пульс, электронные струнные, сухой низ, редкие мотивы.",
+      "shape": "Тихое вступление; рабочая секвенция; предсказуемое поддержание.",
+      "suno": "Second-focus-session electronic composition at 90 BPM. Calm assertive bass, soft percussive ticks, low analog strings and a disciplined four-note modular figure. Start with a quiet reset, then bring elements into alignment as though attention is returning to a single task. Use subtle harmonic variations every 16 bars, maintain a dependable pulse, keep the foreground uncluttered. No vocals, no conventional piano intro, no emotional catharsis, no aggressive high frequencies. Transparent mix, understated stereo movement, patient repeatable form.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 90 BPM. Intended role: focus.",
+      "hour": 14,
+      "bpm": 90,
+      "category": "Focus"
+    },
+    {
+      "title": "Узор",
+      "scene": "Послеобеденная концентрация с растущей усталостью. Музыка должна оставаться живой, но не отвлекать.",
+      "intent": "Избежать монотонной скуки при сохранении ровного рабочего поля.",
+      "sound": "Микрополиритмы, приглушённая перкуссия, необычные гранулярные детали, стабильный фундамент.",
+      "shape": "Мелкие «ошибки» и смещения внутри неизменного общего ритма.",
+      "suno": "Late-afternoon pattern music at 96 BPM, minimal kinetic ambient. Soft interlocking polyrhythms, tiny pitched clicks, gentle broken-percussion fragments, filtered analog bass and delayed granular particles that appear at the edges of hearing. Create subtle uncertainty within a stable grid, like a handwoven pattern that never exactly repeats. Low dynamic ceiling, no vocals, no sudden high-energy chorus, no commercial dance hook. Let elements move binaurally across the sides without using unverified brainwave claims. Artful restraint.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 96 BPM. Intended role: focus.",
+      "hour": 15,
+      "bpm": 96,
+      "category": "Focus"
+    },
+    {
+      "title": "Кинетический синий",
+      "scene": "Дневной импульс движения. Время физической нагрузки, пробежки или дороги.",
+      "intent": "Предложить плотный рисунок, которому легко следовать телом.",
+      "sound": "Низкий ударный пульс, резиновый бас, насыщенная текстура, неочевидные индустриальные акценты.",
+      "shape": "Ясный грув, короткое напряжённое разрежение, уверенное возвращение.",
+      "suno": "Kinetic dark-blue electronic movement track at 110 BPM. Elastic low bass, tactile drum architecture, dry low toms, syncopated muted metallic hits, granular distortion at the edges and a faint drone behind the rhythm. Build bodily momentum with a strong but refined groove, then suspend percussion for one short breath before returning with sharper rhythmic interplay. Avoid triumphant melodies, festival drops, oversaturated treble, aggressive distortion or vocals. Spatial percussion and a deep, controlled low-end suitable for movement without sonic fatigue.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 110 BPM. Intended role: move.",
+      "hour": 16,
+      "bpm": 110,
+      "category": "Move"
+    },
+    {
+      "title": "Гравитация",
+      "scene": "Активность постепенно становится менее резкой. Тело ещё движется, но день идёт к завершению.",
+      "intent": "Перекинуть мост от физической энергии к вечерней пластике.",
+      "sound": "Медленные томы, тяжёлый мягкий бас, низкие струнные, шершавый шум.",
+      "shape": "Ритм присутствует, но пространство между ударами постепенно увеличивается.",
+      "suno": "Transition from physical motion to evening weight, 100 BPM with a heavy half-time feel. Deep rounded toms, warm analog bass, low bowed strings, smoky percussion, subtle tape flutter and slow granular shadows. Begin with a clear kinetic pattern, gradually thin the high frequencies and widen the space between strong accents. More gravity and tactility than urgency. No pop vocals, no guitar solo, no dramatic EDM peak and no piercing hi-hats. Let the ending unhook the listener from the daytime groove.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 100 BPM. Intended role: move.",
+      "hour": 17,
+      "bpm": 100,
+      "category": "Move"
+    },
+    {
+      "title": "Замедление",
+      "scene": "Вечерний выход из работы. Музыка помогает сменить контекст и не тащить дневную спешку дальше.",
+      "intent": "Мягко снизить плотность событий, не проваливаясь в сонливость.",
+      "sound": "Тёплое эмбиентное поле, редкие басовые пульсации, плёночный шум, длинные паузы.",
+      "shape": "Грув постепенно исчезает; остаётся гармоническая ткань.",
+      "suno": "Dusk unwinding piece at 68 BPM. Warm expansive analog pads, sparse rounded bass taps, a muted pulse that slowly recedes, distant soft strings and delicate dust-like analog noise. The piece should feel like daylight cooling in an empty room. Begin with subtle movement inherited from the day, then remove rhythmic layers one by one until only textured harmony remains. No sentimental piano, no sunrise optimism, no vocals, no dramatic climax. Low listening fatigue, warm shadows and long natural reverb tails.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 68 BPM. Intended role: rest.",
+      "hour": 18,
+      "bpm": 68,
+      "category": "Rest"
+    },
+    {
+      "title": "Кожа",
+      "scene": "Начало интимного вечернего блока. Важнее телесность и пространство, чем заданный эмоциональный сценарий.",
+      "intent": "Создать тактильную, глубокую атмосферу, оставляющую место разговору и взаимодействию.",
+      "sound": "Тёмный упругий бас, влажная аналоговая фактура, мягкие низкие струнные, редкие шорохи.",
+      "shape": "Медленное нарастание тепла без навязчивого мелодического центра.",
+      "suno": "Intimate nocturnal downtempo at 62 BPM, elegant sensual restraint. Deep tactile bass, velvet low strings, soft analog saturation, faint physical micro-sounds of fabric and room air, granular particles slowly orbiting the stereo image. Begin almost empty, let a slow pulse materialize, add gentle harmonic friction, then return to spacious silence. Wordless, mostly instrumental; no erotic dialogue, no explicit lyrics, no obvious romantic piano, no kitsch saxophone, no fast club percussion. Close, warm, hypnotic and deeply physical.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 62 BPM. Intended role: intimacy.",
+      "hour": 19,
+      "bpm": 62,
+      "category": "Intimacy"
+    },
+    {
+      "title": "Медленное тепло",
+      "scene": "Вечерняя близость с низкой музыкальной событийностью. Без давления на настроение.",
+      "intent": "Поддерживать длительный контакт и плавную ритмическую пластичность.",
+      "sound": "Бархатный бас, низкие смычковые, тёмные электронные частицы, медленные волны панорамы.",
+      "shape": "Удлинённый разгон, один деликатный пик, медленное раскрытие обратно.",
+      "suno": "Slow-heat intimate ambient ritual at 58 BPM. Dark velvet bass, low cello textures, slowly modulated analog drones, scattered digital insects and soft microcrackles, subtle breath-like swells in the side channels. Very long restrained introduction before a gentle beat finally arrives; create one warm, gradual increase in harmonic tension without becoming loud or theatrical, then descend to near-silence. No plucked-keyboard intro, no guitar, no cheerful progression, no explicit lyrics and no pop hook. Sensual, solemn, immersive, small details in a vast room.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 58 BPM. Intended role: intimacy.",
+      "hour": 20,
+      "bpm": 58,
+      "category": "Intimacy"
+    },
+    {
+      "title": "Die Blüten",
+      "scene": "Главная вечерняя ритуальная глава. Оригинальная композиция уже опубликована в RadiOM.",
+      "intent": "Дать вечеру эмоциональную драматургию, пульсацию и более выразительный музыкальный жест.",
+      "sound": "Контрастная электроника с ритуальным напряжением; низ, гранулы, пространство, изменяющаяся плотность.",
+      "shape": "Медленный захват внимания, сгущение текстур, выразительное позднее развитие. Дополнительный трек должен расширять, а не копировать оригинал.",
+      "suno": "Create a NEW original companion piece for an evening ritual at approximately 108 BPM, not a remake of any existing track. Solemn hypnotic electronic music: muscular restrained low-end, analog dust, granular insect-like motion, bowed-cello shadows, spatial whispers of texture, and asymmetrical percussive gestures. Begin with a long mysterious introduction; increase density in contrasting waves with one sudden but brief structural rupture, then resolve into an extraordinary dark flowering of harmonics. Optional rare wordless female vocal particles, never lyrical foreground. No guitar, no simple piano droplets, no cheerful melodies, no predictable EDM drop. Deep stereo movement and precise dynamic contrast.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 108 BPM. Intended role: intimacy.",
+      "hour": 21,
+      "bpm": 108,
+      "category": "Intimacy"
+    },
+    {
+      "title": "Растворение",
+      "scene": "Поздний вечер. После насыщенных переживаний музыка вновь освобождает пространство.",
+      "intent": "Перевести внимание от внешней активности к спокойной, менее структурированной среде.",
+      "sound": "Растянутый низкочастотный слой, едва различимые струны, шум воздуха, исчезающий пульс.",
+      "shape": "Последние следы ритма растворяются в протяжённых звуках.",
+      "suno": "Late-night dissolution at 48 BPM, transition out of human activity into stillness. Large soft drones, low bowed-string overtones, fading analog grains, distant air and a disappearing heartbeat-like pulse. Begin with fragments of an earlier rhythm, slowly let them lose edges and meaning, then suspend the music in silence-rich harmony. Slightly dark but never threatening. No melody in the foreground, no sung words, no percussion accents that wake the listener, no bright bells. A slow exit from desire into spacious quiet, loop-friendly final resonance.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 48 BPM. Intended role: rest.",
+      "hour": 22,
+      "bpm": 48,
+      "category": "Rest"
+    },
+    {
+      "title": "Тёмная материя",
+      "scene": "Пограничная точка перед новой ночью. Радио замыкает суточное кольцо.",
+      "intent": "Завершить цикл без финального аккорда: звук должен естественно перетечь в 00:00.",
+      "sound": "Суббасовый дрон, приглушённые аналоговые струны, почти незаметные шумовые детали.",
+      "shape": "Очень медленное разрежение до ткани, совместимой с первым ночным треком.",
+      "suno": "Dark-matter midnight passage at 42 BPM, instrumental and nearly beatless. Low soft sine pressure, heavily filtered analog strings, distant granular specks, a slow subharmonic tide and barely audible tape air. This is the final threshold of a 24-hour musical cycle, so do not conclude with a chord or dramatic closure. Gradually remove upper harmonics, widen the distance between events, leave a rounded low drone that can crossfade into a new night track at 00:00. No vocals, no piano melody, no abrupt transient, no triumph. Endless and quietly mysterious.  Production directive: original composition with a clear 6-minute target (use Suno Extend and arrange sections if needed); high-detail evolving sound design, professional dynamic control, no abrupt loop boundary; leave headroom and avoid mastering-limiter pumping. Soundtrack function matters more than a catchy hook. Tempo target 42 BPM. Intended role: sleep.",
+      "hour": 23,
+      "bpm": 42,
+      "category": "Sleep"
+    }
+  ]
+}
